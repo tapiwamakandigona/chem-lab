@@ -1,0 +1,147 @@
+import { create } from 'zustand'
+
+// Quality tiers for low-end device support (Zimbabwe context)
+export const QUALITY = { LOW: 'low', MED: 'med', HIGH: 'high' }
+
+// Detect device capability on first load
+function detectQuality() {
+  const gpu = navigator.hardwareConcurrency ?? 2
+  const memory = navigator.deviceMemory ?? 2
+  if (gpu <= 2 || memory <= 1) return QUALITY.LOW
+  if (gpu <= 4 || memory <= 4) return QUALITY.MED
+  return QUALITY.HIGH
+}
+
+export const useLabStore = create((set, get) => ({
+  // --- experiment selection ---
+  experiment: null, // null = menu, 'titration' | 'clock' | 'enthalpy'
+  setExperiment: (e) => set({ experiment: e }),
+
+  // --- quality / rendering ---
+  quality: detectQuality(),
+  setQuality: (q) => set({ quality: q }),
+
+  // --- titration state ---
+  titration: {
+    preset: 's22', // 's22' = carboxylic acid/NaOH | 's21' = FeSO4/KMnO4
+    buretteVolume: 50.00,   // cm3 total capacity
+    buretteReading: 0.00,   // cm3 dispensed (reads to 0.05)
+    initialReading: 0.00,
+    flaskVolume: 25.00,     // pipette volume (fixed)
+    indicatorColor: [0.95, 0.95, 0.95, 0.85], // RGBA — changes at endpoint
+    endpointReached: false,
+    titreValues: [],        // array of completed titre cm3 values
+    phase: 'setup',         // 'setup' | 'running' | 'endpoint' | 'complete'
+  },
+  titrationDispense: (delta) => set((s) => {
+    const t = s.titration
+    const newReading = Math.min(50.00, Math.round((t.buretteReading + delta) * 20) / 20)
+    const dispensed = newReading - t.initialReading
+
+    // Presets define endpoint titre
+    const endpointTitre = TITRATION_PRESETS[t.preset]?.endpointTitre ?? 25.0
+    const nearEnd = dispensed >= endpointTitre - 0.5
+    const atEnd = dispensed >= endpointTitre
+
+    // Indicator color: clear → pink (s22 phenolphthalein) or clear → purple (s21 KMnO4)
+    const isRedox = t.preset === 's21'
+    let color = t.indicatorColor
+    if (atEnd) {
+      color = isRedox ? [0.58, 0.0, 0.83, 0.9] : [1.0, 0.41, 0.71, 0.85]
+    } else if (nearEnd) {
+      const f = (dispensed - (endpointTitre - 0.5)) / 0.5
+      color = isRedox
+        ? [0.58*f, 0.0, 0.83*f, 0.5*f + 0.2]
+        : [1.0, 0.41+0.54*(1-f), 0.71+0.29*(1-f), f*0.65 + 0.2]
+    }
+
+    return {
+      titration: {
+        ...t,
+        buretteReading: newReading,
+        indicatorColor: color,
+        endpointReached: atEnd,
+        phase: atEnd ? 'endpoint' : t.phase === 'setup' ? 'running' : t.phase,
+      }
+    }
+  }),
+  titrationReset: () => set((s) => ({
+    titration: {
+      ...s.titration,
+      buretteReading: 0.00,
+      initialReading: 0.00,
+      indicatorColor: [0.95, 0.95, 0.95, 0.85],
+      endpointReached: false,
+      phase: 'setup',
+    }
+  })),
+  titrationRecordTitre: () => set((s) => {
+    const t = s.titration
+    const titre = Math.round((t.buretteReading - t.initialReading) * 20) / 20
+    return {
+      titration: {
+        ...t,
+        titreValues: [...t.titreValues, titre],
+        initialReading: t.buretteReading,
+        indicatorColor: [0.95, 0.95, 0.95, 0.85],
+        endpointReached: false,
+        phase: 'setup',
+      }
+    }
+  }),
+  setTitrationPreset: (preset) => set((s) => ({
+    titration: {
+      ...s.titration,
+      preset,
+      buretteReading: 0.00,
+      initialReading: 0.00,
+      indicatorColor: [0.95, 0.95, 0.95, 0.85],
+      endpointReached: false,
+      titreValues: [],
+      phase: 'setup',
+    }
+  })),
+}))
+
+export const TITRATION_PRESETS = {
+  s22: {
+    label: 'S22 — Carboxylic Acid vs NaOH',
+    acidLabel: 'Carboxylic acid (10.50 g/dm³)',
+    alkaliLabel: 'NaOH (0.110 mol/dm³)',
+    indicator: 'Phenolphthalein',
+    endpointColor: 'Colourless → permanent pink',
+    endpointTitre: 23.85, // representative value from s22 qp
+    concentration: {
+      alkali: 0.110,
+      acidConc_g_dm3: 10.50,
+    },
+    instructions: [
+      'Fill burette with NaOH (0.110 mol/dm³) to 0.00 cm³',
+      'Pipette 25.00 cm³ of carboxylic acid into conical flask',
+      'Add 3 drops of phenolphthalein indicator',
+      'Add NaOH from burette, swirling continuously',
+      'Stop at first permanent pink colour (≥30 s)',
+      'Record titre to nearest 0.05 cm³',
+    ]
+  },
+  s21: {
+    label: 'S21 — FeSO₄ vs KMnO₄ (Redox)',
+    acidLabel: 'FeSO₄·xH₂O (26.52 g/dm³)',
+    alkaliLabel: 'KMnO₄ (0.0200 mol/dm³)',
+    indicator: 'Self-indicating (KMnO₄)',
+    endpointColor: 'Colourless → permanent purple/pink',
+    endpointTitre: 24.60,
+    concentration: {
+      KMnO4: 0.0200,
+      FeSO4_g_dm3: 26.52,
+    },
+    instructions: [
+      'Fill burette with KMnO₄ (0.0200 mol/dm³) to 0.00 cm³',
+      'Pipette 25.00 cm³ of FeSO₄ solution into conical flask',
+      'Add ~10 cm³ dilute H₂SO₄ (acidify)',
+      'Add KMnO₄ from burette, swirling continuously',
+      'Stop at first permanent purple/pink colour (≥30 s)',
+      'Record titre to nearest 0.05 cm³',
+    ]
+  },
+}
