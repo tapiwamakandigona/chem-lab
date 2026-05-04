@@ -15,7 +15,7 @@ const EXPERIMENTS = [
     title: 'Iodine Clock Reaction',
     desc: 'Rate = 1000/time, turbidity simulation, cross obscured method. Preset: S23',
     papers: ['9701/31/M/J/23'],
-    available: false,
+    available: true,
   },
   {
     id: 'enthalpy',
@@ -23,7 +23,7 @@ const EXPERIMENTS = [
     title: 'Enthalpy of Solution',
     desc: 'Calorimetry, q=mcΔT (4.2 J/cm³/°C), Na₂CO₃ dissolution. Preset: S20',
     papers: ['9701/31/M/J/20'],
-    available: false,
+    available: true,
   },
 ]
 

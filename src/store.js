@@ -101,7 +101,98 @@ export const useLabStore = create((set, get) => ({
       phase: 'setup',
     }
   })),
+
+  // --- clock reaction state ---
+  clock: {
+    phase: 'setup', // 'setup' | 'running' | 'complete'
+    timerMs: 0,
+    currentConc: 0.100,
+    hclConc: 2.00,
+    results: [], // [{conc, time, rate}]
+  },
+  clockStart: () => set((s) => ({
+    clock: { ...s.clock, phase: 'running', timerMs: 0 }
+  })),
+  clockStop: () => set((s) => ({
+    clock: { ...s.clock, phase: 'complete' }
+  })),
+  clockTick: (ms) => set((s) => ({
+    clock: { ...s.clock, timerMs: s.clock.timerMs + ms }
+  })),
+  clockReset: () => set((s) => ({
+    clock: { ...s.clock, phase: 'setup', timerMs: 0 }
+  })),
+  clockRecordResult: () => set((s) => {
+    const { timerMs, currentConc, results } = s.clock
+    const timeSec = timerMs / 1000
+    const rate = timeSec > 0 ? 1000 / timeSec : 0
+    return {
+      clock: {
+        ...s.clock,
+        phase: 'setup',
+        timerMs: 0,
+        results: [...results, { conc: currentConc, time: timeSec, rate }],
+      }
+    }
+  }),
+  setClockConc: (conc) => set((s) => ({
+    clock: { ...s.clock, currentConc: conc }
+  })),
+  setClockHclConc: (conc) => set((s) => ({
+    clock: { ...s.clock, hclConc: conc }
+  })),
+  clearClockResults: () => set((s) => ({
+    clock: { ...s.clock, results: [] }
+  })),
+
+  // --- enthalpy state ---
+  enthalpy: {
+    phase: 'setup', // 'setup' | 'running' | 'complete'
+    mass: 5.30,     // grams of Na2CO3
+    volume: 25.0,   // cm3 of water
+    T1: 22.0,       // initial temperature °C
+    T2: 22.0,       // final temperature °C (animates)
+    targetT2: 22.0, // what T2 animates toward
+  },
+  setEnthalpyMass: (mass) => set((s) => ({ enthalpy: { ...s.enthalpy, mass } })),
+  setEnthalpyVolume: (volume) => set((s) => ({ enthalpy: { ...s.enthalpy, volume } })),
+  setEnthalpyT1: (T1) => set((s) => ({ enthalpy: { ...s.enthalpy, T1, T2: T1, targetT2: T1 } })),
+  enthalpyStart: () => set((s) => {
+    // Simulate realistic ΔT: exothermic, ~+5°C base + some variation based on mass
+    const dt = 4.0 + (s.enthalpy.mass / 5.30) * 2.0
+    return {
+      enthalpy: {
+        ...s.enthalpy,
+        phase: 'running',
+        T2: s.enthalpy.T1,
+        targetT2: s.enthalpy.T1 + dt,
+      }
+    }
+  }),
+  enthalpyTickT2: (newT2) => set((s) => ({
+    enthalpy: { ...s.enthalpy, T2: newT2 }
+  })),
+  enthalpyComplete: () => set((s) => ({
+    enthalpy: { ...s.enthalpy, phase: 'complete', T2: s.enthalpy.targetT2 }
+  })),
+  enthalpyReset: () => set((s) => ({
+    enthalpy: {
+      ...s.enthalpy,
+      phase: 'setup',
+      T2: s.enthalpy.T1,
+      targetT2: s.enthalpy.T1,
+    }
+  })),
 }))
+
+export function getEnthalpyCalc(enthalpy) {
+  const { mass, volume, T1, T2 } = enthalpy
+  const deltaT = T2 - T1
+  const q = volume * 4.2 * deltaT
+  const moles = mass / 106
+  const deltaHkJ = moles > 0 ? (-q / moles) / 1000 : 0
+  return { deltaT, q, moles, deltaHkJ }
+}
 
 export const TITRATION_PRESETS = {
   s22: {

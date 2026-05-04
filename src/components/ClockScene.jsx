@@ -1,0 +1,182 @@
+import { useRef, useMemo, useEffect } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { RoundedBox, Text } from '@react-three/drei'
+import * as THREE from 'three'
+import { useLabStore } from '../store.js'
+
+function LabBench() {
+  return (
+    <group position={[0, -0.05, 0]}>
+      <RoundedBox args={[3.2, 0.06, 1.4]} radius={0.01} position={[0, 0, 0]}>
+        <meshStandardMaterial color="#1e3a4a" roughness={0.4} metalness={0.1} />
+      </RoundedBox>
+      {[[-1.4,-0.4,-0.6],[1.4,-0.4,-0.6],[-1.4,-0.4,0.6],[1.4,-0.4,0.6]].map(([x,y,z],i) => (
+        <mesh key={i} position={[x,y,z]}>
+          <boxGeometry args={[0.06, 0.7, 0.06]} />
+          <meshStandardMaterial color="#0f172a" roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// Beaker with label
+function Beaker({ position, label, liquidColor = [0.8, 0.9, 1.0, 0.3] }) {
+  const [r,g,b,a] = liquidColor
+  const color = useMemo(() => new THREE.Color(r,g,b), [r,g,b])
+  return (
+    <group position={position}>
+      {/* Beaker walls */}
+      <mesh>
+        <cylinderGeometry args={[0.055, 0.048, 0.14, 24, 1, true]} />
+        <meshPhysicalMaterial color="#b8d4ff" transparent opacity={0.18} roughness={0} transmission={0.9} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Beaker base */}
+      <mesh position={[0, -0.07, 0]}>
+        <cylinderGeometry args={[0.048, 0.048, 0.006, 24]} />
+        <meshPhysicalMaterial color="#b8d4ff" transparent opacity={0.22} roughness={0} />
+      </mesh>
+      {/* Liquid */}
+      <mesh position={[0, -0.03, 0]}>
+        <cylinderGeometry args={[0.044, 0.038, 0.07, 20]} />
+        <meshPhysicalMaterial color={color} transparent opacity={a} roughness={0.05} />
+      </mesh>
+      {/* Label */}
+      <Text
+        position={[0, 0.11, 0]}
+        fontSize={0.022}
+        color="#94a3b8"
+        anchorX="center"
+        anchorY="bottom"
+      >
+        {label}
+      </Text>
+    </group>
+  )
+}
+
+// White paper with black cross underneath the flask
+function CrossPaper({ crossOpacity }) {
+  // crossOpacity: 1 = fully visible, 0 = fully hidden
+  return (
+    <group position={[0, 0.001, 0.05]}>
+      {/* White paper */}
+      <mesh>
+        <boxGeometry args={[0.28, 0.003, 0.22]} />
+        <meshStandardMaterial color="#f8fafc" roughness={0.8} />
+      </mesh>
+      {/* Horizontal bar of cross */}
+      <mesh position={[0, 0.003, 0]}>
+        <boxGeometry args={[0.09, 0.001, 0.016]} />
+        <meshStandardMaterial color={`rgba(0,0,0,${crossOpacity})`} roughness={1} transparent opacity={crossOpacity} />
+      </mesh>
+      {/* Vertical bar of cross */}
+      <mesh position={[0, 0.003, 0]}>
+        <boxGeometry args={[0.016, 0.001, 0.09]} />
+        <meshStandardMaterial color="#000000" roughness={1} transparent opacity={crossOpacity} />
+      </mesh>
+    </group>
+  )
+}
+
+// Conical flask with turbidity animation
+function ClockFlask({ turbidity }) {
+  // turbidity: 0 = clear, 1 = opaque white
+  const color = useMemo(() => {
+    return new THREE.Color(
+      0.7 + turbidity * 0.3,
+      0.85 + turbidity * 0.15,
+      0.9 + turbidity * 0.1
+    )
+  }, [turbidity])
+
+  const opacity = 0.22 + turbidity * 0.75
+  const roughness = turbidity * 0.8
+
+  return (
+    <group position={[0, 0.08, 0.05]}>
+      {/* Flask body */}
+      <mesh>
+        <coneGeometry args={[0.14, 0.22, 28, 1, true]} />
+        <meshPhysicalMaterial
+          color={color}
+          transparent
+          opacity={Math.min(opacity, 0.97)}
+          roughness={roughness}
+          transmission={Math.max(0, 0.75 - turbidity * 0.75)}
+          thickness={0.015}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Flask neck */}
+      <mesh position={[0, 0.16, 0]}>
+        <cylinderGeometry args={[0.025, 0.025, 0.1, 18, 1, true]} />
+        <meshPhysicalMaterial color="#b8d4ff" transparent opacity={0.22} roughness={0} transmission={0.9} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Liquid */}
+      <mesh position={[0, -0.04, 0]}>
+        <cylinderGeometry args={[0.12, 0.02, 0.1, 24]} />
+        <meshPhysicalMaterial
+          color={color}
+          transparent
+          opacity={Math.min(0.4 + turbidity * 0.55, 0.95)}
+          roughness={roughness}
+        />
+      </mesh>
+    </group>
+  )
+}
+
+export default function ClockScene() {
+  const { clock, clockTick, clockStop } = useLabStore()
+  const turbidityRef = useRef(0)
+  const lastTimeRef = useRef(null)
+  const turbidityMeshRef = useRef(null)
+
+  // Simulate turbidity: at current conc, endpoint time varies
+  // At 0.100 mol/dm3 => ~40s, at 0.020 => ~200s
+  const endpointTime = clock.currentConc > 0
+    ? (0.004 / clock.currentConc) * 1000  // ms: 4000ms / conc => at 0.1: 40s
+    : 40000
+
+  useFrame((_, delta) => {
+    if (clock.phase !== 'running') {
+      turbidityRef.current = 0
+      return
+    }
+    // Increment timer
+    clockTick(delta * 1000)
+
+    // Update turbidity based on elapsed time
+    const t = clock.timerMs / endpointTime
+    turbidityRef.current = Math.min(1, t)
+
+    // Auto-stop when cross fully obscured (~85% turbidity = cross gone)
+    if (turbidityRef.current >= 0.98) {
+      clockStop()
+    }
+  })
+
+  const turbidity = clock.phase === 'running' ? turbidityRef.current : (clock.phase === 'complete' ? 0.98 : 0)
+  const crossOpacity = Math.max(0, 1 - turbidity / 0.85)
+
+  return (
+    <group>
+      <LabBench />
+      <CrossPaper crossOpacity={crossOpacity} />
+      <ClockFlask turbidity={turbidity} />
+      {/* Na2S2O3 beaker - left */}
+      <Beaker
+        position={[-0.65, 0.07, 0.05]}
+        label="Na₂S₂O₃"
+        liquidColor={[0.85, 0.95, 1.0, 0.25]}
+      />
+      {/* HCl beaker - right */}
+      <Beaker
+        position={[0.65, 0.07, 0.05]}
+        label="HCl"
+        liquidColor={[0.9, 0.95, 0.85, 0.25]}
+      />
+    </group>
+  )
+}

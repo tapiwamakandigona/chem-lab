@@ -5,6 +5,11 @@ import { useLabStore, QUALITY } from './store.js'
 import ExperimentMenu from './components/ExperimentMenu.jsx'
 import TitrationScene from './components/TitrationScene.jsx'
 import TitrationUI from './components/TitrationUI.jsx'
+import ClockScene from './components/ClockScene.jsx'
+import ClockUI from './components/ClockUI.jsx'
+import EnthalpyScene from './components/EnthalpyScene.jsx'
+import EnthalpyUI from './components/EnthalpyUI.jsx'
+import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 
 function LabCanvas({ children, quality }) {
@@ -40,6 +45,7 @@ function LabCanvas({ children, quality }) {
 
 export default function App() {
   const { experiment, setExperiment, quality } = useLabStore()
+  const [showTitrationCalc, setShowTitrationCalc] = useState(false)
 
   return (
     <div className="relative w-full h-full bg-lab-bg overflow-hidden">
@@ -53,27 +59,25 @@ export default function App() {
             <TitrationScene />
           </LabCanvas>
           <TitrationUI onBack={() => setExperiment(null)} />
+          {showTitrationCalc && <CalcSheet experiment="titration" onClose={() => setShowTitrationCalc(false)} />}
         </>
       )}
 
-      {/* More experiments: clock, enthalpy — coming in Phase 2/3 */}
-      {(experiment === 'clock' || experiment === 'enthalpy') && (
+      {experiment === 'clock' && (
         <>
           <LabCanvas quality={quality}>
-            <mesh>
-              <boxGeometry args={[1,1,1]} />
-              <meshStandardMaterial color="#334155" />
-            </mesh>
+            <ClockScene />
           </LabCanvas>
-          <div className="absolute top-4 left-4 z-10">
-            <button
-              onClick={() => setExperiment(null)}
-              className="px-3 py-1.5 bg-lab-panel border border-lab-border rounded text-sm text-lab-muted hover:text-lab-ink"
-            >
-              ← Back
-            </button>
-            <p className="mt-3 text-lab-muted text-sm">Coming soon — Phase 2/3</p>
-          </div>
+          <ClockUI onBack={() => setExperiment(null)} />
+        </>
+      )}
+
+      {experiment === 'enthalpy' && (
+        <>
+          <LabCanvas quality={quality}>
+            <EnthalpyScene />
+          </LabCanvas>
+          <EnthalpyUI onBack={() => setExperiment(null)} />
         </>
       )}
     </div>
