@@ -1,16 +1,83 @@
-# React + Vite
+# ChemLab ZW ⚗️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A virtual chemistry lab built for **Cambridge AS/A Level Chemistry (9701)** students — particularly those without access to physical lab equipment. Simulates three Paper 3 practical experiments with interactive 3D apparatus, step-by-step procedures, and live worked calculations.
 
-Currently, two official plugins are available:
+## Experiments
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Experiment | Paper | Description |
+|---|---|---|
+| **Acid-Base & Redox Titration** | 9701/31/M/J/22 & /21 | Burette, pipette, conical flask — S22 carboxylic acid/NaOH and S21 FeSO₄/KMnO₄ presets |
+| **Iodine Clock Reaction** | 9701/31/M/J/23 | Rate = 1000/time, turbidity simulation, cross-obscured method |
+| **Enthalpy of Solution** | 9701/31/M/J/20 | Calorimetry with q = mcΔT, Na₂CO₃ dissolution |
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 🧪 Interactive 3D lab scenes (React Three Fiber + Three.js)
+- 📊 Live worked calculations (moles, concentrations, ΔH)
+- 📝 Concordant titre detection and mean calculation
+- 📱 Quality presets (Low/Med/High) for mobile & low-end devices
+- 🎨 Dark lab-themed UI with Tailwind CSS
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **React 19** — UI framework
+- **Three.js / React Three Fiber / Drei** — 3D rendering
+- **Zustand** — state management
+- **Tailwind CSS 3** — styling
+- **Vite 8** — build tool
+- **GSAP** — animation (available, not yet heavily used)
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Lint
+npm run lint
+```
+
+## Project Structure
+
+```
+src/
+├── main.jsx                  # Entry point
+├── App.jsx                   # Root — experiment selection & canvas routing
+├── store.js                  # Zustand store (titration, clock, enthalpy state)
+├── store/
+│   └── labStore.js           # Alternative store (apparatus-level titration logic)
+├── components/
+│   ├── ExperimentMenu.jsx    # Landing screen — experiment picker + quality toggle
+│   ├── TitrationScene.jsx    # 3D titration apparatus (burette, flask, pipette)
+│   ├── TitrationUI.jsx       # Titration controls & readings overlay
+│   ├── ClockScene.jsx        # 3D clock reaction (beakers, cross paper, flask)
+│   ├── ClockUI.jsx           # Clock reaction timer & results panel
+│   ├── EnthalpyScene.jsx     # 3D enthalpy setup (cup, balance, thermometer)
+│   ├── EnthalpyUI.jsx        # Enthalpy inputs & live calculation panel
+│   ├── CalcSheet.jsx         # Worked calculations overlay (all experiments)
+│   ├── LoadingScreen.jsx     # Loading spinner
+│   ├── apparatus/            # Standalone 3D apparatus components
+│   │   ├── Burette.jsx
+│   │   ├── ConicalFlask.jsx
+│   │   └── Pipette.jsx
+│   └── ui/
+│       ├── HUD.jsx           # Top bar, toast, help overlay
+│       └── TitrationPanel.jsx # Step-by-step titration procedure panel
+├── scenes/
+│   └── TitrationScene.jsx    # Alternative full-scene titration layout
+├── lib/
+│   └── chemistry/
+│       └── titration.js      # Pure chemistry calculations (endpoint, mean titre)
+├── index.css                 # Global styles + Tailwind directives
+└── App.css                   # Legacy boilerplate styles (unused)
+```
+
+## License
+
+ISC
