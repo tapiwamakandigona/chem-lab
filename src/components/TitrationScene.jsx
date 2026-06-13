@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { RoundedBox, Cylinder, Text } from '@react-three/drei'
+import { RoundedBox, Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useLabStore } from '../store.js'
 
@@ -50,7 +50,6 @@ function RetortStand() {
 function Burette({ reading }) {
   const liquidRef = useRef()
   const fillFraction = 1 - reading / 50.0
-  const liquidHeight = fillFraction * 0.72
 
   useFrame(() => {
     if (liquidRef.current) {

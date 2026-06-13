@@ -31,14 +31,15 @@ export default function CalcSheet({ experiment, onClose }) {
   )
 }
 
-function Row({ label, value, highlight }) {
-  return (
-    <div className={`flex justify-between items-baseline py-1.5 border-b border-lab-border/40 ${highlight ? 'text-lab-success' : ''}`}>
-      <span className="text-lab-muted text-xs">{label}</span>
-      <span className="font-mono text-sm text-lab-ink">{value}</span>
-    </div>
-  )
-}
+// Reusable row component for future calculation displays
+// function Row({ label, value, highlight }) {
+//   return (
+//     <div className={`flex justify-between items-baseline py-1.5 border-b border-lab-border/40 ${highlight ? 'text-lab-success' : ''}`}>
+//       <span className="text-lab-muted text-xs">{label}</span>
+//       <span className="font-mono text-sm text-lab-ink">{value}</span>
+//     </div>
+//   )
+// }
 
 function Step({ n, text, calc }) {
   return (

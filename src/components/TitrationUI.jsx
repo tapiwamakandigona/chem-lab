@@ -1,4 +1,5 @@
-import { useState } from 'react'
+// Note: useState removed — previously used for touch/hold state (future feature)
+
 import { useLabStore, TITRATION_PRESETS } from '../store.js'
 
 function ReadingDisplay({ label, value, unit = 'cm³' }) {
@@ -20,9 +21,6 @@ export default function TitrationUI({ onBack }) {
 
   const preset = TITRATION_PRESETS[titration.preset]
   const titre = Math.round((titration.buretteReading - titration.initialReading) * 20) / 20
-
-  // Touch/hold state for fast drip
-  const [holding, setHolding] = useState(false)
 
   const dispense = (amount) => {
     if (titration.endpointReached) return
@@ -61,7 +59,7 @@ export default function TitrationUI({ onBack }) {
           onChange={(e) => setTitrationPreset(e.target.value)}
           className="text-xs bg-lab-panel border border-lab-border text-lab-ink rounded px-1.5 py-1"
         >
-          {Object.entries(TITRATION_PRESETS).map(([k, v]) => (
+          {Object.entries(TITRATION_PRESETS).map(([k]) => (
             <option key={k} value={k}>{k.toUpperCase()}</option>
           ))}
         </select>

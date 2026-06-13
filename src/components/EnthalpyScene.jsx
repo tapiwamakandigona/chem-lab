@@ -21,7 +21,7 @@ function LabBench() {
 }
 
 // Digital balance
-function Balance({ mass }) {
+function Balance() {
   return (
     <group position={[0.7, 0.01, 0.1]}>
       {/* Body */}
@@ -128,7 +128,7 @@ export default function EnthalpyScene() {
       <LabBench />
       <PolystyreneCup />
       <Thermometer running={enthalpy.phase === 'running'} />
-      <Balance mass={enthalpy.mass} />
+      <Balance />
       <WeighingBoat />
     </group>
   )

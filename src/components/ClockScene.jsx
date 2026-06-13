@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Text } from '@react-three/drei'
 import * as THREE from 'three'
@@ -130,8 +130,6 @@ function ClockFlask({ turbidity }) {
 export default function ClockScene() {
   const { clock, clockTick, clockStop } = useLabStore()
   const turbidityRef = useRef(0)
-  const lastTimeRef = useRef(null)
-  const turbidityMeshRef = useRef(null)
 
   // Simulate turbidity: at current conc, endpoint time varies
   // At 0.100 mol/dm3 => ~40s, at 0.020 => ~200s

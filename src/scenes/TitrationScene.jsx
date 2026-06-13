@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Environment, ContactShadows, Grid } from '@react-three/drei'
-import { Suspense, useRef } from 'react'
+import { Suspense } from 'react'
 import { Burette } from '../components/apparatus/Burette'
 import { Pipette } from '../components/apparatus/Pipette'
 import { ConicalFlask } from '../components/apparatus/ConicalFlask'
