@@ -10,7 +10,8 @@ import ClockUI from './components/ClockUI.jsx'
 import EnthalpyScene from './components/EnthalpyScene.jsx'
 import EnthalpyUI from './components/EnthalpyUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
-import LoadingScreen from './components/LoadingScreen.jsx'
+// LoadingScreen available for future use:
+// import LoadingScreen from './components/LoadingScreen.jsx'
 
 function LabCanvas({ children, quality }) {
   const dpr = quality === QUALITY.LOW ? 1 : quality === QUALITY.MED ? 1.5 : Math.min(window.devicePixelRatio, 2)

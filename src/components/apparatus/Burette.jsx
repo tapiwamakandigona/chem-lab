@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
@@ -7,10 +7,8 @@ import { useLabStore } from '../../store/labStore'
 // Burette: 50 cm³, reads to 0.05 cm³
 // Scale: 1 unit ≈ 1 cm for apparatus sizing
 export function Burette({ position = [0, 0, 0] }) {
-  const dripsRef = useRef([])
-  const nextDripRef = useRef(0)
   const dripGroupRef = useRef()
-  const { titration, tickDispense, setDripping } = useLabStore()
+  const { titration, tickDispense } = useLabStore()
 
   // Tick animation frame for dispense
   useFrame((_, delta) => {

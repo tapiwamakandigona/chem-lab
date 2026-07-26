@@ -107,8 +107,7 @@ export const useLabStore = create((set, get) => ({
       // For acid/base: n(NaOH) = n(acid), monoprotic
       let n_analyte
       if (s.preset === 's22_titration') {
-        n_analyte = (10.50 / 60.05) * vol_a_dm3 * 1000 * vol_a_dm3
-        // Actually: conc = 10.50/60.05 mol/dm³ = 0.1748
+        // conc = 10.50/60.05 mol/dm³ ≈ 0.1748
         n_analyte = 0.1748 * vol_a_dm3
       } else if (s.preset === 's21_redox') {
         // MnO4- + 5Fe2+ + 8H+ → Mn2+ + 5Fe3+ + 4H2O  (ratio 1:5)

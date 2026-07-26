@@ -12,7 +12,7 @@ function detectQuality() {
   return QUALITY.HIGH
 }
 
-export const useLabStore = create((set, get) => ({
+export const useLabStore = create((set) => ({
   // --- experiment selection ---
   experiment: null, // null = menu, 'titration' | 'clock' | 'enthalpy'
   setExperiment: (e) => set({ experiment: e }),

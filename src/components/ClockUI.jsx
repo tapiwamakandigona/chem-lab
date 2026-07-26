@@ -32,7 +32,6 @@ export default function ClockUI({ onBack }) {
   function handleStop() {
     clearInterval(intervalRef.current)
     // Record result using the local displayMs
-    const timeSec = displayMs / 1000
     clockRecordResult(clock.currentConc, displayMs)
     clockStop()
   }
