@@ -1,6 +1,6 @@
-// Note: useState removed — previously used for touch/hold state (future feature)
-
+import { useState } from 'react'
 import { useLabStore, TITRATION_PRESETS } from '../store.js'
+import MeniscusPractice from './MeniscusPractice.jsx'
 
 function ReadingDisplay({ label, value, unit = 'cm³' }) {
   return (
@@ -19,6 +19,7 @@ export default function TitrationUI({ onBack }) {
     titrationRecordTitre, setTitrationPreset
   } = useLabStore()
 
+  const [showPractice, setShowPractice] = useState(false)
   const preset = TITRATION_PRESETS[titration.preset]
   const titre = Math.round((titration.buretteReading - titration.initialReading) * 20) / 20
 
@@ -145,7 +146,7 @@ export default function TitrationUI({ onBack }) {
       </div>
 
       {/* Right panel — reagent info (desktop) */}
-      <div className="hidden md:block absolute top-12 right-2 w-40 pointer-events-auto">
+      <div className="hidden md:flex absolute top-12 right-2 bottom-28 w-40 flex-col gap-2 pointer-events-auto overflow-y-auto">
         <div className="bg-lab-panel/90 backdrop-blur-sm border border-lab-border rounded-xl p-3 space-y-2">
           <p className="text-[10px] text-lab-muted uppercase tracking-wider">Reagents</p>
           <div>
@@ -162,6 +163,15 @@ export default function TitrationUI({ onBack }) {
             <p className="text-[10px] text-lab-muted mt-0.5">{preset.endpointColor}</p>
           </div>
         </div>
+
+        <button
+          onClick={() => setShowPractice((s) => !s)}
+          data-testid="meniscus-toggle"
+          className="w-full py-1.5 rounded-xl border border-lab-border bg-lab-panel/90 backdrop-blur-sm text-[11px] text-lab-muted hover:text-lab-ink shrink-0"
+        >
+          {showPractice ? 'Hide meniscus practice' : 'Practise reading the meniscus'}
+        </button>
+        {showPractice && <MeniscusPractice />}
       </div>
 
       {/* Bottom — dispense controls */}

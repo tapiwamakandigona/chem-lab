@@ -155,3 +155,17 @@
   surface disc (rough .05, envMapIntensity 1.8).
 - VERIFIED: lint 0, build green, titrate/clock/enthalpy gates exit 0,
   iter10 shots inspected — clock beakers + flask visibly glassier.
+
+## 2026-08-11 iter-11 (F10: meniscus-reading practice)
+- MeniscusPractice.jsx: SVG zoomed burette window (140 px/cm³, ticks 0.1,
+  labelled whole cm³, scale increases downwards, meniscus bezier dipping
+  to the true value). Random target on 0.05 grid; grades exact / close
+  (±0.05) / too high-low with directional hints; score tracker; New reading.
+- Toggle in titration right panel (desktop); self-contained, live burette
+  state untouched.
+- New gate probe/meniscus.py: reads data-target from SVG, asserts grading
+  of +0.30 / -0.05 / exact answers, score 1/3, input reset on re-randomise.
+- VERIFIED: lint 0, build green, meniscus.py exit 0, titrate/clock/
+  enthalpy/offline all exit 0, iter11-meniscus.png inspected.
+- Queue remaining: drag-to-pour interactions; mobile entry point for
+  meniscus practice.
