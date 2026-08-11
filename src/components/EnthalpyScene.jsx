@@ -6,6 +6,7 @@ import { useLabStore } from '../store.js'
 import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial } from './scene/glassware.jsx'
+import { BlobShadow } from './scene/props.jsx'
 
 /** Digital balance with live mass readout. */
 function Balance({ mass, boatLoaded }) {
@@ -145,6 +146,12 @@ export default function EnthalpyScene() {
   return (
     <group>
       <LabRoom />
+      <group position={[-0.08, BENCH_Y, 0.04]}>
+        <BlobShadow r={0.075} opacity={0.3} y={0.001} />
+      </group>
+      <group position={[0.3, BENCH_Y, 0.02]}>
+        <BlobShadow r={0.12} opacity={0.28} y={0.001} />
+      </group>
       <group position={[-0.08, BENCH_Y + 0.0545, 0.04]}>
         <CalorimeterCup
           running={enthalpy.phase !== 'setup'}

@@ -1,4 +1,5 @@
 import { RoundedBox } from '@react-three/drei'
+import { ReagentShelf, WallCabinets, BackCounter, CeilingLights, WashBottle, LabNotebook, AccentBeaker } from './props.jsx'
 
 /**
  * Shared lab room: epoxy-top bench, steel frame, floor, back wall.
@@ -43,6 +44,25 @@ export default function LabRoom() {
         <planeGeometry args={[14, 0.35]} />
         <meshStandardMaterial color="#3d7a99" roughness={1} />
       </mesh>
+
+      {/* Depth layers: back counter -> reagent shelf -> wall cabinets */}
+      <group position={[0, -0.85, 0]}>
+        <BackCounter />
+      </group>
+      <ReagentShelf y={0.55} />
+      <WallCabinets />
+      <CeilingLights />
+
+      {/* Bench dressing, kept clear of the working area (x=0) */}
+      <group position={[0.62, -0.015, -0.42]}>
+        <WashBottle />
+      </group>
+      <group position={[-0.72, -0.015, 0.18]} rotation={[0, -0.3, 0]}>
+        <LabNotebook />
+      </group>
+      <group position={[0.88, -0.015, 0.1]}>
+        <AccentBeaker />
+      </group>
     </group>
   )
 }

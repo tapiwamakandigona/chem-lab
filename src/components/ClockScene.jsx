@@ -6,6 +6,7 @@ import { useLabStore, CLOCK_TIME_SCALE, clockEndpointSec } from '../store.js'
 import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { BeakerGlass, GlassMaterial, LiquidMaterial } from './scene/glassware.jsx'
+import { BlobShadow } from './scene/props.jsx'
 
 function LabeledBeaker({ position, label, liquidColor, fill = 0.55 }) {
   return (
@@ -106,6 +107,7 @@ export default function ClockScene() {
     <group>
       <LabRoom />
       <group position={[0, BENCH_Y, 0.05]}>
+        <BlobShadow r={0.08} opacity={0.28} y={0.001} />
         <CrossPaper crossOpacity={crossOpacity} />
         <group position={[0, 0.007, 0]}>
           <Swirler active={clock.phase === 'running'}>

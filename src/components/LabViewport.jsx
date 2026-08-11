@@ -27,6 +27,8 @@ function LabCanvas({ children, quality, view }) {
       camera={{ position: cam.pos, fov: 42, near: 0.01, far: 50 }}
       style={{ position: 'absolute', inset: 0 }}
     >
+      {/* Aerial depth: background softens toward the wall colour */}
+      <fog attach="fog" args={['#dfe7ef', 3.2, 9]} />
       {/* Bright teaching-lab grade: warm key, cool sky fill, wall bounce */}
       <ambientLight intensity={0.55} color="#eef2f8" />
       <directionalLight

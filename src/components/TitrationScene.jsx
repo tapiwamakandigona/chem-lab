@@ -9,6 +9,7 @@ import {
   GlassMaterial, LiquidMaterial, ConicalFlaskGlass, PipetteLying,
   RetortStand, WhiteTile,
 } from './scene/glassware.jsx'
+import { BlobShadow } from './scene/props.jsx'
 
 /**
  * 50 cm³ Class B burette, origin at TOP of the graduated tube, tube along -y.
@@ -115,6 +116,37 @@ function Drop({ active, tipY, surfaceY }) {
   )
 }
 
+/** Endpoint colour-swirl: pink wisps spiral through the liquid while the
+ *  bulk colour lerps in over ~1.6 s — the classic permanent-pink moment. */
+function EndpointSwirl({ active }) {
+  const ref = useRef()
+  const startRef = useRef(null)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    if (!active) { startRef.current = null; ref.current.visible = false; return }
+    if (startRef.current === null) startRef.current = clock.getElapsedTime()
+    const t = clock.getElapsedTime() - startRef.current
+    const life = Math.min(t / 1.6, 1)
+    ref.current.visible = life < 1
+    ref.current.rotation.y = t * 2.4
+    ref.current.children.forEach((m, i) => {
+      m.material.opacity = 0.55 * (1 - life)
+      m.position.y = 0.02 + 0.05 * life + i * 0.008
+      m.scale.setScalar(0.6 + life * 0.9 + i * 0.12)
+    })
+  })
+  return (
+    <group ref={ref} visible={false}>
+      {[0, 1, 2].map((i) => (
+        <mesh key={i} rotation={[Math.PI / 2, 0, (i * Math.PI * 2) / 3]} position={[0, 0.02, 0]}>
+          <torusGeometry args={[0.018, 0.005, 8, 24, Math.PI * 1.2]} />
+          <meshBasicMaterial color="#f26bb0" transparent opacity={0.55} depthWrite={false} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
 /** Swirl: gentle rotation of the flask liquid while titrating. */
 function useSwirl(groupRef, active) {
   useFrame(({ clock }) => {
@@ -159,7 +191,9 @@ export default function TitrationScene() {
             liquidOpacity={liquidOpacity}
             fill={0.4}
           />
+          <EndpointSwirl active={titration.endpointReached} />
         </group>
+        <BlobShadow r={0.085} opacity={0.3} y={0.009} />
         {/* endpoint glow cue */}
         {titration.endpointReached && (
           <pointLight position={[0, 0.1, 0.08]} intensity={0.08} distance={0.22} color="#ff9ecb" />
@@ -168,6 +202,9 @@ export default function TitrationScene() {
       {/* stand grips the burette directly above the flask */}
       <group position={[0, BENCH_Y, 0]}>
         <RetortStand height={1.05} clampY={BUR_TOP - 0.1 - BENCH_Y} rodOffset={[0.16, -0.11]} />
+        <group position={[0.16, 0, -0.11]}>
+          <BlobShadow r={0.16} opacity={0.28} />
+        </group>
       </group>
       <group position={[0, BUR_TOP, 0]}>
         <Burette reading={titration.buretteReading} />

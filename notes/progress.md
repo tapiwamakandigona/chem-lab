@@ -107,3 +107,17 @@
   content-fraction > 0.5 (75 s timeout). Never conclude 'blank/broken'
   from one fixed-delay screenshot; dbg5.py confirms with 8/16/30 s series.
 - VERIFIED: lint clean, build green, desktop + mobile probes all render.
+
+## 2026-08-11 iter-7 (F5 look pass 1: set-dressing + grounding + swirl)
+- scene/props.jsx: ReagentShelf (10 varied bottles), WallCabinets,
+  BackCounter, CeilingLights, WashBottle, LabNotebook, AccentBeaker,
+  BlobShadow (radial CanvasTexture — grounds apparatus at every quality,
+  since shadow maps only run on HIGH).
+- LabRoom wires the set; fog('#dfe7ef', 3.2, 9) for aerial depth.
+- Titration EndpointSwirl: 3 pink torus wisps spiral + fade over 1.6 s at
+  endpoint (colour-swirl queue item done).
+- VERIFIED: lint 0, build green, offline probe all scenes (frac>0.99 at
+  15 s), gates titrate/clock/enthalpy all exit 0.
+- Critique for iter-8: clock+enthalpy cameras drown in black bench void;
+  clock tile blob pokes out as stray ring; enthalpy blobs read as stains;
+  bench could be a touch lighter.
