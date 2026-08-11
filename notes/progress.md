@@ -64,3 +64,18 @@
   → 23.85 endpoint, UI "Endpoint reached", flask pink (f2-endpoint.png).
   Endpoint pointLight cut 0.6→0.08 (was flooding the bench pink).
 - VERIFIED: lint clean, build green, network-blocked probe renders.
+
+## 2026-08-11 iter-4 (clock reaction: model + scene + gate)
+- BUG FOUND: endpoint formula `(0.004/conc)*1000` = 40 MILLISECONDS at
+  0.100 M (comment claimed 40 s) — reaction ended on frame 1. Also two
+  desynced timers (store frame-ticks vs ClockUI Date.now interval).
+- Fix: store owns time. CLOCK_TIME_SCALE=5 (sim time), K_CLOCK=4.0 =>
+  t=4.0/[S2O3] s (0.100→40s, 0.020→200s sim). ClockUI displays store
+  timerMs; Stop early = record what you saw; auto-stop CLAMPS timerMs to
+  endpoint so slow frames can't inflate readings. Re-run of a conc replaces
+  its row. Scene: griffin reaction beaker (turbidity lerp #dceff8→#f3f0d8 +
+  pow(p,1.8), cross fades pow(p,2.6) — "suddenly gone" feel), swirl,
+  labeled reagent beakers w/ outlined Text.
+- F3 gate probe/clock.py ALL PASS: 40.0s & 100.0s recorded, ratio 2.5,
+  table rows rate=1000/t exact. VERIFIED lint+build green.
+- Critique: clock camera too shallow (bench void dominates); steepened.

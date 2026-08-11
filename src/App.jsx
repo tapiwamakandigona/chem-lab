@@ -19,8 +19,8 @@ import CalcSheet from './components/CalcSheet.jsx'
  */
 const CAMERAS = {
   titration: { pos: [-0.68, 0.52, 1.55], target: [0.14, 0.4, 0] },
-  clock: { pos: [-0.35, 0.55, 1.25], target: [0, 0.12, 0.05] },
-  enthalpy: { pos: [-0.45, 0.5, 1.3], target: [0.1, 0.12, 0.05] },
+  clock: { pos: [-0.28, 0.52, 0.72], target: [0, 0.03, 0.02] },
+  enthalpy: { pos: [-0.4, 0.42, 0.85], target: [0.12, 0.08, 0.05] },
 }
 
 function LabCanvas({ children, quality, view }) {

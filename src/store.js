@@ -103,9 +103,12 @@ export const useLabStore = create((set) => ({
   })),
 
   // --- clock reaction state ---
+  // Time runs at CLOCK_TIME_SCALE x real time so recorded values are
+  // realistic (t = 4.0/[S2O3] seconds: 0.100 M -> 40 s) without making the
+  // student wait 200 real seconds at 0.020 M.
   clock: {
     phase: 'setup', // 'setup' | 'running' | 'complete'
-    timerMs: 0,
+    timerMs: 0,     // SIMULATED elapsed ms (already time-scaled)
     currentConc: 0.100,
     hclConc: 2.00,
     results: [], // [{conc, time, rate}]
@@ -113,8 +116,14 @@ export const useLabStore = create((set) => ({
   clockStart: () => set((s) => ({
     clock: { ...s.clock, phase: 'running', timerMs: 0 }
   })),
-  clockStop: () => set((s) => ({
-    clock: { ...s.clock, phase: 'complete' }
+  // clampMs: auto-stop passes the true endpoint time so slow frames (cheap
+  // phones) can't inflate the recorded reading past the physical event.
+  clockStop: (clampMs) => set((s) => ({
+    clock: {
+      ...s.clock,
+      phase: 'complete',
+      timerMs: clampMs ? Math.min(s.clock.timerMs, clampMs) : s.clock.timerMs,
+    }
   })),
   clockTick: (ms) => set((s) => ({
     clock: { ...s.clock, timerMs: s.clock.timerMs + ms }
@@ -126,6 +135,18 @@ export const useLabStore = create((set) => ({
     const { timerMs, currentConc, results } = s.clock
     const timeSec = timerMs / 1000
     const rate = timeSec > 0 ? 1000 / timeSec : 0
+    if (timeSec <= 0) return {}
+    if (results.some((r) => r.conc === currentConc)) {
+      // re-run replaces the previous result for that concentration
+      return {
+        clock: {
+          ...s.clock,
+          phase: 'setup',
+          timerMs: 0,
+          results: results.map((r) => r.conc === currentConc ? { conc: currentConc, time: timeSec, rate } : r),
+        }
+      }
+    }
     return {
       clock: {
         ...s.clock,
@@ -193,6 +214,12 @@ export function getEnthalpyCalc(enthalpy) {
   const deltaHkJ = moles > 0 ? (-q / moles) / 1000 : 0
   return { deltaT, q, moles, deltaHkJ }
 }
+
+// Clock reaction timing model (9701/31/M/J/23): endpoint when enough S is
+// produced to obscure the cross; rate ∝ [S2O3] ⇒ t_end = K_CLOCK/[S2O3].
+export const CLOCK_TIME_SCALE = 5
+export const K_CLOCK = 4.0 // s·mol·dm⁻³ → 0.100 M: 40 s, 0.020 M: 200 s
+export const clockEndpointSec = (conc) => (conc > 0 ? K_CLOCK / conc : Infinity)
 
 export const TITRATION_PRESETS = {
   s22: {

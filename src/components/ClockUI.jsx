@@ -1,49 +1,28 @@
-import { useRef, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLabStore } from '../store.js'
 import CalcSheet from './CalcSheet.jsx'
 
 const CONCS = [0.100, 0.080, 0.060, 0.040, 0.020]
 
 export default function ClockUI({ onBack }) {
-  const { clock, clockStart, clockStop, clockReset, clockRecordResult, setClockConc } = useLabStore()
-  const intervalRef = useRef(null)
-  const [displayMs, setDisplayMs] = useState(0)
+  const { clock, clockStart, clockReset, clockRecordResult, setClockConc } = useLabStore()
   const [showCalc, setShowCalc] = useState(false)
 
-  // Local timer that drives the display
-  useEffect(() => {
-    if (clock.phase === 'running') {
-      const start = Date.now() - displayMs
-      intervalRef.current = setInterval(() => {
-        setDisplayMs(Date.now() - start)
-      }, 100)
-    } else {
-      clearInterval(intervalRef.current)
-    }
-    return () => clearInterval(intervalRef.current)
-    // displayMs is a start-offset, not a dependency; resets happen in handlers
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clock.phase])
-
   function handleStart() {
-    setDisplayMs(0)
     clockStart()
   }
 
+  // Stop = record: the scene auto-stops at the endpoint; pressing Stop
+  // early records the time the student actually saw.
   function handleStop() {
-    clearInterval(intervalRef.current)
-    // Record result using the local displayMs
-    clockRecordResult(clock.currentConc, displayMs)
-    clockStop()
+    clockRecordResult()
   }
 
   function handleReset() {
-    clearInterval(intervalRef.current)
-    setDisplayMs(0)
     clockReset()
   }
 
-  const timeSec = displayMs / 1000
+  const timeSec = clock.timerMs / 1000
 
   return (
     <>
@@ -64,7 +43,7 @@ export default function ClockUI({ onBack }) {
               {timeSec.toFixed(1)}<span className="text-xl text-lab-muted ml-1">s</span>
             </div>
             <div className="text-xs text-lab-muted mt-1">
-              {clock.phase === 'running' ? 'Running…' : clock.phase === 'complete' ? 'Stopped' : 'Ready'}
+              {clock.phase === 'running' ? 'Reacting… watch the cross' : clock.phase === 'complete' ? 'Cross obscured — record the time' : 'Ready'}
             </div>
           </div>
 
@@ -75,7 +54,7 @@ export default function ClockUI({ onBack }) {
               {CONCS.map((c) => (
                 <button
                   key={c}
-                  onClick={() => { setClockConc(c); setDisplayMs(0) }}
+                  onClick={() => setClockConc(c)}
                   disabled={clock.phase === 'running'}
                   className={`px-2 py-1 rounded text-xs border transition-colors ${
                     clock.currentConc === c
@@ -91,19 +70,28 @@ export default function ClockUI({ onBack }) {
 
           {/* Controls */}
           <div className="flex gap-2">
-            {clock.phase !== 'running' ? (
+            {clock.phase === 'setup' && (
               <button
                 onClick={handleStart}
                 className="flex-1 py-2 rounded bg-lab-accent text-white text-sm font-medium hover:opacity-90 active:scale-[0.98]"
               >
-                ▶ Start
+                ▶ Mix &amp; start
               </button>
-            ) : (
+            )}
+            {clock.phase === 'running' && (
               <button
                 onClick={handleStop}
                 className="flex-1 py-2 rounded bg-red-500/80 text-white text-sm font-medium hover:opacity-90 active:scale-[0.98]"
               >
-                ■ Stop
+                ■ Stop — cross gone
+              </button>
+            )}
+            {clock.phase === 'complete' && (
+              <button
+                onClick={handleStop}
+                className="flex-1 py-2 rounded bg-lab-success/80 text-white text-sm font-medium hover:opacity-90 active:scale-[0.98]"
+              >
+                ✓ Record {(clock.timerMs / 1000).toFixed(1)} s
               </button>
             )}
             <button

@@ -1,40 +1,25 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
-import { LAB_FONT } from '../lib/labFont.js'
 import * as THREE from 'three'
-import { useLabStore } from '../store.js'
+import { useLabStore, CLOCK_TIME_SCALE, clockEndpointSec } from '../store.js'
+import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
+import { BeakerGlass, GlassMaterial, LiquidMaterial } from './scene/glassware.jsx'
 
-// Beaker with label
-function Beaker({ position, label, liquidColor = [0.8, 0.9, 1.0, 0.3] }) {
-  const [r,g,b,a] = liquidColor
-  const color = useMemo(() => new THREE.Color(r,g,b), [r,g,b])
+function LabeledBeaker({ position, label, liquidColor, fill = 0.55 }) {
   return (
     <group position={position}>
-      {/* Beaker walls */}
-      <mesh>
-        <cylinderGeometry args={[0.055, 0.048, 0.14, 24, 1, true]} />
-        <meshPhysicalMaterial color="#b8d4ff" transparent opacity={0.18} roughness={0} transmission={0.9} side={THREE.DoubleSide} />
-      </mesh>
-      {/* Beaker base */}
-      <mesh position={[0, -0.07, 0]}>
-        <cylinderGeometry args={[0.048, 0.048, 0.006, 24]} />
-        <meshPhysicalMaterial color="#b8d4ff" transparent opacity={0.22} roughness={0} />
-      </mesh>
-      {/* Liquid */}
-      <mesh position={[0, -0.03, 0]}>
-        <cylinderGeometry args={[0.044, 0.038, 0.07, 20]} />
-        <meshPhysicalMaterial color={color} transparent opacity={a} roughness={0.05} />
-      </mesh>
-      {/* Label */}
+      <BeakerGlass r={0.032} h={0.09} liquidColor={liquidColor} fill={fill} />
       <Text
         font={LAB_FONT}
-        position={[0, 0.11, 0]}
-        fontSize={0.022}
-        color="#94a3b8"
+        position={[0, 0.115, 0]}
+        fontSize={0.016}
+        color="#3b4855"
         anchorX="center"
         anchorY="bottom"
+        outlineWidth={0.0012}
+        outlineColor="#f5f7fa"
       >
         {label}
       </Text>
@@ -42,116 +27,102 @@ function Beaker({ position, label, liquidColor = [0.8, 0.9, 1.0, 0.3] }) {
   )
 }
 
-// White paper with black cross underneath the flask
+/** White paper with the printed cross, fading as turbidity rises. */
 function CrossPaper({ crossOpacity }) {
-  // crossOpacity: 1 = fully visible, 0 = fully hidden
   return (
-    <group position={[0, 0.001, 0.05]}>
-      {/* White paper */}
-      <mesh>
-        <boxGeometry args={[0.28, 0.003, 0.22]} />
-        <meshStandardMaterial color="#f8fafc" roughness={0.8} />
+    <group position={[0, 0.004, 0]}>
+      <mesh receiveShadow>
+        <boxGeometry args={[0.17, 0.006, 0.17]} />
+        <meshStandardMaterial color="#f7f9fa" roughness={0.55} />
       </mesh>
-      {/* Horizontal bar of cross */}
-      <mesh position={[0, 0.003, 0]}>
-        <boxGeometry args={[0.09, 0.001, 0.016]} />
-        <meshStandardMaterial color={`rgba(0,0,0,${crossOpacity})`} roughness={1} transparent opacity={crossOpacity} />
+      {[[0.1, 0.018], [0.018, 0.1]].map(([w, d], i) => (
+        <mesh key={i} position={[0, 0.0038, 0]}>
+          <boxGeometry args={[w, 0.0008, d]} />
+          <meshStandardMaterial color="#101418" transparent opacity={crossOpacity} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+/**
+ * 100 cm³ Griffin beaker used as the reaction vessel (per the S23 paper the
+ * mixture is in a conical flask on the cross; a beaker shows the cross from
+ * above better). Liquid turns turbid: transparent blue → milky yellow-white.
+ */
+function ReactionFlask({ turbidity }) {
+  const glassGeo = useMemo(() => new THREE.LatheGeometry(
+    [[0, 0], [0.05, 0], [0.055, 0.004], [0.055, 0.1], [0.058, 0.105]]
+      .map(([x, y]) => new THREE.Vector2(x, y)), 40), [])
+  const liquid = useMemo(() => {
+    const clear = new THREE.Color('#dceff8')
+    const milky = new THREE.Color('#f3f0d8')
+    return `#${clear.clone().lerp(milky, turbidity).getHexString()}`
+  }, [turbidity])
+  return (
+    <group>
+      <mesh geometry={glassGeo} castShadow>
+        <GlassMaterial opacity={0.2} />
       </mesh>
-      {/* Vertical bar of cross */}
-      <mesh position={[0, 0.003, 0]}>
-        <boxGeometry args={[0.016, 0.001, 0.09]} />
-        <meshStandardMaterial color="#000000" roughness={1} transparent opacity={crossOpacity} />
+      <mesh position={[0, 0.032, 0]}>
+        <cylinderGeometry args={[0.051, 0.048, 0.056, 32]} />
+        <LiquidMaterial color={liquid} opacity={0.35 + turbidity * 0.63} />
       </mesh>
     </group>
   )
 }
 
-// Conical flask with turbidity animation
-function ClockFlask({ turbidity }) {
-  // turbidity: 0 = clear, 1 = opaque white
-  const color = useMemo(() => {
-    return new THREE.Color(
-      0.7 + turbidity * 0.3,
-      0.85 + turbidity * 0.15,
-      0.9 + turbidity * 0.1
-    )
-  }, [turbidity])
-
-  const opacity = 0.22 + turbidity * 0.75
-  const roughness = turbidity * 0.8
-
-  return (
-    <group position={[0, 0.08, 0.05]}>
-      {/* Flask body */}
-      <mesh>
-        <coneGeometry args={[0.14, 0.22, 28, 1, true]} />
-        <meshPhysicalMaterial
-          color={color}
-          transparent
-          opacity={Math.min(opacity, 0.97)}
-          roughness={roughness}
-          transmission={Math.max(0, 0.75 - turbidity * 0.75)}
-          thickness={0.015}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {/* Flask neck */}
-      <mesh position={[0, 0.16, 0]}>
-        <cylinderGeometry args={[0.025, 0.025, 0.1, 18, 1, true]} />
-        <meshPhysicalMaterial color="#b8d4ff" transparent opacity={0.22} roughness={0} transmission={0.9} side={THREE.DoubleSide} />
-      </mesh>
-      {/* Liquid */}
-      <mesh position={[0, -0.04, 0]}>
-        <cylinderGeometry args={[0.12, 0.02, 0.1, 24]} />
-        <meshPhysicalMaterial
-          color={color}
-          transparent
-          opacity={Math.min(0.4 + turbidity * 0.55, 0.95)}
-          roughness={roughness}
-        />
-      </mesh>
-    </group>
-  )
+/** Slow magnetic-stirrer style swirl on the liquid while running. */
+function Swirler({ children, active }) {
+  const ref = useRef()
+  useFrame(({ clock: c }) => {
+    if (ref.current) ref.current.rotation.y = active ? c.getElapsedTime() * 0.8 : 0
+  })
+  return <group ref={ref}>{children}</group>
 }
 
 export default function ClockScene() {
   const { clock, clockTick, clockStop } = useLabStore()
 
-  // Simulate turbidity: at current conc, endpoint time varies
-  // At 0.100 mol/dm3 => ~40s, at 0.020 => ~200s
-  const endpointTime = clock.currentConc > 0
-    ? (0.004 / clock.currentConc) * 1000  // ms: 4000ms / conc => at 0.1: 40s
-    : 40000
+  const endpointMs = clockEndpointSec(clock.currentConc) * 1000
 
   useFrame((_, delta) => {
     if (clock.phase !== 'running') return
-    clockTick(delta * 1000)
-    // Auto-stop when cross fully obscured
-    if (clock.timerMs / endpointTime >= 0.98) clockStop()
+    clockTick(delta * 1000 * CLOCK_TIME_SCALE)
+    if (clock.timerMs >= endpointMs) clockStop(endpointMs)
   })
 
-  // Derived purely from store state (clockTick re-renders every frame).
-  const turbidity = clock.phase === 'running'
-    ? Math.min(1, clock.timerMs / endpointTime)
-    : (clock.phase === 'complete' ? 0.98 : 0)
-  const crossOpacity = Math.max(0, 1 - turbidity / 0.85)
+  // Sulfur precipitate builds non-linearly: slow start, accelerating haze —
+  // matches the classic "suddenly the cross is gone" experience.
+  const progress = clock.phase === 'running'
+    ? Math.min(1, clock.timerMs / endpointMs)
+    : (clock.phase === 'complete' ? 1 : 0)
+  const turbidity = Math.pow(progress, 1.8)
+  const crossOpacity = Math.max(0.02, 1 - Math.pow(progress, 2.6))
+
+  const BENCH_Y = -0.015
 
   return (
     <group>
       <LabRoom />
-      <CrossPaper crossOpacity={crossOpacity} />
-      <ClockFlask turbidity={turbidity} />
-      {/* Na2S2O3 beaker - left */}
-      <Beaker
-        position={[-0.65, 0.07, 0.05]}
+      <group position={[0, BENCH_Y, 0.05]}>
+        <CrossPaper crossOpacity={crossOpacity} />
+        <group position={[0, 0.007, 0]}>
+          <Swirler active={clock.phase === 'running'}>
+            <ReactionFlask turbidity={turbidity} />
+          </Swirler>
+        </group>
+      </group>
+      <LabeledBeaker
+        position={[-0.28, BENCH_Y, -0.06]}
         label="Na₂S₂O₃"
-        liquidColor={[0.85, 0.95, 1.0, 0.25]}
+        liquidColor="#d8ecf8"
       />
-      {/* HCl beaker - right */}
-      <Beaker
-        position={[0.65, 0.07, 0.05]}
-        label="HCl"
-        liquidColor={[0.9, 0.95, 0.85, 0.25]}
+      <LabeledBeaker
+        position={[0.26, BENCH_Y, -0.09]}
+        label="HCl 2.00 mol dm⁻³"
+        liquidColor="#e9f3ec"
+        fill={0.4}
       />
     </group>
   )
