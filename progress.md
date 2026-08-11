@@ -26,3 +26,16 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - CalcSheet EnthalpyCalc: horizontally scrollable readings table (t / T rows, × at 150 s), CoolingCurve, heat-loss correction box, corrected-ΔH block (ΔT_corr 10.7 → ΔH_corr −22.5 kJ/mol vs uncorrected −21.2, data-book −23.0 discussion line). First table render was cramped (15 columns ran together in the shot) — fixed with overflow-x-auto + px-1.5 cell padding, re-verified visually.
 - Gate `probe/cooling.py`: 13 checks incl. exact extrapolated T, corrected ΔH, point count, reset behaviour. Exit 0. Lesson: SVG `<text>` nodes are not HTMLElements — Playwright `inner_text()` throws; use `text_content()` for SVG.
 - Full 11-gate regression + shot.py iter17 → /tmp/reg17-summary.log (running at commit time; committed after all green).
+
+## iter-18 (2026-08-11)
+- DEPLOYED TO PRODUCTION: https://chemlab.tapiwa.me/ — Appwrite Sites (site id
+  `chemlab`, Portfolio project fra-69e62515000e9e781653), custom-domain proxy
+  rule + SSL cert verified. Manual tar.gz deployments of dist/ (framework
+  "other", adapter static, fallback index.html) — GitHub-App auto-deploy not
+  wired (app has single-repo access; expanding needs a phone 2FA tap).
+- tools/deploy.py: build locally, then upload dist as an activated deployment.
+  Credentials come from env / /work/.secrets/credentials.env — never in repo.
+- VERIFIED live: /, sw.js, manifest 200; headless Chromium on the live URL
+  boots the full 3D titration scene, 1 SW registration, zero console errors
+  (shots/live-menu.png, live-titration.png).
+- Also: iter-17 regression (11 gates + shots) all green before deploy.
