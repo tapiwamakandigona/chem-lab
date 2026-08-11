@@ -1,13 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-
-// Imperative escape hatch: OrbitControls must not fight the drag. Kept
-// outside the component so the lint immutability rule sees a plain helper.
-function setControls(getThree, on) {
-  const c = getThree().controls
-  if (c) c.enabled = on
-}
+import { setControls } from '../../lib/controls.js'
 
 const DEFAULT_STREAM = {
   dx: 0.095, topDy: -0.002, bottomDy: 0.1,

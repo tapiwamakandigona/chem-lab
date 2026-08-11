@@ -1,8 +1,9 @@
-import { useRef, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useRef, useMemo, useState } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useLabStore } from '../store.js'
+import { setControls } from '../lib/controls.js'
 import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import {
@@ -18,7 +19,12 @@ import { BlobShadow } from './scene/props.jsx'
 const TUBE_LEN = 0.56
 const TUBE_R = 0.0065
 
-function Burette({ reading }) {
+/** Continuous dispense rate while the stopcock is held open (cm3/s). Fast
+ *  enough to feel like a real tap; overshoot near the endpoint is possible —
+ *  that is the point. The UI buttons remain for dropwise control. */
+const TAP_RATE = 1.4
+
+function Burette({ reading, open, onTapDown, onTapUp }) {
   const liquidRef = useRef()
   const level = 1 - reading / 50 // 1 = full (reading 0.00)
 
@@ -78,6 +84,35 @@ function Burette({ reading }) {
           <cylinderGeometry args={[TUBE_R, TUBE_R * 0.85, 0.036, 16]} />
           <GlassMaterial opacity={0.3} />
         </mesh>
+        <StopcockKey open={open} onTapDown={onTapDown} onTapUp={onTapUp} />
+      </group>
+      {/* jet tip */}
+      <mesh position={[0, -TUBE_LEN - 0.062, 0]}>
+        <cylinderGeometry args={[0.0018, TUBE_R * 0.8, 0.052, 12]} />
+        <GlassMaterial opacity={0.3} />
+      </mesh>
+    </group>
+  )
+}
+
+/** PTFE key + handle. Press and hold to open the tap (handle swings 90deg,
+ *  titrant streams); release to close. Generous invisible grab cylinder so
+ *  the ~10 px handle is actually clickable (and probe-able). */
+function StopcockKey({ open, onTapDown, onTapUp }) {
+  const keyRef = useRef()
+  const [hover, setHover] = useState(false)
+  const three = useThree((s) => s.get)
+
+  useFrame((_, dt) => {
+    if (!keyRef.current) return
+    const targetRot = open ? -Math.PI / 2 : 0
+    const k = 1 - Math.exp(-dt * 14)
+    keyRef.current.rotation.z += (targetRot - keyRef.current.rotation.z) * k
+  })
+
+  return (
+    <group>
+      <group ref={keyRef}>
         {/* PTFE key barrel */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[0.007, 0.005, 0.026, 14]} />
@@ -86,15 +121,47 @@ function Burette({ reading }) {
         {/* key handle */}
         <mesh position={[0, 0, 0.017]}>
           <boxGeometry args={[0.026, 0.006, 0.008]} />
-          <meshStandardMaterial color="#3d84c6" roughness={0.5} />
+          <meshStandardMaterial
+            color={hover || open ? '#63a9e8' : '#3d84c6'}
+            emissive={hover && !open ? '#1d4b78' : '#000000'}
+            roughness={0.5}
+          />
         </mesh>
       </group>
-      {/* jet tip */}
-      <mesh position={[0, -TUBE_LEN - 0.062, 0]}>
-        <cylinderGeometry args={[0.0018, TUBE_R * 0.8, 0.052, 12]} />
-        <GlassMaterial opacity={0.3} />
+      {/* invisible grab volume */}
+      <mesh
+        visible={false}
+        onPointerOver={(e) => { e.stopPropagation(); setHover(true); document.body.style.cursor = 'pointer' }}
+        onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto' }}
+        onPointerDown={(e) => {
+          e.stopPropagation()
+          e.target.setPointerCapture?.(e.pointerId)
+          setControls(three, false)
+          onTapDown()
+        }}
+        onPointerUp={(e) => {
+          e.target.releasePointerCapture?.(e.pointerId)
+          setControls(three, true)
+          onTapUp()
+        }}
+        onPointerCancel={() => { setControls(three, true); onTapUp() }}
+      >
+        <sphereGeometry args={[0.042, 12, 10]} />
+        <meshBasicMaterial />
       </mesh>
     </group>
+  )
+}
+
+/** Continuous titrant stream while the stopcock is open. */
+function TapStream({ open, tipY, surfaceY }) {
+  const len = tipY - surfaceY
+  if (!open) return null
+  return (
+    <mesh position={[0, surfaceY + len / 2, 0]}>
+      <cylinderGeometry args={[0.0022, 0.0015, len, 10]} />
+      <meshStandardMaterial color="#cfe6f7" transparent opacity={0.8} roughness={0.1} />
+    </mesh>
   )
 }
 
@@ -158,10 +225,31 @@ function useSwirl(groupRef, active) {
 }
 
 export default function TitrationScene() {
-  const { titration } = useLabStore()
+  const { titration, titrationDispense } = useLabStore()
   const isRunning = titration.phase === 'running'
   const flaskRef = useRef()
   useSwirl(flaskRef, isRunning)
+
+  // --- stopcock press-and-hold dispensing ---
+  const [tapOpen, setTapOpen] = useState(false)
+  const tapRef = useRef(false)
+  const accRef = useRef(0)
+  const canDispense = !titration.endpointReached && titration.buretteReading < 50
+  useFrame((_, dt) => {
+    if (!tapRef.current) return
+    const t = useLabStore.getState().titration
+    if (t.endpointReached || t.buretteReading >= 50) return
+    // Accumulate smooth flow, commit to the store in 0.05 cm3 quanta so the
+    // reading always lands on a real graduation.
+    accRef.current += Math.min(dt, 0.1) * TAP_RATE
+    if (accRef.current >= 0.05) {
+      const step = Math.floor(accRef.current / 0.05) * 0.05
+      accRef.current -= step
+      titrationDispense(step)
+    }
+  })
+  const tapDown = () => { tapRef.current = true; accRef.current = 0; setTapOpen(true) }
+  const tapUp = () => { tapRef.current = false; setTapOpen(false) }
 
   const [r, g, b, a] = titration.indicatorColor
   // Near-white "colourless" state must render as water, not milk.
@@ -207,9 +295,15 @@ export default function TitrationScene() {
         </group>
       </group>
       <group position={[0, BUR_TOP, 0]}>
-        <Burette reading={titration.buretteReading} />
+        <Burette
+          reading={titration.buretteReading}
+          open={tapOpen && canDispense}
+          onTapDown={tapDown}
+          onTapUp={tapUp}
+        />
       </group>
-      <Drop active={isRunning} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
+      <TapStream open={tapOpen && canDispense} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
+      <Drop active={isRunning && !tapOpen} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
       {/* pipette resting on bench front-left */}
       <group position={[-0.42, BENCH_Y + 0.012, 0.32]} rotation={[0, 0.5, 0]}>
         <PipetteLying />
