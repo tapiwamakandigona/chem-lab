@@ -146,3 +146,12 @@
   Lesson: every new probe metric must be validated against a known-negative.
 - VERIFIED: lint 0, build green, offline.py/titrate/clock/enthalpy all exit 0,
   iter9 desktop shots frac>0.99, offline-titration.png shows full apparatus.
+
+## 2026-08-11 iter-10 (F5 pass 3: fresnel rim glass + liquid surface discs)
+- FresnelRim: additive ShaderMaterial shell (pow(1-|N.V|, 2.5) * 0.55,
+  #cfe4ff) on shared lathe geometry, scale 1.002 — glass edges catch light
+  at grazing angles, zero texture/light cost, SwiftShader-safe.
+- Wired into ConicalFlaskGlass + BeakerGlass; beaker liquids get glossy
+  surface disc (rough .05, envMapIntensity 1.8).
+- VERIFIED: lint 0, build green, titrate/clock/enthalpy gates exit 0,
+  iter10 shots inspected — clock beakers + flask visibly glassier.

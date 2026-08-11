@@ -39,6 +39,50 @@ export function LiquidMaterial({ color = '#bfe0f5', opacity = 0.75 }) {
   )
 }
 
+/**
+ * Additive fresnel rim — the trick that makes fake glass read as real.
+ * View-grazing edges glow faintly; face-on surfaces stay invisible.
+ * Plain ShaderMaterial (no lights, no textures) so it costs almost nothing
+ * on SwiftShader / weak mobile GPUs where `transmission` is banned.
+ */
+const RIM_SHADER = {
+  vertexShader: /* glsl */ `
+    varying vec3 vNormal;
+    varying vec3 vView;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vView = normalize(-mv.xyz);
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: /* glsl */ `
+    uniform vec3 uColor;
+    uniform float uPower;
+    uniform float uIntensity;
+    varying vec3 vNormal;
+    varying vec3 vView;
+    void main() {
+      float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vView))), uPower);
+      gl_FragColor = vec4(uColor, 1.0) * fres * uIntensity;
+    }`,
+}
+
+export function FresnelRim({ geometry, color = '#cfe4ff', power = 2.5, intensity = 0.55, scale = 1.002 }) {
+  const material = useMemo(() => new THREE.ShaderMaterial({
+    ...RIM_SHADER,
+    uniforms: {
+      uColor: { value: new THREE.Color(color) },
+      uPower: { value: power },
+      uIntensity: { value: intensity },
+    },
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  }), [color, power, intensity])
+  return <mesh geometry={geometry} material={material} scale={scale} />
+}
+
 function lathe(points, segments = 48) {
   return new THREE.LatheGeometry(points.map(([x, y]) => new THREE.Vector2(x, y)), segments)
 }
@@ -73,6 +117,7 @@ export function ConicalFlaskGlass({ liquidColor = '#e8f4fb', liquidOpacity = 0.7
       <mesh geometry={glassGeo} castShadow>
         <GlassMaterial />
       </mesh>
+      <FresnelRim geometry={glassGeo} />
       <mesh geometry={liquidGeo}>
         <LiquidMaterial color={liquidColor} opacity={liquidOpacity} />
       </mesh>
@@ -86,16 +131,31 @@ export function BeakerGlass({ r = 0.032, h = 0.085, liquidColor = '#cfe8f7', fil
   const glassGeo = useMemo(() => lathe([
     [0, 0], [r - 0.002, 0], [r, 0.003], [r, h - 0.006], [r + 0.003, h],
   ], 36), [r, h])
+  const liquidH = 0.003 + fill * (h - 0.01)
   return (
     <group>
       <mesh geometry={glassGeo} castShadow>
         <GlassMaterial />
       </mesh>
+      <FresnelRim geometry={glassGeo} />
       {fill > 0 && (
-        <mesh position={[0, 0.003 + (fill * (h - 0.01)) / 2, 0]}>
-          <cylinderGeometry args={[r - 0.004, r - 0.004, fill * (h - 0.01), 28]} />
-          <LiquidMaterial color={liquidColor} opacity={liquidOpacity} />
-        </mesh>
+        <>
+          <mesh position={[0, 0.003 + (fill * (h - 0.01)) / 2, 0]}>
+            <cylinderGeometry args={[r - 0.004, r - 0.004, fill * (h - 0.01), 28]} />
+            <LiquidMaterial color={liquidColor} opacity={liquidOpacity} />
+          </mesh>
+          {/* glossy surface disc — sells the liquid at a glance */}
+          <mesh position={[0, liquidH + 0.0004, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[r - 0.004, 28]} />
+            <meshStandardMaterial
+              color={liquidColor}
+              transparent
+              opacity={Math.min(liquidOpacity + 0.15, 0.95)}
+              roughness={0.05}
+              envMapIntensity={1.8}
+            />
+          </mesh>
+        </>
       )}
     </group>
   )
