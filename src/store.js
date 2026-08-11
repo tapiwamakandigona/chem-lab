@@ -21,6 +21,10 @@ export const useLabStore = create((set) => ({
   quality: detectQuality(),
   setQuality: (q) => set({ quality: q }),
 
+  // --- guided mode (PhET-style step coach) ---
+  guideOpen: true,
+  setGuideOpen: (guideOpen) => set({ guideOpen }),
+
   // --- titration state ---
   titration: {
     preset: 's22', // 's22' = carboxylic acid/NaOH | 's21' = FeSO4/KMnO4

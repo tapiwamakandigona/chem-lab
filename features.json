@@ -121,6 +121,18 @@
       "criteria": "At titration endpoint the numeric reading is masked; student reads a zoomed scale (shared BuretteScale SVG, no data leak) and must type the exact 0.05-quantum reading to record the titre; wrong/non-quantum entries rejected with feedback; reveal helper after 3 misses; works at 390x844. Gate probe/read.py (19 checks incl. mobile) exit 0.",
       "passes": true,
       "evidence": "probe/read.py exit 0 (2026-08-11); strengthened probe/titrate.py exit 0; shots/read-endpoint.png, read-mobile.png"
+    },
+    {
+      "id": "F17",
+      "name": "Guided mode: per-experiment step coach (learn-by-doing)",
+      "passes": true,
+      "evidence": "probe/guided.py exit 0 (17 checks: step ticking through full titration incl. read-check, toggle/pill 5/6, clock+enthalpy panels, mobile fit 390x844); shots guided-titration.png, guided-mobile.png inspected"
+    },
+    {
+      "id": "F18",
+      "name": "Mock paper Q1 (S22) with real ECF marking scheme",
+      "passes": true,
+      "evidence": "probe/mock.py exit 0 (13 checks: all-correct 6/6; ECF chain 5/6 with checkmark-ecf; sloppy mean rejected); shot mock-paper.png inspected"
     }
   ]
 }

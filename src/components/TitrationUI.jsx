@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useLabStore, TITRATION_PRESETS } from '../store.js'
 import MeniscusPractice from './MeniscusPractice.jsx'
 import BuretteScale from './BuretteScale.jsx'
+import MockPaper from './MockPaper.jsx'
+import { TITRATION_PAPER_S22, titrationPaperCtx } from '../lib/marking.js'
 
 function ReadingDisplay({ label, value, unit = 'cm³', masked = false }) {
   return (
@@ -26,6 +28,7 @@ export default function TitrationUI({ onBack }) {
   const mustRead = titration.endpointReached
 
   const [showPractice, setShowPractice] = useState(false)
+  const [showPaper, setShowPaper] = useState(false)
   const preset = TITRATION_PRESETS[titration.preset]
   const titre = Math.round((titration.buretteReading - titration.initialReading) * 20) / 20
 
@@ -80,7 +83,18 @@ export default function TitrationUI({ onBack }) {
           <ReadingDisplay label="Titre" value={titre} masked={mustRead} />
         </div>
         {concordant && (
-          <p className="mt-1 text-right text-[11px] text-lab-accent font-mono pr-1">mean {meanTitre} cm³</p>
+          <div className="mt-1 flex items-center justify-end gap-2 pr-1">
+            <p className="text-[11px] text-lab-accent font-mono">mean {meanTitre} cm³</p>
+            {titration.preset === 's22' && (
+              <button
+                onClick={() => setShowPaper(true)}
+                data-testid="mock-open-mobile"
+                className="px-2 py-1 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 text-[11px]"
+              >
+                📝 Mock paper
+              </button>
+            )}
+          </div>
         )}
         <div className="mt-1 flex justify-end">
           <button
@@ -121,6 +135,15 @@ export default function TitrationUI({ onBack }) {
               <div className="mt-2 pt-2 border-t border-lab-border">
                 <p className="text-[10px] text-lab-muted">Concordant mean</p>
                 <p className="font-mono text-lab-accent text-sm">{meanTitre} cm³</p>
+                {titration.preset === 's22' && (
+                <button
+                  onClick={() => setShowPaper(true)}
+                  data-testid="mock-open"
+                  className="mt-2 w-full py-1.5 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 hover:bg-lab-accent/20 text-xs"
+                >
+                  📝 Mock paper
+                </button>
+                )}
               </div>
             )}
           </div>
@@ -214,6 +237,15 @@ export default function TitrationUI({ onBack }) {
             </button>
           )}
         </div>
+      )}
+
+      {/* Mock paper overlay — uses the student's OWN concordant results */}
+      {showPaper && concordant && titration.preset === 's22' && (
+        <MockPaper
+          paper={TITRATION_PAPER_S22}
+          ctx={titrationPaperCtx(titration.titreValues)}
+          onClose={() => setShowPaper(false)}
+        />
       )}
 
       {/* Meniscus practice — one shared instance (mobile + desktop toggles) */}

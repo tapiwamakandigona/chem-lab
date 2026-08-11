@@ -52,3 +52,9 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - Gates: new probe/read.py (19 checks, desktop + 390x844 mobile) exit 0;
   probe/titrate.py STRENGTHENED (masked at endpoint + read-check records
   titre) exit 0.
+
+## iter-20 (2026-08-11)
+- F17 Guided mode: src/lib/guides.js (pure state->steps; titration 6, clock 5, enthalpy 4) + GuideCoach.jsx (one instance per experiment, collapsible pill, store guideOpen). Gate probe/guided.py 17 checks exit 0 (VERIFIED). Probe initially had a wrong expectation (slow-step ticking at 20 cm3); model was correct, probe strengthened to assert tick-by-tick at 20/23/23.80/endpoint.
+- F18 Mock paper: src/lib/marking.js (markPaper with per-part ECF; TITRATION_PAPER_S22 5 parts, 6 marks) + MockPaper.jsx overlay, gated to s22 + concordant titres. Gate caught real bug: overlay rendered inside pointer-events-none UI layer, canvas swallowed clicks -> fixed via createPortal(document.body). probe/mock.py 13 checks exit 0 (VERIFIED: 6/6 correct path, 5/6 ECF path, sloppy mean rejected).
+- Harness fix: probe/graph.py was the only gate not self-serving dist/ (relied on external server; failed in reg19 with ERR_CONNECTION_REFUSED). Now self-serves; exit 0.
+- reg19 full regression before this iter: 12/12 gates green after graph fix; iter-19 deployed live.

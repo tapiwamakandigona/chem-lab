@@ -6,6 +6,7 @@ import ClockUI from './components/ClockUI.jsx'
 import EnthalpyUI from './components/EnthalpyUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
+import GuideCoach from './components/GuideCoach.jsx'
 
 // three.js + scenes load only when an experiment opens — the menu paints
 // with the small react chunk even on a 2G connection.
@@ -27,6 +28,7 @@ export default function App() {
             <LabViewport experiment="titration" quality={quality} />
           </Suspense>
           <TitrationUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="titration" />
           {showTitrationCalc && <CalcSheet experiment="titration" onClose={() => setShowTitrationCalc(false)} />}
         </>
       )}
@@ -37,6 +39,7 @@ export default function App() {
             <LabViewport experiment="clock" quality={quality} />
           </Suspense>
           <ClockUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="clock" />
         </>
       )}
 
@@ -46,6 +49,7 @@ export default function App() {
             <LabViewport experiment="enthalpy" quality={quality} />
           </Suspense>
           <EnthalpyUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="enthalpy" />
         </>
       )}
     </div>
