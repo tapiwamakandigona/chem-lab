@@ -34,3 +34,18 @@
   bench edge-on with apparatus tiny/center-far, labels microscopic,
   glassware still primitive cones. Next: lighting grade + per-experiment
   camera composition.
+
+## 2026-08-11 iter-2 (lab room + lighting grade + cameras)
+- Shared scene/LabRoom.jsx (epoxy bench, maple apron, steel legs, floor,
+  wall+stripe) replacing 3 copy-pasted LabBench defs. Bright teaching-lab
+  light rig (warm key/cool fill/wall bounce + brighter Lightformer env).
+  Per-experiment CAMERAS map in App.jsx; OrbitControls targets.
+- VERIFIED: lint+build green; dbg5 renders with network fully blocked
+  (frac 0.996 at 16s; probe settle must be ≥16s BLOCKED, shots at 12s gave
+  false blank — updated shot.py to 18s).
+- Critique vs bar (dbg5-titr-30s.png): burette towers out of frame (real
+  apparatus scale ≠ my framing), flask = opaque grey cone (transmission
+  renders grey under SwiftShader + costs too much on weak phones), pipette
+  floats mid-air, stand base misaligned, wall stripe cuts composition at
+  bench height. Scene is bright but amateur. Next: full titration apparatus
+  rebuild (lathe glassware, no-transmission glass material, proper layout).

@@ -3,22 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
 import * as THREE from 'three'
 import { useLabStore } from '../store.js'
-
-function LabBench() {
-  return (
-    <group position={[0, -0.05, 0]}>
-      <RoundedBox args={[3.2, 0.06, 1.4]} radius={0.01} position={[0, 0, 0]}>
-        <meshStandardMaterial color="#1e3a4a" roughness={0.4} metalness={0.1} />
-      </RoundedBox>
-      {[[-1.4,-0.4,-0.6],[1.4,-0.4,-0.6],[-1.4,-0.4,0.6],[1.4,-0.4,0.6]].map(([x,y,z],i) => (
-        <mesh key={i} position={[x,y,z]}>
-          <boxGeometry args={[0.06, 0.7, 0.06]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.6} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
+import LabRoom from './scene/LabRoom.jsx'
 
 // Digital balance
 function Balance() {
@@ -125,7 +110,7 @@ export default function EnthalpyScene() {
 
   return (
     <group>
-      <LabBench />
+      <LabRoom />
       <PolystyreneCup />
       <Thermometer running={enthalpy.phase === 'running'} />
       <Balance />

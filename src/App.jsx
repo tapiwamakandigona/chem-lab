@@ -13,38 +13,52 @@ import CalcSheet from './components/CalcSheet.jsx'
 // LoadingScreen available for future use:
 // import LoadingScreen from './components/LoadingScreen.jsx'
 
-function LabCanvas({ children, quality }) {
+/**
+ * Per-experiment camera composition: [position, target].
+ * Framed for a 320px right UI panel — subject sits left-of-center.
+ */
+const CAMERAS = {
+  titration: { pos: [-0.55, 0.72, 1.55], target: [0.05, 0.55, 0] },
+  clock: { pos: [-0.35, 0.55, 1.25], target: [0, 0.12, 0.05] },
+  enthalpy: { pos: [-0.45, 0.5, 1.3], target: [0.1, 0.12, 0.05] },
+}
+
+function LabCanvas({ children, quality, view }) {
   const dpr = quality === QUALITY.LOW ? 1 : quality === QUALITY.MED ? 1.5 : Math.min(window.devicePixelRatio, 2)
+  const cam = CAMERAS[view] ?? CAMERAS.titration
   return (
     <Canvas
       dpr={dpr}
       gl={{ antialias: quality !== QUALITY.LOW, powerPreference: 'high-performance' }}
       shadows={quality === QUALITY.HIGH}
-      camera={{ position: [0, 1.2, 3.5], fov: 45, near: 0.01, far: 50 }}
+      camera={{ position: cam.pos, fov: 42, near: 0.01, far: 50 }}
       style={{ position: 'absolute', inset: 0 }}
     >
-      <ambientLight intensity={0.35} />
+      {/* Bright teaching-lab grade: warm key, cool sky fill, wall bounce */}
+      <ambientLight intensity={0.55} color="#eef2f8" />
       <directionalLight
-        position={[2.5, 4, 2.5]}
-        intensity={1.4}
-        color="#fff4e0"
+        position={[2.2, 3.5, 2.8]}
+        intensity={1.6}
+        color="#fff2dd"
         castShadow={quality === QUALITY.HIGH}
-        shadow-mapSize={[1024, 1024]}
-        shadow-bias={-0.0004}
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0003}
       />
-      <directionalLight position={[-3, 2.5, -1.5]} intensity={0.35} color="#a8c8ff" />
+      <directionalLight position={[-3, 2.5, 1]} intensity={0.5} color="#cfe0f5" />
+      <directionalLight position={[0, 1.2, -2.5]} intensity={0.3} color="#f0ead9" />
       {/* Procedural environment — bundled, zero network. Soft panels give
           glassware something to refract without blowing out diffuse. */}
       <Environment resolution={64} frames={1}>
-        <Lightformer intensity={1.1} position={[0, 4, 0]} rotation-x={Math.PI / 2} scale={[6, 6, 1]} color="#dfe8f5" />
-        <Lightformer intensity={0.5} position={[-4, 1.5, 2]} rotation-y={Math.PI / 2} scale={[4, 2, 1]} color="#cdd9ea" />
-        <Lightformer intensity={0.35} position={[4, 1, -2]} rotation-y={-Math.PI / 2} scale={[4, 2, 1]} color="#e8dfd0" />
+        <Lightformer intensity={1.3} position={[0, 4, 0]} rotation-x={Math.PI / 2} scale={[6, 6, 1]} color="#eef3fa" />
+        <Lightformer intensity={0.7} position={[-4, 1.5, 2]} rotation-y={Math.PI / 2} scale={[4, 2, 1]} color="#dde6f2" />
+        <Lightformer intensity={0.5} position={[4, 1, -2]} rotation-y={-Math.PI / 2} scale={[4, 2, 1]} color="#f2ead9" />
       </Environment>
       <OrbitControls
         makeDefault
-        minDistance={1.5}
-        maxDistance={6}
-        maxPolarAngle={Math.PI / 1.8}
+        target={cam.target}
+        minDistance={0.5}
+        maxDistance={4.5}
+        maxPolarAngle={Math.PI / 1.9}
         enableDamping
         dampingFactor={0.08}
         touches={{ ONE: 2, TWO: 512 }}
@@ -68,7 +82,7 @@ export default function App() {
 
       {experiment === 'titration' && (
         <>
-          <LabCanvas quality={quality}>
+          <LabCanvas quality={quality} view="titration">
             <TitrationScene />
           </LabCanvas>
           <TitrationUI onBack={() => setExperiment(null)} />
@@ -78,7 +92,7 @@ export default function App() {
 
       {experiment === 'clock' && (
         <>
-          <LabCanvas quality={quality}>
+          <LabCanvas quality={quality} view="clock">
             <ClockScene />
           </LabCanvas>
           <ClockUI onBack={() => setExperiment(null)} />
@@ -87,7 +101,7 @@ export default function App() {
 
       {experiment === 'enthalpy' && (
         <>
-          <LabCanvas quality={quality}>
+          <LabCanvas quality={quality} view="enthalpy">
             <EnthalpyScene />
           </LabCanvas>
           <EnthalpyUI onBack={() => setExperiment(null)} />

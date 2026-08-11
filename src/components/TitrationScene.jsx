@@ -1,28 +1,10 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { RoundedBox, Text } from '@react-three/drei'
+import { Text } from '@react-three/drei'
 import { LAB_FONT } from '../lib/labFont.js'
 import * as THREE from 'three'
 import { useLabStore } from '../store.js'
-
-// ── Lab bench ───────────────────────────────────────────────────────────────
-function LabBench() {
-  return (
-    <group position={[0, -0.05, 0]}>
-      {/* Bench top */}
-      <RoundedBox args={[3.2, 0.06, 1.4]} radius={0.01} position={[0, 0, 0]}>
-        <meshStandardMaterial color="#1e3a4a" roughness={0.4} metalness={0.1} />
-      </RoundedBox>
-      {/* Bench legs */}
-      {[[-1.4,-0.4,-0.6],[1.4,-0.4,-0.6],[-1.4,-0.4,0.6],[1.4,-0.4,0.6]].map(([x,y,z],i) => (
-        <mesh key={i} position={[x,y,z]}>
-          <boxGeometry args={[0.06, 0.7, 0.06]} />
-          <meshStandardMaterial color="#0f172a" roughness={0.6} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
+import LabRoom from './scene/LabRoom.jsx'
 
 // ── Retort stand + clamp ─────────────────────────────────────────────────────
 function RetortStand() {
@@ -217,7 +199,7 @@ export default function TitrationScene() {
 
   return (
     <group>
-      <LabBench />
+      <LabRoom />
       <RetortStand />
       <Burette reading={titration.buretteReading} />
       <ConicalFlask
