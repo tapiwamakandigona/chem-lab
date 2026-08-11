@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Text } from '@react-three/drei'
 import * as THREE from 'three'
@@ -7,6 +7,7 @@ import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial } from './scene/glassware.jsx'
 import { BlobShadow } from './scene/props.jsx'
+import DragTipper from './scene/DragTipper.jsx'
 
 /** Digital balance with live mass readout. */
 function Balance({ mass, boatLoaded }) {
@@ -36,20 +37,45 @@ function Balance({ mass, boatLoaded }) {
       >
         {boatLoaded ? `${mass.toFixed(2)} g` : '0.00 g'}
       </Text>
-      {/* weighing boat + powder on the pan */}
-      {boatLoaded && (
-        <group position={[0, 0.032, -0.01]}>
-          <mesh>
-            <boxGeometry args={[0.07, 0.012, 0.055]} />
-            <meshStandardMaterial color="#f6f8fa" roughness={0.6} />
-          </mesh>
-          <mesh position={[0, 0.009, 0]}>
-            <cylinderGeometry args={[0.02, 0.026, 0.01, 16]} />
-            <meshStandardMaterial color="#ffffff" roughness={1} />
-          </mesh>
-        </group>
-      )}
     </group>
+  )
+}
+
+/**
+ * Weighing boat with the Na2CO3 sample. Drag it off the balance and tip it
+ * into the calorimeter cup to add the solid (same action as "Add Na2CO3").
+ * The balance shows 0.00 g while the boat is off the pan.
+ */
+function DraggableBoat({ home, target, filled, onPour, onModeChange }) {
+  return (
+    <DragTipper
+      home={home}
+      target={target}
+      enabled={filled}
+      onPour={onPour}
+      onModeChange={onModeChange}
+      dropRadius={0.1}
+      lift={0.13}
+      tilt={-1.2}
+      anchorOffset={[-0.045, 0.07, 0]}
+      stream={{ dx: 0.035, topDy: -0.03, bottomDy: -0.005, r1: 0.005, r2: 0.0035, color: '#ffffff', opacity: 0.9, roughness: 1 }}
+      ring={{ r1: 0.055, r2: 0.07, y: 0.012 }}
+      grab={{ r: 0.05, h: 0.08, y: 0.02 }}
+      tiltDelay={0.2}
+      tiltDur={0.35}
+      pourHold={1.2}
+    >
+      <mesh castShadow>
+        <boxGeometry args={[0.07, 0.012, 0.055]} />
+        <meshStandardMaterial color="#f6f8fa" roughness={0.6} />
+      </mesh>
+      {filled && (
+        <mesh position={[0, 0.009, 0]}>
+          <cylinderGeometry args={[0.02, 0.026, 0.01, 16]} />
+          <meshStandardMaterial color="#ffffff" roughness={1} />
+        </mesh>
+      )}
+    </DragTipper>
   )
 }
 
@@ -92,11 +118,13 @@ function CalorimeterCup({ running, T1, T2, phase }) {
         <cylinderGeometry args={[0.03, 0.02, 0.05, 12, 1, true]} />
         <meshStandardMaterial color="#ffffff" transparent opacity={0} roughness={1} side={THREE.DoubleSide} />
       </mesh>
-      {/* lid with thermometer hole */}
-      <mesh position={[0, 0.082, 0]}>
-        <cylinderGeometry args={[0.047, 0.047, 0.006, 28]} />
-        <meshStandardMaterial color="#eef1f3" roughness={0.8} />
-      </mesh>
+      {/* lid goes on AFTER the solid is added (real 9701 procedure) */}
+      {phase !== 'setup' && (
+        <mesh position={[0, 0.082, 0]}>
+          <cylinderGeometry args={[0.047, 0.047, 0.006, 28]} />
+          <meshStandardMaterial color="#eef1f3" roughness={0.8} />
+        </mesh>
+      )}
       <Thermometer T1={T1} T2={T2} running={running} />
     </group>
   )
@@ -140,7 +168,8 @@ function Thermometer({ T1, T2, running }) {
 }
 
 export default function EnthalpyScene() {
-  const { enthalpy } = useLabStore()
+  const { enthalpy, enthalpyStart } = useLabStore()
+  const [boatAway, setBoatAway] = useState(false)
   const BENCH_Y = -0.015
 
   return (
@@ -161,8 +190,15 @@ export default function EnthalpyScene() {
         />
       </group>
       <group position={[0.3, BENCH_Y + 0.018, 0.02]} rotation={[0, -0.5, 0]}>
-        <Balance mass={enthalpy.mass} boatLoaded={enthalpy.phase === 'setup'} />
+        <Balance mass={enthalpy.mass} boatLoaded={enthalpy.phase === 'setup' && !boatAway} />
       </group>
+      <DraggableBoat
+        home={[0.305, BENCH_Y + 0.056, 0.011]}
+        target={[-0.08, BENCH_Y + 0.132, 0.04]}
+        filled={enthalpy.phase === 'setup'}
+        onPour={enthalpyStart}
+        onModeChange={(m) => setBoatAway(m !== 'idle')}
+      />
     </group>
   )
 }
