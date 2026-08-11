@@ -84,6 +84,15 @@ export default function TitrationUI({ onBack }) {
         {concordant && (
           <p className="mt-1 text-right text-[11px] text-lab-accent font-mono pr-1">mean {meanTitre} cm³</p>
         )}
+        <div className="mt-1 flex justify-end">
+          <button
+            onClick={() => setShowPractice((s) => !s)}
+            data-testid="meniscus-toggle-mobile"
+            className="px-2.5 py-1 rounded-lg border border-lab-border bg-lab-panel/90 backdrop-blur-sm text-[11px] text-lab-muted active:text-lab-ink"
+          >
+            {showPractice ? 'Hide practice' : 'Meniscus practice'}
+          </button>
+        </div>
       </div>
 
       {/* Left panel — readings + instructions (desktop) */}
@@ -171,8 +180,14 @@ export default function TitrationUI({ onBack }) {
         >
           {showPractice ? 'Hide meniscus practice' : 'Practise reading the meniscus'}
         </button>
-        {showPractice && <MeniscusPractice />}
       </div>
+
+      {/* Meniscus practice — one shared instance (mobile + desktop toggles) */}
+      {showPractice && (
+        <div className="absolute pointer-events-auto right-2 top-[7.5rem] w-[240px] md:top-auto md:bottom-28 md:w-40 max-h-[70%] overflow-y-auto">
+          <MeniscusPractice />
+        </div>
+      )}
 
       {/* Bottom — dispense controls */}
       <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-2 pointer-events-auto px-4">

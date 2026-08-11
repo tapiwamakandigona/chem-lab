@@ -169,3 +169,15 @@
   enthalpy/offline all exit 0, iter11-meniscus.png inspected.
 - Queue remaining: drag-to-pour interactions; mobile entry point for
   meniscus practice.
+
+## 2026-08-11 iter-12 (F10 mobile entry + duplicate-instance fix)
+- Mobile toggle under readings strip opens meniscus practice as overlay.
+- BUG caught by gate strict-mode: mobile+desktop sections both mounted
+  (breakpoints are CSS-only) -> TWO independent MeniscusPractice instances
+  with different targets. Fix: single shared instance positioned
+  responsively (right-2 top-[7.5rem] w-[240px] / md:bottom-28 md:w-40).
+  Lesson: never render a stateful component once per breakpoint section.
+- New gate probe/meniscus_mobile.py (390x844, touch): toggle visible,
+  panel opens, exact answer graded correct.
+- VERIFIED: lint 0, build green, meniscus_mobile.py + meniscus.py +
+  titrate.py exit 0, iter12 shots + iter12-meniscus-mobile.png inspected.
