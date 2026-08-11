@@ -107,8 +107,9 @@ export default function ClockScene() {
     <group>
       <LabRoom />
       <group position={[0, BENCH_Y, 0.05]}>
-        <BlobShadow r={0.08} opacity={0.28} y={0.001} />
         <CrossPaper crossOpacity={crossOpacity} />
+        {/* beaker shadow ON the tile, tight so it never pokes past the edge */}
+        <BlobShadow r={0.048} opacity={0.22} y={0.0076} />
         <group position={[0, 0.007, 0]}>
           <Swirler active={clock.phase === 'running'}>
             <ReactionFlask turbidity={turbidity} />

@@ -12,7 +12,7 @@ export default function LabRoom() {
       {/* Bench top — black epoxy resin, the classic chem bench */}
       <group position={[0, -0.05, 0]}>
         <RoundedBox args={[3.4, 0.07, 1.5]} radius={0.015} receiveShadow>
-          <meshStandardMaterial color="#26292e" roughness={0.35} metalness={0.05} />
+          <meshStandardMaterial color="#31363c" roughness={0.4} metalness={0.05} />
         </RoundedBox>
         {/* Light maple apron under the top */}
         <mesh position={[0, -0.09, 0]}>

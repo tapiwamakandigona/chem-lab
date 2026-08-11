@@ -147,10 +147,10 @@ export default function EnthalpyScene() {
     <group>
       <LabRoom />
       <group position={[-0.08, BENCH_Y, 0.04]}>
-        <BlobShadow r={0.075} opacity={0.3} y={0.001} />
+        <BlobShadow r={0.062} opacity={0.22} y={0.001} />
       </group>
       <group position={[0.3, BENCH_Y, 0.02]}>
-        <BlobShadow r={0.12} opacity={0.28} y={0.001} />
+        <BlobShadow r={0.1} opacity={0.2} y={0.001} />
       </group>
       <group position={[-0.08, BENCH_Y + 0.0545, 0.04]}>
         <CalorimeterCup

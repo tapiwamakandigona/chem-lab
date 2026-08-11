@@ -121,3 +121,11 @@
 - Critique for iter-8: clock+enthalpy cameras drown in black bench void;
   clock tile blob pokes out as stray ring; enthalpy blobs read as stains;
   bench could be a touch lighter.
+
+## 2026-08-11 iter-8 (F5 look pass 2: framing + shadow tuning)
+- Cameras: clock [-0.19,0.33,0.5]->[0.02,0.07,0.03], enthalpy
+  [-0.3,0.3,0.6]->[0.1,0.09,0.04] — subjects fill the frame, bench void gone.
+- Bench epoxy lightened #26292e->#31363c; clock beaker blob moved ON the
+  tile (r .048 @.22), enthalpy blobs softened (.062/.1 @ .22/.2).
+- VERIFIED: lint 0, build green, desktop+mobile probes frac>0.99, gates
+  titrate/clock/enthalpy exit 0.

@@ -12,8 +12,8 @@ import EnthalpyScene from './EnthalpyScene.jsx'
  */
 const CAMERAS = {
   titration: { pos: [-0.68, 0.52, 1.55], target: [0.14, 0.4, 0] },
-  clock: { pos: [-0.28, 0.52, 0.72], target: [0, 0.03, 0.02] },
-  enthalpy: { pos: [-0.4, 0.42, 0.85], target: [0.12, 0.08, 0.05] },
+  clock: { pos: [-0.19, 0.33, 0.5], target: [0.02, 0.07, 0.03] },
+  enthalpy: { pos: [-0.3, 0.3, 0.6], target: [0.1, 0.09, 0.04] },
 }
 
 function LabCanvas({ children, quality, view }) {
