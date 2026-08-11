@@ -64,6 +64,14 @@
       "verify": "npx vite build output inspected",
       "passes": true,
       "evidence": "build: index 8.6kB gz + react 56kB gz first paint; three chunk 302.8kB gz lazy-loaded (LabViewport)."
+    },
+    {
+      "id": "F9",
+      "title": "Installable PWA, full offline reload",
+      "acceptance": "Service worker precaches entire app shell (js/css/fonts/icons); after first load the app reloads and every experiment renders with the network completely dead; valid manifest + icons.",
+      "verify": "probe/offline.py exits 0 (server killed after first load; content-frac AND std-dev checked on 3D render)",
+      "passes": true,
+      "evidence": "iter-9: offline.py exit 0 — precache 17/17, menu + titration render after server shutdown (frac 0.998 std 61.5 @10s, offline-titration.png inspected). gstatic <link> removed; Inter+JBMono self-hosted woff2."
     }
   ]
 }

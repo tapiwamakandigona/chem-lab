@@ -129,3 +129,20 @@
   tile (r .048 @.22), enthalpy blobs softened (.062/.1 @ .22/.2).
 - VERIFIED: lint 0, build green, desktop+mobile probes frac>0.99, gates
   titrate/clock/enthalpy exit 0.
+
+## 2026-08-11 iter-9 (offline hardening: PWA + self-hosted fonts) — F9 PASS
+- index.html still fetched Google Fonts at runtime (offline violation missed
+  in iter-1, which only fixed the troika 3D font). Removed gstatic <link>;
+  self-hosted Inter + JetBrains Mono variable woff2 (48k+31k) via @font-face.
+- vite-plugin-pwa (generateSW): precache 17 unique entries incl. vendor-three
+  (4MB cap), autoUpdate, manifest + PIL-generated flask icons (192/512/maskable).
+- New gate probe/offline.py: load once -> SW precache complete (count parity
+  vs sw.js manifest, no magic numbers) -> httpd.shutdown() (TCP-dead, SW can't
+  cheat) -> reload -> menu + titration 3D render verified.
+- GATE BUG CAUGHT: first offline.py used pixel>12 as "lit" but app bg is
+  #0f172a (L~23) -> loading screen scored frac=1.000 at 0s = spurious pass,
+  saved shot showed empty viewport. Fixed to shot.py's hist[:25] metric PLUS
+  std-dev>25 contrast guard (flat fog-colored canvas can't pass either).
+  Lesson: every new probe metric must be validated against a known-negative.
+- VERIFIED: lint 0, build green, offline.py/titrate/clock/enthalpy all exit 0,
+  iter9 desktop shots frac>0.99, offline-titration.png shows full apparatus.
