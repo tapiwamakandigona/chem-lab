@@ -63,3 +63,7 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - F19 Qualitative Analysis: src/lib/qual.js (9701 QA-notes knowledge base: 10 cations x NaOH/NH3 dropwise+excess, 7 anions x HCl/BaCl2/AgNO3, 5 unknowns FA5-FA9, observe/precipitateVisual/markIdentification with evidence-required marking), qual store slice (order enforcement: excess locked before dropwise), QualScene.jsx (test-tube rack, live tube with ppt/effervescence/solution-colour visuals, animated dropper), QualUI.jsx (reagent buttons, observations table, ion ID + marking), qual guide steps (6), menu card, camera.
 - Gate probe/qual.py 20 checks exit 0 (VERIFIED). Gate caught probe's own incomplete FA7 run (guide step correctly unticked); lint caught ref-access-during-render in Dropper (fixed with single state ref mutated in useFrame).
 - Reframed camera after screenshot review (rack was clipped).
+
+## iter-22 (2026-08-11)
+- F20 Mock papers for clock + enthalpy: CLOCK_PAPER_S23 (rate from own 0.100 M run, least-squares-through-origin gradient, order, predicted time at 0.050 M — ECF from gradient) and ENTHALPY_PAPER_S20 (cooling-corrected dT, q, n, signed dH — ECF chain; sign required) in src/lib/marking.js; wired into ClockUI (unlocks at 5 results) and EnthalpyUI (unlocks on complete). MockPaper component reused unchanged.
+- Gate probe/mock2.py 13 checks exit 0 (VERIFIED). Every experiment now has: guided steps + a mock paper (titration/clock/enthalpy) or evidence-marked ID (qual).

@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { useLabStore } from '../store.js'
 import CalcSheet from './CalcSheet.jsx'
+import MockPaper from './MockPaper.jsx'
+import { CLOCK_PAPER_S23, clockPaperCtx } from '../lib/marking.js'
 
 const CONCS = [0.100, 0.080, 0.060, 0.040, 0.020]
 
 export default function ClockUI({ onBack }) {
   const { clock, clockStart, clockReset, clockRecordResult, setClockConc } = useLabStore()
   const [showCalc, setShowCalc] = useState(false)
+  const [showPaper, setShowPaper] = useState(false)
+  const paperCtx = clockPaperCtx(clock.results)
 
   function handleStart() {
     clockStart()
@@ -138,10 +142,24 @@ export default function ClockUI({ onBack }) {
               Show Calculations
             </button>
           )}
+
+          {/* Mock paper — unlocks once all five concentrations are recorded */}
+          {paperCtx && (
+            <button
+              data-testid="mock-open-clock"
+              onClick={() => setShowPaper(true)}
+              className="w-full py-2 rounded border border-lab-accent/40 text-lab-accent text-xs hover:bg-lab-accent/10"
+            >
+              📝 Mock paper
+            </button>
+          )}
         </div>
       </div>
 
       {showCalc && <CalcSheet experiment="clock" onClose={() => setShowCalc(false)} />}
+      {showPaper && paperCtx && (
+        <MockPaper paper={CLOCK_PAPER_S23} ctx={paperCtx} onClose={() => setShowPaper(false)} />
+      )}
     </>
   )
 }

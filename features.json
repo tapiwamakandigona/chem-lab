@@ -139,6 +139,12 @@
       "name": "Qualitative analysis experiment (9701 P3 Q3 ion ID, 5 unknowns)",
       "passes": true,
       "evidence": "probe/qual.py exit 0 (20 checks: CuSO4/ZnCl2/(NH4)2CO3 chemistry vs official QA notes, dropwise-before-excess enforcement, 2-mark ID with evidence requirement, no-evidence 0/2, guide 6 steps ticking, mobile fit); shots qual-scene/marked/mobile inspected"
+    },
+    {
+      "id": "F20",
+      "name": "Clock (S23) + enthalpy (S20) mock papers \u2014 all 4 experiments now have exam practice",
+      "passes": true,
+      "evidence": "probe/mock2.py exit 0 (13 checks: unlock gating both papers, clock 6/6 correct + 5/6 ECF chain from wrong rate, enthalpy 5/5 with cooling-corrected Textrap + 4/5 ECF + sign rejection); shots mock-clock.png, mock-enthalpy.png inspected"
     }
   ]
 }

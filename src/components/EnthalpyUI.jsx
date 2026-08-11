@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { useLabStore, getEnthalpyCalc } from '../store.js'
+import { useLabStore, getEnthalpyCalc, getCoolingAnalysis } from '../store.js'
 import CalcSheet from './CalcSheet.jsx'
+import MockPaper from './MockPaper.jsx'
+import { ENTHALPY_PAPER_S20, enthalpyPaperCtx } from '../lib/marking.js'
 
 export default function EnthalpyUI({ onBack }) {
   const {
@@ -10,6 +12,7 @@ export default function EnthalpyUI({ onBack }) {
 
   const [localT2, setLocalT2] = useState(enthalpy.T1)
   const [showCalc, setShowCalc] = useState(false)
+  const [showPaper, setShowPaper] = useState(false)
   const animRef = useRef(null)
 
   // Animate T2 when running
@@ -169,10 +172,28 @@ export default function EnthalpyUI({ onBack }) {
               Show Calculations
             </button>
           )}
+
+          {/* Mock paper — unlocks after the run completes (needs cooling curve) */}
+          {enthalpy.phase === 'complete' && (
+            <button
+              data-testid="mock-open-enthalpy"
+              onClick={() => setShowPaper(true)}
+              className="w-full py-2 rounded border border-lab-accent/40 text-lab-accent text-xs hover:bg-lab-accent/10"
+            >
+              📝 Mock paper
+            </button>
+          )}
         </div>
       </div>
 
       {showCalc && <CalcSheet experiment="enthalpy" onClose={() => setShowCalc(false)} />}
+      {showPaper && enthalpy.phase === 'complete' && (
+        <MockPaper
+          paper={ENTHALPY_PAPER_S20}
+          ctx={enthalpyPaperCtx(enthalpy, getCoolingAnalysis(enthalpy))}
+          onClose={() => setShowPaper(false)}
+        />
+      )}
     </>
   )
 }

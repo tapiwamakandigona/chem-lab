@@ -101,3 +101,121 @@ export function titrationPaperCtx(titreValues) {
         return { meanTitre: (titreValues[i] + titreValues[j]) / 2 }
   return null
 }
+
+// ---- S23 iodine clock paper (9701/31/M/J/23 Q2 style, rate analysis) ----
+// ctx = { results: [{conc, time, rate}] } — the student's OWN five runs.
+export const CLOCK_PAPER_S23 = {
+  id: 'clock-s23',
+  title: 'Mock Paper — Q2 (S23 style)',
+  requires: 'five runs',
+  intro:
+    'Use your own recorded times. Rate = 1000/t. A slip carried forward ' +
+    'still earns later marks (ECF), exactly like the real mark scheme.',
+  parts: [
+    {
+      id: 'a',
+      prompt: '(a) Rate for your 0.100 mol/dm³ run (rate = 1000/t, in s⁻¹ ×10³)',
+      marks: 1,
+      unit: 's⁻¹ ×10³',
+      expected: (ctx) => 1000 / ctx.results.find((r) => Math.abs(r.conc - 0.1) < 1e-9).time,
+    },
+    {
+      id: 'b',
+      prompt: '(b) Gradient of your rate vs [S₂O₃²⁻] graph (best-fit through origin)',
+      marks: 2,
+      unit: '(s⁻¹ ×10³)/(mol dm⁻³)',
+      relTol: 0.05,
+      expected: (ctx) => {
+        // least-squares through origin: sum(xy)/sum(x^2)
+        const sxy = ctx.results.reduce((s, r) => s + r.conc * (1000 / r.time), 0)
+        const sxx = ctx.results.reduce((s, r) => s + r.conc * r.conc, 0)
+        return sxy / sxx
+      },
+      ecf: (ctx, ans) => parseNum(ans.a) / 0.1,
+    },
+    {
+      id: 'c',
+      prompt: '(c) Order of reaction with respect to S₂O₃²⁻ (a straight line through the origin means rate ∝ [S₂O₃²⁻]ⁿ; give n)',
+      marks: 1,
+      unit: '',
+      relTol: 0,
+      absTol: 0.01,
+      expected: () => 1,
+    },
+    {
+      id: 'd',
+      prompt: '(d) Predicted time (s) for a 0.050 mol/dm³ run  [t = 1000/rate, rate from your gradient]',
+      marks: 2,
+      unit: 's',
+      relTol: 0.05,
+      expected: (ctx) => {
+        const sxy = ctx.results.reduce((s, r) => s + r.conc * (1000 / r.time), 0)
+        const sxx = ctx.results.reduce((s, r) => s + r.conc * r.conc, 0)
+        return 1000 / ((sxy / sxx) * 0.05)
+      },
+      ecf: (ctx, ans) => 1000 / (parseNum(ans.b) * 0.05),
+    },
+  ],
+}
+
+export function clockPaperCtx(results) {
+  if (results.length < 5) return null
+  if (!results.some((r) => Math.abs(r.conc - 0.1) < 1e-9)) return null
+  return { results }
+}
+
+// ---- S20 enthalpy paper (9701/31/M/J/20 Q2 style, cooling-corrected) ----
+// ctx = { mass, volume, T1, Textrap } — Textrap from the student's cooling
+// curve extrapolation (the corrected T2).
+export const ENTHALPY_PAPER_S20 = {
+  id: 'enthalpy-s20',
+  title: 'Mock Paper — Q2 (S20 style)',
+  requires: 'completed run',
+  intro:
+    'Use your own run and your cooling-curve extrapolation. ' +
+    'ECF applies: carried-forward slips still score.',
+  parts: [
+    {
+      id: 'a',
+      prompt: '(a) Corrected temperature rise ΔT = T(extrapolated) − T₁ (°C)',
+      marks: 1,
+      unit: '°C',
+      relTol: 0,
+      absTol: 0.15,
+      expected: (ctx) => ctx.Textrap - ctx.T1,
+    },
+    {
+      id: 'b',
+      prompt: '(b) Heat released q = V × 4.2 × ΔT (J)  [assume 4.2 J cm⁻³ K⁻¹]',
+      marks: 1,
+      unit: 'J',
+      expected: (ctx) => ctx.volume * 4.2 * (ctx.Textrap - ctx.T1),
+      ecf: (ctx, ans) => ctx.volume * 4.2 * parseNum(ans.a),
+    },
+    {
+      id: 'c',
+      prompt: '(c) Moles of Na₂CO₃ dissolved  [Mr = 106]',
+      marks: 1,
+      unit: 'mol',
+      expected: (ctx) => ctx.mass / 106,
+    },
+    {
+      id: 'd',
+      prompt: '(d) ΔH(solution) in kJ/mol — include the sign (temperature rose)',
+      marks: 2,
+      unit: 'kJ/mol',
+      expected: (ctx) => -(ctx.volume * 4.2 * (ctx.Textrap - ctx.T1)) / (ctx.mass / 106) / 1000,
+      ecf: (ctx, ans) => -parseNum(ans.b) / parseNum(ans.c) / 1000,
+    },
+  ],
+}
+
+export function enthalpyPaperCtx(enthalpy, analysis) {
+  if (!analysis || !Number.isFinite(analysis.Textrap)) return null
+  return {
+    mass: enthalpy.mass,
+    volume: enthalpy.volume,
+    T1: enthalpy.T1,
+    Textrap: analysis.Textrap,
+  }
+}
