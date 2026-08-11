@@ -25,6 +25,14 @@ const EXPERIMENTS = [
     papers: ['9701/31/M/J/20'],
     available: true,
   },
+  {
+    id: 'qual',
+    icon: '🧪',
+    title: 'Qualitative Analysis',
+    desc: 'Identify unknown ions: NaOH/NH₃ dropwise & excess, gas tests, BaCl₂, AgNO₃. Five unknowns',
+    papers: ['9701 P3 Q3 style'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

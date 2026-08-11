@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
 
 // Quality tiers for low-end device support (Zimbabwe context)
 export const QUALITY = { LOW: 'low', MED: 'med', HIGH: 'high' }
@@ -262,6 +263,49 @@ export const useLabStore = create((set) => ({
       T2: s.enthalpy.T1,
       targetT2: s.enthalpy.T1,
     }
+  })),
+
+  // --- qualitative analysis state (9701 P3 Q3 ion identification) ---
+  qual: {
+    unknown: 'fa8',        // key into QUAL_UNKNOWNS
+    tests: [],             // [{ reagent, obs }] in the order performed
+    lastVisual: null,      // precipitateVisual() of the latest test (drives 3D tube)
+    answer: { cation: '', anion: '' },
+    result: null,          // markIdentification() output after submit
+  },
+  qualSetUnknown: (unknown) => set((s) => ({
+    qual: { ...s.qual, unknown, tests: [], lastVisual: null, answer: { cation: '', anion: '' }, result: null },
+  })),
+  qualRunTest: (reagentId) => set((s) => {
+    const q = s.qual
+    if (q.tests.some((t) => t.reagent === reagentId)) return {}
+    // enforce practical order: excess only after dropwise for the same reagent
+    if (reagentId === 'naoh_excess' && !q.tests.some((t) => t.reagent === 'naoh_drop')) return {}
+    if (reagentId === 'nh3_excess' && !q.tests.some((t) => t.reagent === 'nh3_drop')) return {}
+    const obs = observe(q.unknown, reagentId)
+    const visual = precipitateVisual(q.unknown, reagentId)
+    return {
+      qual: {
+        ...q,
+        tests: [...q.tests, { reagent: reagentId, obs }],
+        lastVisual: { ...visual, reagent: reagentId },
+        result: null,
+      },
+    }
+  }),
+  qualSetAnswer: (field, value) => set((s) => ({
+    qual: { ...s.qual, answer: { ...s.qual.answer, [field]: value }, result: null },
+  })),
+  qualSubmit: () => set((s) => {
+    const q = s.qual
+    if (!q.answer.cation || !q.answer.anion) return {}
+    const result = markIdentification(
+      q.unknown, q.answer.cation, q.answer.anion, q.tests.map((t) => t.reagent),
+    )
+    return { qual: { ...q, result } }
+  }),
+  qualReset: () => set((s) => ({
+    qual: { ...s.qual, tests: [], lastVisual: null, answer: { cation: '', anion: '' }, result: null },
   })),
 }))
 

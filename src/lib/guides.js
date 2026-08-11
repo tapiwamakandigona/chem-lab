@@ -76,6 +76,38 @@ export function clockSteps(c) {
   ]
 }
 
+export function qualSteps(q) {
+  const did = (id) => q.tests.some((t) => t.reagent === id)
+  const cationTests = ['naoh_drop', 'naoh_excess', 'nh3_drop', 'nh3_excess', 'naoh_warm']
+  const anionTests = ['hcl', 'bacl2', 'agno3']
+  return [
+    {
+      text: 'Add NaOH(aq) dropwise to a fresh portion — note any precipitate and its colour',
+      done: did('naoh_drop'),
+    },
+    {
+      text: 'Add NaOH(aq) to excess — does the precipitate dissolve?',
+      done: did('naoh_excess'),
+    },
+    {
+      text: 'Repeat with NH₃(aq): dropwise, then to excess',
+      done: did('nh3_drop') && did('nh3_excess'),
+    },
+    {
+      text: 'Test for the anion (dilute HCl, BaCl₂, or AgNO₃)',
+      done: anionTests.some(did),
+    },
+    {
+      text: 'Record every observation — "no change" is also an observation',
+      done: q.tests.length >= 4 && cationTests.some(did) && anionTests.some(did),
+    },
+    {
+      text: 'Identify both ions and check your identification',
+      done: (q.result?.total ?? 0) === 2,
+    },
+  ]
+}
+
 export function enthalpySteps(e) {
   return [
     {
@@ -101,5 +133,6 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'titration') return titrationSteps(state.titration)
   if (experiment === 'clock') return clockSteps(state.clock)
   if (experiment === 'enthalpy') return enthalpySteps(state.enthalpy)
+  if (experiment === 'qual') return qualSteps(state.qual)
   return []
 }

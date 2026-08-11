@@ -133,6 +133,12 @@
       "name": "Mock paper Q1 (S22) with real ECF marking scheme",
       "passes": true,
       "evidence": "probe/mock.py exit 0 (13 checks: all-correct 6/6; ECF chain 5/6 with checkmark-ecf; sloppy mean rejected); shot mock-paper.png inspected"
+    },
+    {
+      "id": "F19",
+      "name": "Qualitative analysis experiment (9701 P3 Q3 ion ID, 5 unknowns)",
+      "passes": true,
+      "evidence": "probe/qual.py exit 0 (20 checks: CuSO4/ZnCl2/(NH4)2CO3 chemistry vs official QA notes, dropwise-before-excess enforcement, 2-mark ID with evidence requirement, no-evidence 0/2, guide 6 steps ticking, mobile fit); shots qual-scene/marked/mobile inspected"
     }
   ]
 }

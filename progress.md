@@ -58,3 +58,8 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - F18 Mock paper: src/lib/marking.js (markPaper with per-part ECF; TITRATION_PAPER_S22 5 parts, 6 marks) + MockPaper.jsx overlay, gated to s22 + concordant titres. Gate caught real bug: overlay rendered inside pointer-events-none UI layer, canvas swallowed clicks -> fixed via createPortal(document.body). probe/mock.py 13 checks exit 0 (VERIFIED: 6/6 correct path, 5/6 ECF path, sloppy mean rejected).
 - Harness fix: probe/graph.py was the only gate not self-serving dist/ (relied on external server; failed in reg19 with ERR_CONNECTION_REFUSED). Now self-serves; exit 0.
 - reg19 full regression before this iter: 12/12 gates green after graph fix; iter-19 deployed live.
+
+## iter-21 (2026-08-11)
+- F19 Qualitative Analysis: src/lib/qual.js (9701 QA-notes knowledge base: 10 cations x NaOH/NH3 dropwise+excess, 7 anions x HCl/BaCl2/AgNO3, 5 unknowns FA5-FA9, observe/precipitateVisual/markIdentification with evidence-required marking), qual store slice (order enforcement: excess locked before dropwise), QualScene.jsx (test-tube rack, live tube with ppt/effervescence/solution-colour visuals, animated dropper), QualUI.jsx (reagent buttons, observations table, ion ID + marking), qual guide steps (6), menu card, camera.
+- Gate probe/qual.py 20 checks exit 0 (VERIFIED). Gate caught probe's own incomplete FA7 run (guide step correctly unticked); lint caught ref-access-during-render in Dropper (fixed with single state ref mutated in useFrame).
+- Reframed camera after screenshot review (rack was clipped).

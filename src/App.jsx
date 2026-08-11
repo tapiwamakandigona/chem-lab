@@ -4,6 +4,7 @@ import ExperimentMenu from './components/ExperimentMenu.jsx'
 import TitrationUI from './components/TitrationUI.jsx'
 import ClockUI from './components/ClockUI.jsx'
 import EnthalpyUI from './components/EnthalpyUI.jsx'
+import QualUI from './components/QualUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
@@ -40,6 +41,16 @@ export default function App() {
           </Suspense>
           <ClockUI onBack={() => setExperiment(null)} />
           <GuideCoach experiment="clock" />
+        </>
+      )}
+
+      {experiment === 'qual' && (
+        <>
+          <Suspense fallback={<LoadingScreen />}>
+            <LabViewport experiment="qual" quality={quality} />
+          </Suspense>
+          <QualUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="qual" />
         </>
       )}
 
