@@ -79,6 +79,13 @@
       "criteria": "Practice panel in titration shows zoomed burette scale with meniscus at a random 0.05-grid value; checker grades exact/close/too-high-low; New reading re-randomises; live titration state untouched. Mobile (390x844) has its own toggle opening the same single instance.",
       "passes": true,
       "evidence": "probe/meniscus.py exit 0 (9 PASS incl. grading of +0.30/-0.05/exact, score 1/3, input reset); shots/iter11-meniscus.png inspected; titrate/clock/enthalpy/offline gates all exit 0 post-change. probe/meniscus_mobile.py exit 0; iter12-meniscus-mobile.png inspected."
+    },
+    {
+      "id": "F11",
+      "name": "Drag-to-pour interaction (clock)",
+      "criteria": "Na2S2O3 beaker is grabbable in setup phase; dragging shows a drop-zone ring on the reaction beaker; dropping within range plays a tilt+stream pour that starts the reaction (same semantics as Mix & start); dropping elsewhere springs back; OrbitControls disabled during drag; button path still works after reset.",
+      "passes": true,
+      "evidence": "probe/pour.py exit 0 (real pointer drag 110,440 -> 615,415: reaction started, timer advancing, reset returns to setup); shots/pour-drag.png (ring affordance) + pour-stream.png (lip-aligned stream, timer 2.5s) inspected; all other gates titrate/clock/enthalpy/offline/meniscus/meniscus_mobile exit 0."
     }
   ]
 }

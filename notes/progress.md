@@ -181,3 +181,22 @@
   panel opens, exact answer graded correct.
 - VERIFIED: lint 0, build green, meniscus_mobile.py + meniscus.py +
   titrate.py exit 0, iter12 shots + iter12-meniscus-mobile.png inspected.
+
+## 2026-08-11 iter-13 (F11: drag-to-pour, clock experiment)
+- PourableBeaker in ClockScene: pointer-drag on bench-height plane
+  (ray.intersectPlane), pointer capture, OrbitControls disabled during
+  drag via imperative useThree get() helper (lint immutability rule
+  rejects mutating hook-returned controls directly — helper outside
+  component passes). Drop within 0.11 of reaction beaker -> anchored
+  tilt (-1.25 rad) + falling stream + clockStart(); else spring home.
+  Animation in refs (no 60fps re-renders); beaker empties after pour
+  (fill 0.55 -> 0.18), refills on reset.
+- Drop-zone ring affordance while dragging; grab cursor; oversized
+  invisible hit cylinder for touch.
+- Stream-lip fix: lip of base-pivoted beaker tilted -1.25 rad is
+  ~(+0.095, -0.002) from anchor — first guess (+0.055) poured from the
+  beaker's side (caught in inspected shot).
+- New gate probe/pour.py: real mouse drag, asserts reaction running +
+  timer advancing + reset restores button path.
+- VERIFIED: lint 0, build green, all 7 gates exit 0, pour shots inspected.
+- Queue: drag-to-pour for enthalpy (tip solid into cup); F5 polish pass.
