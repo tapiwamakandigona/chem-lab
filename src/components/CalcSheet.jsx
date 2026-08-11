@@ -1,4 +1,5 @@
 import { useLabStore, getEnthalpyCalc, TITRATION_PRESETS } from '../store.js'
+import RateGraph from './RateGraph.jsx'
 
 export default function CalcSheet({ experiment, onClose }) {
   const { titration, clock, enthalpy } = useLabStore()
@@ -130,6 +131,7 @@ function ClockCalc({ clock }) {
           ))}
         </tbody>
       </table>
+      <RateGraph results={clock.results} />
       <div className="bg-lab-bg border border-lab-border rounded p-3 text-xs font-mono text-lab-ink space-y-1">
         <div className="text-lab-muted mb-1">Rate equation analysis:</div>
         <div>rate ∝ 1/t</div>

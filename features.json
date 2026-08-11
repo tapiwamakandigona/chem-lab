@@ -1,105 +1,112 @@
 {
-  "$comment": "Definition of done for the ChemLab gauntlet. Flip passes only with evidence (command output or inspected screenshot). Verify commands / acceptance are not edited to pass.",
-  "features": [
-    {
-      "id": "F1",
-      "title": "Offline-first: zero runtime network fetches",
-      "acceptance": "No gstatic/CDN font or Environment preset fetches; scenes render with network access blocked in the probe.",
-      "verify": "grep -rn 'gstatic\\|preset=' src/ returns nothing network-bound; probe run with route-abort on external hosts still renders apparatus",
-      "passes": true,
-      "evidence": "iter-1/2: probe aborts all non-127.0.0.1 requests; every scene renders (shots iter6d-*, mob4-*). No gstatic/preset refs in src (grep clean)."
-    },
-    {
-      "id": "F2",
-      "title": "Titration scene renders and completes",
-      "acceptance": "Probe screenshot shows bench, stand, burette with graduations, flask, tile; scripted titration reaches endpoint with pink flask and correct titre.",
-      "verify": "probe/titrate.py exits 0 and shot inspected",
-      "passes": true,
-      "evidence": "probe/titrate.py exit 0: 20.00 after 4x5cm3, 23.85 endpoint, UI 'Endpoint reached', pink flask (f2-endpoint.png)."
-    },
-    {
-      "id": "F3",
-      "title": "Clock reaction correct + visual",
-      "acceptance": "Turbidity obscures cross over time; time scales inversely with [S2O3]; rate table fills; probe asserts endpoint times for two concentrations.",
-      "verify": "probe/clock.py exits 0 and shots inspected",
-      "passes": true,
-      "evidence": "probe/clock.py exit 0: 40.0s @0.100M, 100.0s @0.040M, ratio 2.5, rate=1000/t rows exact (f3-results.png)."
-    },
-    {
-      "id": "F4",
-      "title": "Enthalpy experiment correct + visual",
-      "acceptance": "Adding Na2CO3 animates, temperature curve behaves physically, \u0394H sign and magnitude match 9701/31/M/J/20 expectations.",
-      "verify": "probe/enthalpy.py exits 0 and shots inspected",
-      "passes": true,
-      "evidence": "probe/enthalpy.py exit 0: dT 10.1, q 1060.5, dH -21.2 kJ/mol, T2 32.1 (f4-done.png)."
-    },
-    {
-      "id": "F5",
-      "title": "AAA scene look",
-      "acceptance": "Lighting graded (no blown-out bench), real lathe-profile glassware, readable labels, composed camera per experiment. Blind side-by-side vs PhET/Labster shots does not embarrass.",
-      "verify": "probe shots inspected each iteration; verdict logged in notes/progress.md",
-      "passes": false,
-      "evidence": ""
-    },
-    {
-      "id": "F6",
-      "title": "No dev artifacts in prod",
-      "acceptance": "No Stats widget, no console errors in probe, lint clean.",
-      "verify": "npm run lint && probe error log empty",
-      "passes": true,
-      "evidence": "npm run lint = 0 problems; probe console errors only the intentional blocked-request ERR_FAILED."
-    },
-    {
-      "id": "F7",
-      "title": "Mobile usable",
-      "acceptance": "390x844 probe shots show non-overlapping UI, tappable controls, legible text for all three experiments.",
-      "verify": "probe/shot.py mobile mode shots inspected",
-      "passes": true,
-      "evidence": "mob4-*.png: readings strip + bottom sheets, scene visible, controls tappable at 390x844."
-    },
-    {
-      "id": "F8",
-      "title": "Build + lint green, bundle sane",
-      "acceptance": "npx vite build succeeds; main chunk code-split so first paint isn't blocked by three.js.",
-      "verify": "npx vite build output inspected",
-      "passes": true,
-      "evidence": "build: index 8.6kB gz + react 56kB gz first paint; three chunk 302.8kB gz lazy-loaded (LabViewport)."
-    },
-    {
-      "id": "F9",
-      "title": "Installable PWA, full offline reload",
-      "acceptance": "Service worker precaches entire app shell (js/css/fonts/icons); after first load the app reloads and every experiment renders with the network completely dead; valid manifest + icons.",
-      "verify": "probe/offline.py exits 0 (server killed after first load; content-frac AND std-dev checked on 3D render)",
-      "passes": true,
-      "evidence": "iter-9: offline.py exit 0 \u2014 precache 17/17, menu + titration render after server shutdown (frac 0.998 std 61.5 @10s, offline-titration.png inspected). gstatic <link> removed; Inter+JBMono self-hosted woff2."
-    },
-    {
-      "id": "F10",
-      "name": "Meniscus-reading practice (burette to 0.05 cm3)",
-      "criteria": "Practice panel in titration shows zoomed burette scale with meniscus at a random 0.05-grid value; checker grades exact/close/too-high-low; New reading re-randomises; live titration state untouched. Mobile (390x844) has its own toggle opening the same single instance.",
-      "passes": true,
-      "evidence": "probe/meniscus.py exit 0 (9 PASS incl. grading of +0.30/-0.05/exact, score 1/3, input reset); shots/iter11-meniscus.png inspected; titrate/clock/enthalpy/offline gates all exit 0 post-change. probe/meniscus_mobile.py exit 0; iter12-meniscus-mobile.png inspected."
-    },
-    {
-      "id": "F11",
-      "name": "Drag-to-pour interaction (clock)",
-      "criteria": "Na2S2O3 beaker is grabbable in setup phase; dragging shows a drop-zone ring on the reaction beaker; dropping within range plays a tilt+stream pour that starts the reaction (same semantics as Mix & start); dropping elsewhere springs back; OrbitControls disabled during drag; button path still works after reset.",
-      "passes": true,
-      "evidence": "probe/pour.py exit 0 (real pointer drag 110,440 -> 615,415: reaction started, timer advancing, reset returns to setup); shots/pour-drag.png (ring affordance) + pour-stream.png (lip-aligned stream, timer 2.5s) inspected; all other gates titrate/clock/enthalpy/offline/meniscus/meniscus_mobile exit 0."
-    },
-    {
-      "id": "F12",
-      "name": "Drag-to-tip weighing boat (enthalpy)",
-      "criteria": "Weighing boat with Na2CO3 sits on the balance pan in setup phase and is grabbable; balance reads 0.00 g while the boat is lifted; dragging shows a drop-zone ring on the calorimeter cup mouth; dropping within range tips the boat with a powder stream and starts the run (same semantics as Add Na2CO3 button); calorimeter lid appears only after setup; dropping elsewhere springs back; drop test is parallax-correct (pointer-ray at target height, not object position); button path still works after reset.",
-      "passes": true,
-      "evidence": "probe/tip.py exit 0 (real pointer drag 790,360 -> 420,335: run started, T2 animates 22.0 -> 32.1, reset restores setup); shots/tip-drag.png (ring over cup, balance 0.00) + tip-stream.png (tipped boat, powder stream, T2 rising) inspected; full regression titrate/clock/enthalpy/offline/meniscus/meniscus_mobile/pour/tip all exit 0; lint 0; build green (precache 20 entries). DragTipper.jsx extracted as shared component, ClockScene refactored onto it with pour.py still 0."
-    },
-    {
-      "id": "F13",
-      "name": "Interactive burette stopcock (press-and-hold to dispense)",
-      "criteria": "PTFE stopcock key on the burette is grabbable; press-and-hold opens the tap (key rotates ~90deg, handle highlights, continuous stream from jet tip to flask surface) and dispenses continuously at ~1.4 cm3/s committed to the store in 0.05 cm3 quanta; releasing the pointer closes the tap immediately and flow stops; dispensing halts at endpoint or 50.00 cm3; buttons remain functional for dropwise addition; Reset burette returns reading to 0.00; camera controls disabled during hold.",
-      "passes": true,
-      "evidence": "probe/tap.py exit 0 (pointer-down at 572,380 held: reading advanced past 1.0 in <=12 s in 0.05 quanta; two equal reads after release prove flow stops; Reset burette -> 0.00); shots/tap-stream.png inspected (stream tip->flask, key rotated, live reading 0.40); full 9-gate regression titrate/clock/enthalpy/offline/meniscus/meniscus_mobile/pour/tip/tap all exit 0 + shot.py iter15 exit 0 (/tmp/reg15-summary.log); iter15-titration.png/iter15-clock.png inspected; lint 0; build green. Shared setControls helper moved to src/lib/controls.js (react-refresh/only-export-components)."
-    }
-  ]
+ "$comment": "Definition of done for the ChemLab gauntlet. Flip passes only with evidence (command output or inspected screenshot). Verify commands / acceptance are not edited to pass.",
+ "features": [
+  {
+   "id": "F1",
+   "title": "Offline-first: zero runtime network fetches",
+   "acceptance": "No gstatic/CDN font or Environment preset fetches; scenes render with network access blocked in the probe.",
+   "verify": "grep -rn 'gstatic\\|preset=' src/ returns nothing network-bound; probe run with route-abort on external hosts still renders apparatus",
+   "passes": true,
+   "evidence": "iter-1/2: probe aborts all non-127.0.0.1 requests; every scene renders (shots iter6d-*, mob4-*). No gstatic/preset refs in src (grep clean)."
+  },
+  {
+   "id": "F2",
+   "title": "Titration scene renders and completes",
+   "acceptance": "Probe screenshot shows bench, stand, burette with graduations, flask, tile; scripted titration reaches endpoint with pink flask and correct titre.",
+   "verify": "probe/titrate.py exits 0 and shot inspected",
+   "passes": true,
+   "evidence": "probe/titrate.py exit 0: 20.00 after 4x5cm3, 23.85 endpoint, UI 'Endpoint reached', pink flask (f2-endpoint.png)."
+  },
+  {
+   "id": "F3",
+   "title": "Clock reaction correct + visual",
+   "acceptance": "Turbidity obscures cross over time; time scales inversely with [S2O3]; rate table fills; probe asserts endpoint times for two concentrations.",
+   "verify": "probe/clock.py exits 0 and shots inspected",
+   "passes": true,
+   "evidence": "probe/clock.py exit 0: 40.0s @0.100M, 100.0s @0.040M, ratio 2.5, rate=1000/t rows exact (f3-results.png)."
+  },
+  {
+   "id": "F4",
+   "title": "Enthalpy experiment correct + visual",
+   "acceptance": "Adding Na2CO3 animates, temperature curve behaves physically, \u0394H sign and magnitude match 9701/31/M/J/20 expectations.",
+   "verify": "probe/enthalpy.py exits 0 and shots inspected",
+   "passes": true,
+   "evidence": "probe/enthalpy.py exit 0: dT 10.1, q 1060.5, dH -21.2 kJ/mol, T2 32.1 (f4-done.png)."
+  },
+  {
+   "id": "F5",
+   "title": "AAA scene look",
+   "acceptance": "Lighting graded (no blown-out bench), real lathe-profile glassware, readable labels, composed camera per experiment. Blind side-by-side vs PhET/Labster shots does not embarrass.",
+   "verify": "probe shots inspected each iteration; verdict logged in notes/progress.md",
+   "passes": false,
+   "evidence": ""
+  },
+  {
+   "id": "F6",
+   "title": "No dev artifacts in prod",
+   "acceptance": "No Stats widget, no console errors in probe, lint clean.",
+   "verify": "npm run lint && probe error log empty",
+   "passes": true,
+   "evidence": "npm run lint = 0 problems; probe console errors only the intentional blocked-request ERR_FAILED."
+  },
+  {
+   "id": "F7",
+   "title": "Mobile usable",
+   "acceptance": "390x844 probe shots show non-overlapping UI, tappable controls, legible text for all three experiments.",
+   "verify": "probe/shot.py mobile mode shots inspected",
+   "passes": true,
+   "evidence": "mob4-*.png: readings strip + bottom sheets, scene visible, controls tappable at 390x844."
+  },
+  {
+   "id": "F8",
+   "title": "Build + lint green, bundle sane",
+   "acceptance": "npx vite build succeeds; main chunk code-split so first paint isn't blocked by three.js.",
+   "verify": "npx vite build output inspected",
+   "passes": true,
+   "evidence": "build: index 8.6kB gz + react 56kB gz first paint; three chunk 302.8kB gz lazy-loaded (LabViewport)."
+  },
+  {
+   "id": "F9",
+   "title": "Installable PWA, full offline reload",
+   "acceptance": "Service worker precaches entire app shell (js/css/fonts/icons); after first load the app reloads and every experiment renders with the network completely dead; valid manifest + icons.",
+   "verify": "probe/offline.py exits 0 (server killed after first load; content-frac AND std-dev checked on 3D render)",
+   "passes": true,
+   "evidence": "iter-9: offline.py exit 0 \u2014 precache 17/17, menu + titration render after server shutdown (frac 0.998 std 61.5 @10s, offline-titration.png inspected). gstatic <link> removed; Inter+JBMono self-hosted woff2."
+  },
+  {
+   "id": "F10",
+   "name": "Meniscus-reading practice (burette to 0.05 cm3)",
+   "criteria": "Practice panel in titration shows zoomed burette scale with meniscus at a random 0.05-grid value; checker grades exact/close/too-high-low; New reading re-randomises; live titration state untouched. Mobile (390x844) has its own toggle opening the same single instance.",
+   "passes": true,
+   "evidence": "probe/meniscus.py exit 0 (9 PASS incl. grading of +0.30/-0.05/exact, score 1/3, input reset); shots/iter11-meniscus.png inspected; titrate/clock/enthalpy/offline gates all exit 0 post-change. probe/meniscus_mobile.py exit 0; iter12-meniscus-mobile.png inspected."
+  },
+  {
+   "id": "F11",
+   "name": "Drag-to-pour interaction (clock)",
+   "criteria": "Na2S2O3 beaker is grabbable in setup phase; dragging shows a drop-zone ring on the reaction beaker; dropping within range plays a tilt+stream pour that starts the reaction (same semantics as Mix & start); dropping elsewhere springs back; OrbitControls disabled during drag; button path still works after reset.",
+   "passes": true,
+   "evidence": "probe/pour.py exit 0 (real pointer drag 110,440 -> 615,415: reaction started, timer advancing, reset returns to setup); shots/pour-drag.png (ring affordance) + pour-stream.png (lip-aligned stream, timer 2.5s) inspected; all other gates titrate/clock/enthalpy/offline/meniscus/meniscus_mobile exit 0."
+  },
+  {
+   "id": "F12",
+   "name": "Drag-to-tip weighing boat (enthalpy)",
+   "criteria": "Weighing boat with Na2CO3 sits on the balance pan in setup phase and is grabbable; balance reads 0.00 g while the boat is lifted; dragging shows a drop-zone ring on the calorimeter cup mouth; dropping within range tips the boat with a powder stream and starts the run (same semantics as Add Na2CO3 button); calorimeter lid appears only after setup; dropping elsewhere springs back; drop test is parallax-correct (pointer-ray at target height, not object position); button path still works after reset.",
+   "passes": true,
+   "evidence": "probe/tip.py exit 0 (real pointer drag 790,360 -> 420,335: run started, T2 animates 22.0 -> 32.1, reset restores setup); shots/tip-drag.png (ring over cup, balance 0.00) + tip-stream.png (tipped boat, powder stream, T2 rising) inspected; full regression titrate/clock/enthalpy/offline/meniscus/meniscus_mobile/pour/tip all exit 0; lint 0; build green (precache 20 entries). DragTipper.jsx extracted as shared component, ClockScene refactored onto it with pour.py still 0."
+  },
+  {
+   "id": "F13",
+   "name": "Interactive burette stopcock (press-and-hold to dispense)",
+   "criteria": "PTFE stopcock key on the burette is grabbable; press-and-hold opens the tap (key rotates ~90deg, handle highlights, continuous stream from jet tip to flask surface) and dispenses continuously at ~1.4 cm3/s committed to the store in 0.05 cm3 quanta; releasing the pointer closes the tap immediately and flow stops; dispensing halts at endpoint or 50.00 cm3; buttons remain functional for dropwise addition; Reset burette returns reading to 0.00; camera controls disabled during hold.",
+   "passes": true,
+   "evidence": "probe/tap.py exit 0 (pointer-down at 572,380 held: reading advanced past 1.0 in <=12 s in 0.05 quanta; two equal reads after release prove flow stops; Reset burette -> 0.00); shots/tap-stream.png inspected (stream tip->flask, key rotated, live reading 0.40); full 9-gate regression titrate/clock/enthalpy/offline/meniscus/meniscus_mobile/pour/tip/tap all exit 0 + shot.py iter15 exit 0 (/tmp/reg15-summary.log); iter15-titration.png/iter15-clock.png inspected; lint 0; build green. Shared setControls helper moved to src/lib/controls.js (react-refresh/only-export-components)."
+  },
+  {
+   "id": "F14",
+   "name": "Exam-style rate graph in clock calculations sheet",
+   "criteria": "Show Calculations for the iodine clock renders an exam-style rate vs concentration graph (pure SVG, offline-first): axes with gridlines and labels, x point marks for each recorded (conc, rate=1000/t) result, dashed best-fit line constrained through the origin (m = sum(xy)/sum(x^2)), and a gradient readout ~250 s^-1 mol^-1 dm^3; with fewer than 2 recorded results a hint prompts the student to record more runs; graph updates as results are recorded/replaced.",
+   "passes": true,
+   "evidence": "probe/graph.py exit 0 (ran two real experiments 0.100 M -> 40.0 s and 0.080 M -> 50.0 s via Mix & start + Record; CalcSheet shows 2 rate-point marks, rate-fit line present and passing through SVG origin (44.0,200.0), rate-gradient 250.0 within 240-260); shots/graph-calc.png inspected (exam-authentic axes, points, dashed fit, gradient label); full 10-gate regression titrate/clock/enthalpy/offline/meniscus/meniscus_mobile/pour/tip/tap/graph all exit 0 + shot.py iter16 exit 0 (/tmp/reg16-summary.log); iter16 shots inspected; lint 0; build green."
+  }
+ ]
 }
