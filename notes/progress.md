@@ -49,3 +49,18 @@
   floats mid-air, stand base misaligned, wall stripe cuts composition at
   bench height. Scene is bright but amateur. Next: full titration apparatus
   rebuild (lathe glassware, no-transmission glass material, proper layout).
+
+## 2026-08-11 iter-3 (titration apparatus rebuild) 
+- New scene/glassware.jsx: lathe-profile Erlenmeyer + beaker + lying pipette,
+  RetortStand (base under rod, boss head, brass jaws), WhiteTile. GLASS RULE:
+  never `transmission` — opaque grey on SwiftShader/weak GPUs; transparent +
+  clearcoat + envMapIntensity reads as glass everywhere. Burette rebuilt:
+  56cm graduated tube, 51 tick marks + numerals (bundled font), correct
+  liquid column (surface at reading, liquid below to stopcock), PTFE key,
+  jet tip. Flask+burette+drop share one axis; stand behind-right. Colourless
+  solution renders as water-tint (#d9edf8 @0.4), not milk. Skirting stripe
+  moved below bench line. Camera [-0.68,0.52,1.55]→[0.14,0.4,0].
+- F2 gate probe/titrate.py PASSES: 4x5 + 3x1 + 8x0.1 clicks → 23.80, +0.05
+  → 23.85 endpoint, UI "Endpoint reached", flask pink (f2-endpoint.png).
+  Endpoint pointLight cut 0.6→0.08 (was flooding the bench pink).
+- VERIFIED: lint clean, build green, network-blocked probe renders.

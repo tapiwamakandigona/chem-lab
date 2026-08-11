@@ -38,10 +38,10 @@ export default function LabRoom() {
         <planeGeometry args={[14, 6]} />
         <meshStandardMaterial color="#e3e9f0" roughness={1} />
       </mesh>
-      {/* Wall accent stripe */}
-      <mesh position={[0, 0.42, -2.59]}>
-        <planeGeometry args={[14, 0.5]} />
-        <meshStandardMaterial color="#2f6f8f" roughness={1} />
+      {/* Skirting stripe, kept below bench line so it never crosses apparatus */}
+      <mesh position={[0, -0.55, -2.59]}>
+        <planeGeometry args={[14, 0.35]} />
+        <meshStandardMaterial color="#3d7a99" roughness={1} />
       </mesh>
     </group>
   )

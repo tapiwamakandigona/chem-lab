@@ -18,7 +18,7 @@ import CalcSheet from './components/CalcSheet.jsx'
  * Framed for a 320px right UI panel — subject sits left-of-center.
  */
 const CAMERAS = {
-  titration: { pos: [-0.55, 0.72, 1.55], target: [0.05, 0.55, 0] },
+  titration: { pos: [-0.68, 0.52, 1.55], target: [0.14, 0.4, 0] },
   clock: { pos: [-0.35, 0.55, 1.25], target: [0, 0.12, 0.05] },
   enthalpy: { pos: [-0.45, 0.5, 1.3], target: [0.1, 0.12, 0.05] },
 }

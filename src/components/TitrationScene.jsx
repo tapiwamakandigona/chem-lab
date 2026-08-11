@@ -1,214 +1,182 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
-import { LAB_FONT } from '../lib/labFont.js'
 import * as THREE from 'three'
 import { useLabStore } from '../store.js'
+import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
+import {
+  GlassMaterial, LiquidMaterial, ConicalFlaskGlass, PipetteLying,
+  RetortStand, WhiteTile,
+} from './scene/glassware.jsx'
 
-// ── Retort stand + clamp ─────────────────────────────────────────────────────
-function RetortStand() {
-  return (
-    <group position={[0.3, 0, 0]}>
-      {/* Base */}
-      <mesh position={[0, -0.02, 0]}>
-        <boxGeometry args={[0.4, 0.025, 0.18]} />
-        <meshStandardMaterial color="#334155" roughness={0.3} metalness={0.6} />
-      </mesh>
-      {/* Rod */}
-      <mesh position={[0.1, 0.85, 0]}>
-        <cylinderGeometry args={[0.008, 0.008, 1.7, 12]} />
-        <meshStandardMaterial color="#94a3b8" roughness={0.2} metalness={0.8} />
-      </mesh>
-      {/* Clamp arm */}
-      <mesh position={[0.02, 1.4, 0]} rotation={[0, 0, Math.PI/2]}>
-        <cylinderGeometry args={[0.005, 0.005, 0.2, 8]} />
-        <meshStandardMaterial color="#64748b" roughness={0.3} metalness={0.7} />
-      </mesh>
-    </group>
-  )
-}
+/**
+ * 50 cm³ Class B burette, origin at TOP of the graduated tube, tube along -y.
+ * Graduated length 0.56 m (0 at top → 50 at bottom), stopcock + tip below.
+ */
+const TUBE_LEN = 0.56
+const TUBE_R = 0.0065
 
-// ── Burette ──────────────────────────────────────────────────────────────────
 function Burette({ reading }) {
   const liquidRef = useRef()
-  const fillFraction = 1 - reading / 50.0
+  const level = 1 - reading / 50 // 1 = full (reading 0.00)
 
   useFrame(() => {
-    if (liquidRef.current) {
-      liquidRef.current.scale.y = Math.max(0.001, fillFraction)
-      liquidRef.current.position.y = (fillFraction - 1) * 0.36
-    }
+    if (!liquidRef.current) return
+    const l = Math.max(0.002, level)
+    liquidRef.current.scale.y = l
+    liquidRef.current.position.y = -TUBE_LEN + (l * TUBE_LEN) / 2
   })
 
+  const marks = useMemo(() => {
+    const out = []
+    for (let v = 0; v <= 50; v += 1) {
+      out.push({ v, y: -(v / 50) * TUBE_LEN, major: v % 10 === 0, mid: v % 5 === 0 })
+    }
+    return out
+  }, [])
+
   return (
-    <group position={[0.3, 1.05, 0]}>
-      {/* Glass tube (transparent) */}
-      <mesh>
-        <cylinderGeometry args={[0.018, 0.018, 0.78, 24, 1, true]} />
-        <meshPhysicalMaterial
-          color="#b8d4ff"
-          transparent
-          opacity={0.18}
-          roughness={0}
-          transmission={0.92}
-          thickness={0.02}
-          side={THREE.DoubleSide}
-        />
+    <group>
+      {/* glass tube */}
+      <mesh position={[0, -TUBE_LEN / 2, 0]}>
+        <cylinderGeometry args={[TUBE_R, TUBE_R, TUBE_LEN, 24, 1, true]} />
+        <GlassMaterial opacity={0.25} />
       </mesh>
-      {/* Liquid inside */}
-      <group ref={liquidRef}>
-        <mesh position={[0, 0.36, 0]}>
-          <cylinderGeometry args={[0.015, 0.015, 0.72, 16]} />
-          <meshPhysicalMaterial color="#b3d9ff" transparent opacity={0.7} roughness={0.1} />
+      {/* titrant column */}
+      <group ref={liquidRef} position={[0, -TUBE_LEN / 2, 0]}>
+        <mesh>
+          <cylinderGeometry args={[TUBE_R - 0.0015, TUBE_R - 0.0015, TUBE_LEN, 16]} />
+          <LiquidMaterial color="#d6ecfa" opacity={0.85} />
         </mesh>
       </group>
-      {/* Stopcock */}
-      <mesh position={[0, -0.42, 0]} rotation={[Math.PI/2, 0, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, 0.05, 12]} />
-        <meshStandardMaterial color="#f97316" roughness={0.3} metalness={0.2} />
-      </mesh>
-      {/* Tip */}
-      <mesh position={[0, -0.52, 0]}>
-        <cylinderGeometry args={[0.004, 0.01, 0.08, 8]} />
-        <meshPhysicalMaterial color="#b8d4ff" transparent opacity={0.3} roughness={0} transmission={0.9} />
-      </mesh>
-      {/* Scale markings */}
-      {[0,10,20,30,40,50].map((mark) => {
-        const y = 0.36 - (mark / 50) * 0.72
-        return (
-          <group key={mark} position={[0, y, 0]}>
-            <mesh position={[0.03, 0, 0]} rotation={[0, 0, Math.PI/2]}>
-              <cylinderGeometry args={[0.0008, 0.0008, 0.022, 4]} />
-              <meshStandardMaterial color="#94a3b8" />
-            </mesh>
+      {/* graduations — thin boxes, cheap and crisp */}
+      {marks.map(({ v, y, major, mid }) => (
+        <group key={v} position={[0, y, 0]}>
+          <mesh position={[TUBE_R + (major ? 0.004 : mid ? 0.003 : 0.002), 0, 0]}>
+            <boxGeometry args={[major ? 0.008 : mid ? 0.006 : 0.004, 0.0007, 0.0007]} />
+            <meshBasicMaterial color="#3b4855" />
+          </mesh>
+          {major && (
             <Text
-              position={[0.07, 0, 0]}
-              fontSize={0.022}
-              color="#94a3b8"
+              font={LAB_FONT}
+              position={[TUBE_R + 0.012, 0, 0]}
+              fontSize={0.011}
+              color="#26313c"
               anchorX="left"
               anchorY="middle"
-              font={LAB_FONT}
             >
-              {mark}
+              {String(v)}
             </Text>
-          </group>
-        )
-      })}
-    </group>
-  )
-}
-
-// ── Conical flask ─────────────────────────────────────────────────────────────
-function ConicalFlask({ indicatorColor, endpointReached }) {
-  const [r, g, b, a] = indicatorColor
-  const color = useMemo(() => new THREE.Color(r, g, b), [r, g, b])
-
-  const flashRef = useRef()
-  useFrame(({ clock }) => {
-    if (flashRef.current && endpointReached) {
-      flashRef.current.material.emissiveIntensity = 0.3 + 0.2 * Math.sin(clock.getElapsedTime() * 4)
-    }
-  })
-
-  return (
-    <group position={[0, 0.05, 0]}>
-      {/* Flask body (simplified cone + cylinder) */}
-      <mesh ref={flashRef}>
-        <coneGeometry args={[0.14, 0.22, 28, 1, true]} />
-        <meshPhysicalMaterial
-          color={color}
-          transparent
-          opacity={Math.max(0.22, a)}
-          roughness={0.05}
-          transmission={0.75}
-          thickness={0.015}
-          emissive={endpointReached ? color : '#000000'}
-          emissiveIntensity={0}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {/* Flask neck */}
-      <mesh position={[0, 0.16, 0]}>
-        <cylinderGeometry args={[0.025, 0.025, 0.1, 18, 1, true]} />
-        <meshPhysicalMaterial color="#b8d4ff" transparent opacity={0.22} roughness={0} transmission={0.9} side={THREE.DoubleSide} />
-      </mesh>
-      {/* Liquid in flask */}
-      <mesh position={[0, -0.04, 0]}>
-        <cylinderGeometry args={[0.12, 0.02, 0.1, 24]} />
-        <meshPhysicalMaterial color={color} transparent opacity={Math.max(0.35, a * 0.9)} roughness={0.05} />
+          )}
+        </group>
+      ))}
+      {/* stopcock body */}
+      <group position={[0, -TUBE_LEN - 0.018, 0]}>
+        <mesh>
+          <cylinderGeometry args={[TUBE_R, TUBE_R * 0.85, 0.036, 16]} />
+          <GlassMaterial opacity={0.3} />
+        </mesh>
+        {/* PTFE key barrel */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.007, 0.005, 0.026, 14]} />
+          <meshStandardMaterial color="#f8fafc" roughness={0.4} />
+        </mesh>
+        {/* key handle */}
+        <mesh position={[0, 0, 0.017]}>
+          <boxGeometry args={[0.026, 0.006, 0.008]} />
+          <meshStandardMaterial color="#3d84c6" roughness={0.5} />
+        </mesh>
+      </group>
+      {/* jet tip */}
+      <mesh position={[0, -TUBE_LEN - 0.062, 0]}>
+        <cylinderGeometry args={[0.0018, TUBE_R * 0.8, 0.052, 12]} />
+        <GlassMaterial opacity={0.3} />
       </mesh>
     </group>
   )
 }
 
-// ── Pipette (decorative, to the side) ────────────────────────────────────────
-function Pipette() {
-  return (
-    <group position={[-0.55, 0.35, 0.1]} rotation={[0, 0.3, Math.PI * 0.08]}>
-      <mesh>
-        <cylinderGeometry args={[0.007, 0.007, 0.45, 12]} />
-        <meshPhysicalMaterial color="#c8e6ff" transparent opacity={0.3} roughness={0} transmission={0.85} />
-      </mesh>
-      <mesh position={[0, -0.27, 0]}>
-        <cylinderGeometry args={[0.007, 0.003, 0.08, 8]} />
-        <meshPhysicalMaterial color="#c8e6ff" transparent opacity={0.3} roughness={0} transmission={0.85} />
-      </mesh>
-      {/* Bulge */}
-      <mesh position={[0, 0.04, 0]}>
-        <sphereGeometry args={[0.02, 14, 10]} />
-        <meshPhysicalMaterial color="#c8e6ff" transparent opacity={0.3} roughness={0} transmission={0.85} />
-      </mesh>
-    </group>
-  )
-}
-
-// ── White tile (for colour comparison) ────────────────────────────────────────
-function WhiteTile() {
-  return (
-    <mesh position={[0, 0.002, 0.1]}>
-      <boxGeometry args={[0.32, 0.004, 0.25]} />
-      <meshStandardMaterial color="#f8fafc" roughness={0.7} />
-    </mesh>
-  )
-}
-
-// ── Drop animation ─────────────────────────────────────────────────────────────
-function DropEffect({ active }) {
+function Drop({ active, tipY, surfaceY }) {
   const ref = useRef()
   useFrame(({ clock }) => {
-    if (ref.current && active) {
-      const t = (clock.getElapsedTime() * 3) % 1
-      ref.current.position.y = 0.6 - t * 0.55
-      ref.current.material.opacity = t < 0.8 ? 0.7 : 0.7 * (1 - (t - 0.8) / 0.2)
-    }
-    if (ref.current && !active) ref.current.material.opacity = 0
+    if (!ref.current) return
+    if (!active) { ref.current.visible = false; return }
+    ref.current.visible = true
+    const t = (clock.getElapsedTime() * 2.2) % 1
+    ref.current.position.y = tipY - t * (tipY - surfaceY)
+    ref.current.scale.setScalar(t < 0.08 ? t / 0.08 : 1)
   })
   return (
-    <mesh ref={ref} position={[0.3, 0.6, 0]}>
-      <sphereGeometry args={[0.006, 8, 8]} />
-      <meshPhysicalMaterial color="#b3d9ff" transparent opacity={0} roughness={0} />
+    <mesh ref={ref} visible={false}>
+      <sphereGeometry args={[0.0035, 10, 8]} />
+      <meshStandardMaterial color="#cfe6f7" transparent opacity={0.9} roughness={0.1} />
     </mesh>
   )
 }
 
-// ── Main scene ──────────────────────────────────────────────────────────────────
+/** Swirl: gentle rotation of the flask liquid while titrating. */
+function useSwirl(groupRef, active) {
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return
+    const t = clock.getElapsedTime()
+    groupRef.current.rotation.z = active ? Math.sin(t * 6) * 0.02 : 0
+    groupRef.current.rotation.x = active ? Math.cos(t * 5.3) * 0.015 : 0
+  })
+}
+
 export default function TitrationScene() {
   const { titration } = useLabStore()
   const isRunning = titration.phase === 'running'
+  const flaskRef = useRef()
+  useSwirl(flaskRef, isRunning)
+
+  const [r, g, b, a] = titration.indicatorColor
+  // Near-white "colourless" state must render as water, not milk.
+  const isColourless = r > 0.9 && g > 0.9 && b > 0.9
+  const liquidColor = useMemo(() => {
+    if (isColourless) return '#d9edf8'
+    const c = new THREE.Color(r, g, b)
+    return `#${c.getHexString()}`
+  }, [r, g, b, isColourless])
+  const liquidOpacity = isColourless ? 0.4 : Math.max(0.55, a)
+
+  // Layout: flask sits on tile at bench top (y=0 => bench surface ~ -0.015)
+  const BENCH_Y = -0.015
+  const FLASK_X = 0
+  // burette: tip ~. Frame: flask height .145, tip 0.05 above neck
+  const BUR_TOP = 0.95
+  const tipY = BUR_TOP - TUBE_LEN - 0.088
 
   return (
     <group>
       <LabRoom />
-      <RetortStand />
-      <Burette reading={titration.buretteReading} />
-      <ConicalFlask
-        indicatorColor={titration.indicatorColor}
-        endpointReached={titration.endpointReached}
-      />
-      <Pipette />
-      <WhiteTile />
-      <DropEffect active={isRunning} />
+      <group position={[FLASK_X, BENCH_Y, 0]}>
+        <WhiteTile size={[0.16, 0.16]} />
+        <group ref={flaskRef} position={[0, 0.007, 0]}>
+          <ConicalFlaskGlass
+            liquidColor={liquidColor}
+            liquidOpacity={liquidOpacity}
+            fill={0.4}
+          />
+        </group>
+        {/* endpoint glow cue */}
+        {titration.endpointReached && (
+          <pointLight position={[0, 0.1, 0.08]} intensity={0.08} distance={0.22} color="#ff9ecb" />
+        )}
+      </group>
+      {/* stand grips the burette directly above the flask */}
+      <group position={[0, BENCH_Y, 0]}>
+        <RetortStand height={1.05} clampY={BUR_TOP - 0.1 - BENCH_Y} rodOffset={[0.16, -0.11]} />
+      </group>
+      <group position={[0, BUR_TOP, 0]}>
+        <Burette reading={titration.buretteReading} />
+      </group>
+      <Drop active={isRunning} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
+      {/* pipette resting on bench front-left */}
+      <group position={[-0.42, BENCH_Y + 0.012, 0.32]} rotation={[0, 0.5, 0]}>
+        <PipetteLying />
+      </group>
     </group>
   )
 }
