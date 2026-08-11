@@ -1,6 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Text } from '@react-three/drei'
+import { LAB_FONT } from '../lib/labFont.js'
 import * as THREE from 'three'
 import { useLabStore } from '../store.js'
 
@@ -105,7 +106,7 @@ function Burette({ reading }) {
               color="#94a3b8"
               anchorX="left"
               anchorY="middle"
-              font="https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4xD-IQ.woff2"
+              font={LAB_FONT}
             >
               {mark}
             </Text>

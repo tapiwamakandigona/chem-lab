@@ -1,0 +1,69 @@
+{
+  "$comment": "Definition of done for the ChemLab gauntlet. Flip passes only with evidence (command output or inspected screenshot). Verify commands / acceptance are not edited to pass.",
+  "features": [
+    {
+      "id": "F1",
+      "title": "Offline-first: zero runtime network fetches",
+      "acceptance": "No gstatic/CDN font or Environment preset fetches; scenes render with network access blocked in the probe.",
+      "verify": "grep -rn 'gstatic\\|preset=' src/ returns nothing network-bound; probe run with route-abort on external hosts still renders apparatus",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F2",
+      "title": "Titration scene renders and completes",
+      "acceptance": "Probe screenshot shows bench, stand, burette with graduations, flask, tile; scripted titration reaches endpoint with pink flask and correct titre.",
+      "verify": "probe/titrate.py exits 0 and shot inspected",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F3",
+      "title": "Clock reaction correct + visual",
+      "acceptance": "Turbidity obscures cross over time; time scales inversely with [S2O3]; rate table fills; probe asserts endpoint times for two concentrations.",
+      "verify": "probe/clock.py exits 0 and shots inspected",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F4",
+      "title": "Enthalpy experiment correct + visual",
+      "acceptance": "Adding Na2CO3 animates, temperature curve behaves physically, ΔH sign and magnitude match 9701/31/M/J/20 expectations.",
+      "verify": "probe/enthalpy.py exits 0 and shots inspected",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F5",
+      "title": "AAA scene look",
+      "acceptance": "Lighting graded (no blown-out bench), real lathe-profile glassware, readable labels, composed camera per experiment. Blind side-by-side vs PhET/Labster shots does not embarrass.",
+      "verify": "probe shots inspected each iteration; verdict logged in notes/progress.md",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F6",
+      "title": "No dev artifacts in prod",
+      "acceptance": "No Stats widget, no console errors in probe, lint clean.",
+      "verify": "npm run lint && probe error log empty",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F7",
+      "title": "Mobile usable",
+      "acceptance": "390x844 probe shots show non-overlapping UI, tappable controls, legible text for all three experiments.",
+      "verify": "probe/shot.py mobile mode shots inspected",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F8",
+      "title": "Build + lint green, bundle sane",
+      "acceptance": "npx vite build succeeds; main chunk code-split so first paint isn't blocked by three.js.",
+      "verify": "npx vite build output inspected",
+      "passes": false,
+      "evidence": ""
+    }
+  ]
+}

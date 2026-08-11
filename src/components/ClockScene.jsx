@@ -1,6 +1,7 @@
-import { useRef, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox, Text } from '@react-three/drei'
+import { LAB_FONT } from '../lib/labFont.js'
 import * as THREE from 'three'
 import { useLabStore } from '../store.js'
 
@@ -43,6 +44,7 @@ function Beaker({ position, label, liquidColor = [0.8, 0.9, 1.0, 0.3] }) {
       </mesh>
       {/* Label */}
       <Text
+        font={LAB_FONT}
         position={[0, 0.11, 0]}
         fontSize={0.022}
         color="#94a3b8"
@@ -129,7 +131,6 @@ function ClockFlask({ turbidity }) {
 
 export default function ClockScene() {
   const { clock, clockTick, clockStop } = useLabStore()
-  const turbidityRef = useRef(0)
 
   // Simulate turbidity: at current conc, endpoint time varies
   // At 0.100 mol/dm3 => ~40s, at 0.020 => ~200s
@@ -138,24 +139,16 @@ export default function ClockScene() {
     : 40000
 
   useFrame((_, delta) => {
-    if (clock.phase !== 'running') {
-      turbidityRef.current = 0
-      return
-    }
-    // Increment timer
+    if (clock.phase !== 'running') return
     clockTick(delta * 1000)
-
-    // Update turbidity based on elapsed time
-    const t = clock.timerMs / endpointTime
-    turbidityRef.current = Math.min(1, t)
-
-    // Auto-stop when cross fully obscured (~85% turbidity = cross gone)
-    if (turbidityRef.current >= 0.98) {
-      clockStop()
-    }
+    // Auto-stop when cross fully obscured
+    if (clock.timerMs / endpointTime >= 0.98) clockStop()
   })
 
-  const turbidity = clock.phase === 'running' ? turbidityRef.current : (clock.phase === 'complete' ? 0.98 : 0)
+  // Derived purely from store state (clockTick re-renders every frame).
+  const turbidity = clock.phase === 'running'
+    ? Math.min(1, clock.timerMs / endpointTime)
+    : (clock.phase === 'complete' ? 0.98 : 0)
   const crossOpacity = Math.max(0, 1 - turbidity / 0.85)
 
   return (

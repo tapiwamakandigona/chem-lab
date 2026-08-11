@@ -19,9 +19,10 @@ export default function ClockUI({ onBack }) {
       }, 100)
     } else {
       clearInterval(intervalRef.current)
-      if (clock.phase === 'setup') setDisplayMs(0)
     }
     return () => clearInterval(intervalRef.current)
+    // displayMs is a start-offset, not a dependency; resets happen in handlers
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clock.phase])
 
   function handleStart() {
@@ -74,7 +75,7 @@ export default function ClockUI({ onBack }) {
               {CONCS.map((c) => (
                 <button
                   key={c}
-                  onClick={() => setClockConc(c)}
+                  onClick={() => { setClockConc(c); setDisplayMs(0) }}
                   disabled={clock.phase === 'running'}
                   className={`px-2 py-1 rounded text-xs border transition-colors ${
                     clock.currentConc === c

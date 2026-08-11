@@ -1,6 +1,6 @@
 import { Suspense, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Environment, Stats } from '@react-three/drei'
+import { OrbitControls, Environment, Lightformer } from '@react-three/drei'
 import { useLabStore, QUALITY } from './store.js'
 import ExperimentMenu from './components/ExperimentMenu.jsx'
 import TitrationScene from './components/TitrationScene.jsx'
@@ -23,11 +23,23 @@ function LabCanvas({ children, quality }) {
       camera={{ position: [0, 1.2, 3.5], fov: 45, near: 0.01, far: 50 }}
       style={{ position: 'absolute', inset: 0 }}
     >
-      {quality === QUALITY.HIGH && <Stats />}
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[3, 5, 3]} intensity={1.2} castShadow={quality === QUALITY.HIGH} />
-      <pointLight position={[-2, 3, -2]} intensity={0.4} color="#b8d4ff" />
-      <Environment preset="studio" />
+      <ambientLight intensity={0.35} />
+      <directionalLight
+        position={[2.5, 4, 2.5]}
+        intensity={1.4}
+        color="#fff4e0"
+        castShadow={quality === QUALITY.HIGH}
+        shadow-mapSize={[1024, 1024]}
+        shadow-bias={-0.0004}
+      />
+      <directionalLight position={[-3, 2.5, -1.5]} intensity={0.35} color="#a8c8ff" />
+      {/* Procedural environment — bundled, zero network. Soft panels give
+          glassware something to refract without blowing out diffuse. */}
+      <Environment resolution={64} frames={1}>
+        <Lightformer intensity={1.1} position={[0, 4, 0]} rotation-x={Math.PI / 2} scale={[6, 6, 1]} color="#dfe8f5" />
+        <Lightformer intensity={0.5} position={[-4, 1.5, 2]} rotation-y={Math.PI / 2} scale={[4, 2, 1]} color="#cdd9ea" />
+        <Lightformer intensity={0.35} position={[4, 1, -2]} rotation-y={-Math.PI / 2} scale={[4, 2, 1]} color="#e8dfd0" />
+      </Environment>
       <OrbitControls
         makeDefault
         minDistance={1.5}

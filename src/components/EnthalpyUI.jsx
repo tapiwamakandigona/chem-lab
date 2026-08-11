@@ -12,13 +12,6 @@ export default function EnthalpyUI({ onBack }) {
   const [showCalc, setShowCalc] = useState(false)
   const animRef = useRef(null)
 
-  // Sync localT2 on reset or T1 change
-  useEffect(() => {
-    if (enthalpy.phase === 'setup') {
-      setLocalT2(enthalpy.T1)
-    }
-  }, [enthalpy.phase, enthalpy.T1])
-
   // Animate T2 when running
   useEffect(() => {
     if (enthalpy.phase === 'running') {
@@ -41,6 +34,8 @@ export default function EnthalpyUI({ onBack }) {
       clearInterval(animRef.current)
     }
     return () => clearInterval(animRef.current)
+    // T1/targetT2 are read once at run start by design; only phase restarts the anim
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enthalpy.phase])
 
   function handleReset() {
@@ -93,7 +88,7 @@ export default function EnthalpyUI({ onBack }) {
                 type="number"
                 value={enthalpy.T1}
                 step="0.1"
-                onChange={(e) => setEnthalpyT1(parseFloat(e.target.value) || 0)}
+                onChange={(e) => { const v = parseFloat(e.target.value) || 0; setEnthalpyT1(v); if (enthalpy.phase === 'setup') setLocalT2(v) }}
                 disabled={enthalpy.phase === 'running'}
                 className="w-full bg-lab-bg border border-lab-border rounded px-3 py-1.5 text-lab-ink text-sm font-mono focus:outline-none focus:border-lab-accent disabled:opacity-50"
               />
