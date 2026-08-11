@@ -107,6 +107,13 @@
    "criteria": "Show Calculations for the iodine clock renders an exam-style rate vs concentration graph (pure SVG, offline-first): axes with gridlines and labels, x point marks for each recorded (conc, rate=1000/t) result, dashed best-fit line constrained through the origin (m = sum(xy)/sum(x^2)), and a gradient readout ~250 s^-1 mol^-1 dm^3; with fewer than 2 recorded results a hint prompts the student to record more runs; graph updates as results are recorded/replaced.",
    "passes": true,
    "evidence": "probe/graph.py exit 0 (ran two real experiments 0.100 M -> 40.0 s and 0.080 M -> 50.0 s via Mix & start + Record; CalcSheet shows 2 rate-point marks, rate-fit line present and passing through SVG origin (44.0,200.0), rate-gradient 250.0 within 240-260); shots/graph-calc.png inspected (exam-authentic axes, points, dashed fit, gradient label); full 10-gate regression titrate/clock/enthalpy/offline/meniscus/meniscus_mobile/pour/tip/tap/graph all exit 0 + shot.py iter16 exit 0 (/tmp/reg16-summary.log); iter16 shots inspected; lint 0; build green."
+  },
+  {
+   "id": "F15",
+   "name": "Enthalpy cooling curve with heat-loss extrapolation",
+   "criteria": "After an enthalpy run completes, the worked-calculations sheet shows exam-authentic thermometer readings every 30 s (solid added at t=150 s marked x, no reading), a pure-SVG temperature/time cooling curve (14 plotted points, solid least-squares cooling line over the measured region, dashed extrapolation segment back to the mixing time, vertical dashed line at t=150 s), the extrapolated temperature labelled on the graph, and a corrected-DH block: DT_corr from the extrapolated T, q_corr, DH_corr closer to the data-book -23.0 kJ/mol than the uncorrected value; section absent before a run or after Reset.",
+   "passes": true,
+   "evidence": "probe/cooling.py exit 0 (13 checks: readings table with x at t=150, 5 pre-mix readings at 22.0, t=180 reads 32.1, 14 plotted points, fit + extrapolation segments present, extrapolated T=32.7, DT_corr=10.7, DH_corr=-22.5 within 0.15 of expected, data-book value mentioned, cooling section gone after Reset); shots/cooling-calc.png inspected (readable readings table, exam-style graph with dashed extrapolation to open-circle marker at T=32.7); model: Tmix=targetT2+0.02*30, linear cooling 0.02 C/s, existing enthalpy gate untouched and still green in reg17; lint 0; build green."
   }
  ]
 }

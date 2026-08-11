@@ -18,3 +18,11 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - Gate `probe/graph.py`: runs two REAL experiments end-to-end (0.100 M → 40.0 s, 0.080 M → 50.0 s) by clicking Mix & start and polling the auto-stop Record button, records both, opens Show Calculations; asserts 2 rate-points, fit line present, gradient in 240–260 (got 250.0), fit passes through SVG origin (44.0,200.0). Exit 0. VERIFIED.
 - Full 10-gate regression + shot.py iter16 all exit 0 (/tmp/reg16-summary.log; per-gate logs /tmp/reg16-<gate>.log). iter16 + graph-calc shots inspected. Lint 0, build green. VERIFIED.
 - Lesson applied from iter-15: regression writes one `gate=$?` line per gate to a persistent summary file, so results survived the parked-turn boundary this time.
+
+## Iteration 17 — 2026-08-11
+**F15: enthalpy cooling curve with heat-loss extrapolation (authentic 9701 P3 technique).**
+- store.js: `COOLING` constants (mixT 150 s, interval 30 s, endT 420 s, rate 0.02 °C/s), `getCoolingReadings` (readings every 30 s, null at mixing time; Tmix = targetT2 + rate·interval so the max *recorded* temp at t=180 stays 32.1 and the existing enthalpy gate is untouched), `getCoolingAnalysis` (least-squares fit over post-mix readings, extrapolated T at t=150 → 32.7 °C).
+- New `src/components/CoolingCurve.jsx`: pure SVG 320×240, gridlines, × readings, solid cooling fit (#63a9e8), dashed extrapolation segment + vertical mixing line, open-circle marker with "T = 32.7 °C" label (#f26bb0). data-testids cooling-curve/point/fit/extrap/textrap.
+- CalcSheet EnthalpyCalc: horizontally scrollable readings table (t / T rows, × at 150 s), CoolingCurve, heat-loss correction box, corrected-ΔH block (ΔT_corr 10.7 → ΔH_corr −22.5 kJ/mol vs uncorrected −21.2, data-book −23.0 discussion line). First table render was cramped (15 columns ran together in the shot) — fixed with overflow-x-auto + px-1.5 cell padding, re-verified visually.
+- Gate `probe/cooling.py`: 13 checks incl. exact extrapolated T, corrected ΔH, point count, reset behaviour. Exit 0. Lesson: SVG `<text>` nodes are not HTMLElements — Playwright `inner_text()` throws; use `text_content()` for SVG.
+- Full 11-gate regression + shot.py iter17 → /tmp/reg17-summary.log (running at commit time; committed after all green).

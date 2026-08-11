@@ -1,5 +1,6 @@
-import { useLabStore, getEnthalpyCalc, TITRATION_PRESETS } from '../store.js'
+import { useLabStore, getEnthalpyCalc, getCoolingAnalysis, COOLING, TITRATION_PRESETS } from '../store.js'
 import RateGraph from './RateGraph.jsx'
+import CoolingCurve from './CoolingCurve.jsx'
 
 export default function CalcSheet({ experiment, onClose }) {
   const { titration, clock, enthalpy } = useLabStore()
@@ -147,6 +148,15 @@ function EnthalpyCalc({ enthalpy }) {
   const calc = getEnthalpyCalc(enthalpy)
   const { mass, volume, T1, T2 } = enthalpy
   const deltaT = T2 - T1
+  const cooling = getCoolingAnalysis(enthalpy)
+  const corr = cooling
+    ? (() => {
+        const dT = cooling.Textrap - T1
+        const q = volume * 4.2 * dT
+        const dH = calc.moles > 0 ? (-q / calc.moles) / 1000 : 0
+        return { dT, q, dH }
+      })()
+    : null
 
   return (
     <div className="space-y-4">
@@ -154,6 +164,45 @@ function EnthalpyCalc({ enthalpy }) {
         <div>Substance: Na₂CO₃  |  M = 106 g mol⁻¹</div>
         <div>Specific heat capacity c = 4.2 J cm⁻³ °C⁻¹  (CAIE S20 convention)</div>
       </div>
+
+      {cooling && (
+        <div>
+          <p className="text-xs text-lab-muted mb-2">
+            Thermometer readings every {COOLING.interval} s (solid added at t = {COOLING.mixT} s — no reading taken):
+          </p>
+          <div className="overflow-x-auto mb-3">
+            <table data-testid="cooling-table" className="text-xs whitespace-nowrap">
+              <thead>
+                <tr className="text-lab-muted border-b border-lab-border">
+                  <th className="text-left pb-1 pr-2">t / s</th>
+                  {cooling.readings.map((r) => (
+                    <th key={r.t} className="text-right pb-1 px-1.5 font-mono">{r.t}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="py-1 pr-2 text-lab-muted">T / °C</td>
+                  {cooling.readings.map((r) => (
+                    <td key={r.t} className="py-1 px-1.5 text-right font-mono text-lab-ink">
+                      {r.T == null ? '×' : r.T.toFixed(1)}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <CoolingCurve analysis={cooling} T1={T1} />
+          <div className="bg-lab-bg border border-lab-border rounded p-3 text-xs font-mono text-lab-ink space-y-1 mb-1">
+            <div className="text-lab-muted mb-1">Heat-loss correction:</div>
+            <div>Extrapolate cooling line back to t = {COOLING.mixT} s</div>
+            <div>
+              T<sub>extrapolated</sub> = <span data-testid="cooling-textrap-value" className="text-lab-accent font-bold">{cooling.Textrap.toFixed(1)} °C</span>
+              <span className="text-lab-muted"> (max recorded: {enthalpy.targetT2.toFixed(1)} °C)</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Step n={1} text="Temperature change" calc={`ΔT = T₂ − T₁ = ${T2.toFixed(1)} − ${T1.toFixed(1)} = ${deltaT.toFixed(1)} °C`} />
       <Step n={2} text="Heat transferred q = V × c × ΔT" calc={`q = ${volume.toFixed(1)} × 4.2 × ${deltaT.toFixed(1)} = ${calc.q.toFixed(1)} J`} />
@@ -168,6 +217,19 @@ function EnthalpyCalc({ enthalpy }) {
           {calc.deltaHkJ < 0 ? 'Exothermic — heat released to surroundings' : 'Endothermic — heat absorbed from surroundings'}
         </div>
       </div>
+
+      {corr && (
+        <div data-testid="cooling-corrected" className="rounded p-3 border border-lab-accent/40 bg-lab-accent/5 text-xs font-mono text-lab-ink space-y-1">
+          <div className="text-lab-muted">With heat-loss correction (extrapolated T):</div>
+          <div>ΔT<sub>corr</sub> = {cooling.Textrap.toFixed(1)} − {T1.toFixed(1)} = {corr.dT.toFixed(1)} °C</div>
+          <div>q<sub>corr</sub> = {volume.toFixed(1)} × 4.2 × {corr.dT.toFixed(1)} = {corr.q.toFixed(1)} J</div>
+          <div className="text-lab-accent font-bold">ΔH<sub>corr</sub> = {corr.dH.toFixed(1)} kJ mol⁻¹</div>
+          <div className="text-lab-muted mt-1">
+            Closer to the data-book value (−23.0 kJ mol⁻¹) — extrapolation
+            recovers heat lost to the cup and surroundings before T₂ was read.
+          </div>
+        </div>
+      )}
     </div>
   )
 }

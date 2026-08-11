@@ -220,6 +220,41 @@ export function getEnthalpyCalc(enthalpy) {
   return { deltaT, q, moles, deltaHkJ }
 }
 
+
+// Cooling-curve model (heat-loss correction, 9701 P3 technique): readings
+// every 30 s; solid added at t = 150 s (no reading); linear cooling after
+// mixing at COOLING.rate °C/s. The max recorded temp (first post-mix reading
+// at t = 180 s) is targetT2; the true mixing-time temp is recovered by
+// extrapolating the cooling line back to t = 150 s.
+export const COOLING = { mixT: 150, interval: 30, endT: 420, rate: 0.02 }
+
+export function getCoolingReadings(enthalpy) {
+  const { T1, targetT2, phase } = enthalpy
+  if (phase !== 'complete') return []
+  const Tmix = targetT2 + COOLING.rate * COOLING.interval
+  const out = []
+  for (let t = 0; t <= COOLING.endT; t += COOLING.interval) {
+    if (t === COOLING.mixT) { out.push({ t, T: null }); continue }
+    out.push({ t, T: t < COOLING.mixT ? T1 : Tmix - COOLING.rate * (t - COOLING.mixT) })
+  }
+  return out
+}
+
+export function getCoolingAnalysis(enthalpy) {
+  const readings = getCoolingReadings(enthalpy)
+  const post = readings.filter((r) => r.T != null && r.t > COOLING.mixT)
+  if (post.length < 2) return null
+  const n = post.length
+  const sx = post.reduce((s, r) => s + r.t, 0)
+  const sy = post.reduce((s, r) => s + r.T, 0)
+  const sxy = post.reduce((s, r) => s + r.t * r.T, 0)
+  const sxx = post.reduce((s, r) => s + r.t * r.t, 0)
+  const slope = (n * sxy - sx * sy) / (n * sxx - sx * sx)
+  const intercept = (sy - slope * sx) / n
+  const Textrap = slope * COOLING.mixT + intercept
+  return { readings, post, slope, intercept, Textrap }
+}
+
 // Clock reaction timing model (9701/31/M/J/23): endpoint when enough S is
 // produced to obscure the cross; rate ∝ [S2O3] ⇒ t_end = K_CLOCK/[S2O3].
 export const CLOCK_TIME_SCALE = 5
