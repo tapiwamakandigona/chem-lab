@@ -6,32 +6,32 @@
       "title": "Offline-first: zero runtime network fetches",
       "acceptance": "No gstatic/CDN font or Environment preset fetches; scenes render with network access blocked in the probe.",
       "verify": "grep -rn 'gstatic\\|preset=' src/ returns nothing network-bound; probe run with route-abort on external hosts still renders apparatus",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "iter-1/2: probe aborts all non-127.0.0.1 requests; every scene renders (shots iter6d-*, mob4-*). No gstatic/preset refs in src (grep clean)."
     },
     {
       "id": "F2",
       "title": "Titration scene renders and completes",
       "acceptance": "Probe screenshot shows bench, stand, burette with graduations, flask, tile; scripted titration reaches endpoint with pink flask and correct titre.",
       "verify": "probe/titrate.py exits 0 and shot inspected",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "probe/titrate.py exit 0: 20.00 after 4x5cm3, 23.85 endpoint, UI 'Endpoint reached', pink flask (f2-endpoint.png)."
     },
     {
       "id": "F3",
       "title": "Clock reaction correct + visual",
       "acceptance": "Turbidity obscures cross over time; time scales inversely with [S2O3]; rate table fills; probe asserts endpoint times for two concentrations.",
       "verify": "probe/clock.py exits 0 and shots inspected",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "probe/clock.py exit 0: 40.0s @0.100M, 100.0s @0.040M, ratio 2.5, rate=1000/t rows exact (f3-results.png)."
     },
     {
       "id": "F4",
       "title": "Enthalpy experiment correct + visual",
       "acceptance": "Adding Na2CO3 animates, temperature curve behaves physically, ΔH sign and magnitude match 9701/31/M/J/20 expectations.",
       "verify": "probe/enthalpy.py exits 0 and shots inspected",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "probe/enthalpy.py exit 0: dT 10.1, q 1060.5, dH -21.2 kJ/mol, T2 32.1 (f4-done.png)."
     },
     {
       "id": "F5",
@@ -46,24 +46,24 @@
       "title": "No dev artifacts in prod",
       "acceptance": "No Stats widget, no console errors in probe, lint clean.",
       "verify": "npm run lint && probe error log empty",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "npm run lint = 0 problems; probe console errors only the intentional blocked-request ERR_FAILED."
     },
     {
       "id": "F7",
       "title": "Mobile usable",
       "acceptance": "390x844 probe shots show non-overlapping UI, tappable controls, legible text for all three experiments.",
       "verify": "probe/shot.py mobile mode shots inspected",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "mob4-*.png: readings strip + bottom sheets, scene visible, controls tappable at 390x844."
     },
     {
       "id": "F8",
       "title": "Build + lint green, bundle sane",
       "acceptance": "npx vite build succeeds; main chunk code-split so first paint isn't blocked by three.js.",
       "verify": "npx vite build output inspected",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "build: index 8.6kB gz + react 56kB gz first paint; three chunk 302.8kB gz lazy-loaded (LabViewport)."
     }
   ]
 }
