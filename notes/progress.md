@@ -92,3 +92,18 @@
 - F4 gate probe/enthalpy.py ALL PASS (ΔT 10.1, q 1060.5, ΔH -21.2, T2 32.1).
 - Probe lesson: match UI numbers with loose regex across newlines — the calc
   sheet breaks lines mid-equation.
+
+## 2026-08-11 iter-6 (code split + mobile layout)
+- LabViewport.jsx behind React.lazy: menu first paint = react chunk only
+  (~65 kB gz vs ~370 before); three.js (303 kB gz) loads on experiment
+  open with LoadingScreen fallback. F8 evidence: build output chunks.
+- Mobile (F7): Titration side panels hidden <md, replaced by inline
+  readings strip (+Record button at endpoint, mean readout); Clock/Enthalpy
+  w-80 side panel becomes bottom sheet (max-h 46%) — scene visible above.
+  mob4-*.png verified: rig, cross beaker, cup all visible + tappable
+  controls.
+- PROBE LESSON (2nd false alarm): fixed sleeps are unreliable — SwiftShader
+  render time varies 8-40 s run to run. shot.py now POLLS screenshots until
+  content-fraction > 0.5 (75 s timeout). Never conclude 'blank/broken'
+  from one fixed-delay screenshot; dbg5.py confirms with 8/16/30 s series.
+- VERIFIED: lint clean, build green, desktop + mobile probes all render.

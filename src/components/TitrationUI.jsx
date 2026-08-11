@@ -65,8 +65,28 @@ export default function TitrationUI({ onBack }) {
         </select>
       </div>
 
-      {/* Left panel — readings + instructions */}
-      <div className="absolute top-12 left-2 bottom-28 w-44 flex flex-col gap-2 pointer-events-auto overflow-y-auto">
+      {/* Mobile strip — readings inline, scene stays visible */}
+      <div className="md:hidden absolute top-12 left-2 right-2 pointer-events-auto">
+        <div className="bg-lab-panel/90 backdrop-blur-sm border border-lab-border rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+          <ReadingDisplay label="Initial" value={titration.initialReading} />
+          <ReadingDisplay label="Current" value={titration.buretteReading} />
+          <ReadingDisplay label="Titre" value={titre} />
+          {titration.endpointReached && (
+            <button
+              onClick={titrationRecordTitre}
+              className="shrink-0 px-2 py-1.5 bg-lab-success/20 border border-lab-success/40 text-lab-success text-[11px] rounded-lg"
+            >
+              ✓ Record
+            </button>
+          )}
+        </div>
+        {concordant && (
+          <p className="mt-1 text-right text-[11px] text-lab-accent font-mono pr-1">mean {meanTitre} cm³</p>
+        )}
+      </div>
+
+      {/* Left panel — readings + instructions (desktop) */}
+      <div className="hidden md:flex absolute top-12 left-2 bottom-28 w-44 flex-col gap-2 pointer-events-auto overflow-y-auto">
         {/* Burette readings */}
         <div className="bg-lab-panel/90 backdrop-blur-sm border border-lab-border rounded-xl p-3 space-y-3">
           <ReadingDisplay label="Initial reading" value={titration.initialReading} />
@@ -124,8 +144,8 @@ export default function TitrationUI({ onBack }) {
         </div>
       </div>
 
-      {/* Right panel — reagent info */}
-      <div className="absolute top-12 right-2 w-40 pointer-events-auto">
+      {/* Right panel — reagent info (desktop) */}
+      <div className="hidden md:block absolute top-12 right-2 w-40 pointer-events-auto">
         <div className="bg-lab-panel/90 backdrop-blur-sm border border-lab-border rounded-xl p-3 space-y-2">
           <p className="text-[10px] text-lab-muted uppercase tracking-wider">Reagents</p>
           <div>

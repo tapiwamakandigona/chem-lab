@@ -48,7 +48,7 @@ export default function EnthalpyUI({ onBack }) {
 
   return (
     <>
-      <div className="absolute top-0 right-0 bottom-0 w-80 bg-lab-panel border-l border-lab-border flex flex-col overflow-y-auto pointer-events-auto z-10">
+      <div className="absolute left-0 right-0 bottom-0 max-h-[46%] border-t md:left-auto md:top-0 md:right-0 md:bottom-0 md:w-80 md:max-h-none md:border-t-0 md:border-l bg-lab-panel border-lab-border flex flex-col overflow-y-auto pointer-events-auto z-10">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-lab-border shrink-0">
           <button onClick={onBack} className="text-xs text-lab-muted hover:text-lab-ink px-2 py-1 rounded border border-lab-border">
