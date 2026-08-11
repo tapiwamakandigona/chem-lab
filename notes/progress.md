@@ -79,3 +79,16 @@
 - F3 gate probe/clock.py ALL PASS: 40.0s & 100.0s recorded, ratio 2.5,
   table rows rate=1000/t exact. VERIFIED lint+build green.
 - Critique: clock camera too shallow (bench void dominates); steepened.
+
+## 2026-08-11 iter-5 (enthalpy: physical model + calorimeter scene + gate)
+- Replaced fantasy ΔT ("4 + 2·m/5.3") with physics: ΔH_soln(Na2CO3) =
+  -23.0 kJ/mol, ΔT = 0.92·n·23000/(4.2·V) (92% calorimeter efficiency →
+  students get -21.2 vs data-book -23.0, an error to discuss). Default
+  5.30 g / 25 cm³ → ΔT +10.1 °C, T2 32.1.
+- Scene: proper 9701 rig — polystyrene cup nested in support beaker, lid,
+  thermometer through lid (red column tracks T2, bulb in water), dissolving
+  powder swirl while running, digital balance w/ live readout that empties
+  when the powder is added.
+- F4 gate probe/enthalpy.py ALL PASS (ΔT 10.1, q 1060.5, ΔH -21.2, T2 32.1).
+- Probe lesson: match UI numbers with loose regex across newlines — the calc
+  sheet breaks lines mid-equation.

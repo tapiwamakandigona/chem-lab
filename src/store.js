@@ -179,8 +179,13 @@ export const useLabStore = create((set) => ({
   setEnthalpyVolume: (volume) => set((s) => ({ enthalpy: { ...s.enthalpy, volume } })),
   setEnthalpyT1: (T1) => set((s) => ({ enthalpy: { ...s.enthalpy, T1, T2: T1, targetT2: T1 } })),
   enthalpyStart: () => set((s) => {
-    // Simulate realistic ΔT: exothermic, ~+5°C base + some variation based on mass
-    const dt = 4.0 + (s.enthalpy.mass / 5.30) * 2.0
+    // Physical model: anhydrous Na2CO3 dissolution, ΔH_soln ≈ -23.0 kJ/mol.
+    // ΔT = n·|ΔH| / (c·V), with ~92% calorimeter efficiency (heat loss to
+    // cup/air) so students meet a realistic data-book gap to discuss.
+    // Default 5.30 g / 25 cm³ → ΔT ≈ +10.1 °C.
+    const n = s.enthalpy.mass / 106
+    const dtIdeal = (n * 23000) / (4.2 * Math.max(1, s.enthalpy.volume))
+    const dt = Math.round(dtIdeal * 0.92 * 10) / 10
     return {
       enthalpy: {
         ...s.enthalpy,
