@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import BuretteScale from './BuretteScale.jsx'
 
 // Meniscus-reading practice — core Paper 3 skill: read a burette to the
 // nearest 0.05 cm³ at the BOTTOM of the meniscus, eye level with the scale.
@@ -6,12 +7,6 @@ import { useState, useCallback } from 'react'
 
 const randTarget = () => Math.floor(Math.random() * 961 + 20) * 0.05 // 1.00–49.00
 
-// SVG geometry
-const W = 150
-const H = 190
-const PX_PER_CM3 = 140 // zoom factor: 1 cm³ of scale = 140 px
-const TUBE_L = 46
-const TUBE_R = 104
 
 export default function MeniscusPractice() {
   const [target, setTarget] = useState(randTarget)
@@ -48,22 +43,6 @@ export default function MeniscusPractice() {
     setScore((s) => ({ right: s.right + (ok ? 1 : 0), tries: s.tries + 1 }))
   }
 
-  // Window of scale shown: target near centre, ±~0.65 cm³
-  const vTop = target - (H / 2) / PX_PER_CM3
-  const vToY = (v) => (v - vTop) * PX_PER_CM3
-  const menY = vToY(target)
-
-  // Tick marks every 0.1, half-height every 0.5, labelled every 1
-  const ticks = []
-  const first = Math.ceil(vTop * 10) / 10
-  for (let v = first; vToY(v) < H; v = Math.round((v + 0.1) * 10) / 10) {
-    if (v < 0 || v > 50) continue
-    const y = vToY(v)
-    const whole = Math.abs(v - Math.round(v)) < 0.001
-    const half = Math.abs(v * 2 - Math.round(v * 2)) < 0.001
-    ticks.push({ y, v, len: whole ? 26 : half ? 18 : 11, whole })
-  }
-
   return (
     <div className="bg-lab-panel/90 backdrop-blur-sm border border-lab-border rounded-xl p-3 space-y-2">
       <div className="flex items-center justify-between">
@@ -73,40 +52,7 @@ export default function MeniscusPractice() {
         </p>
       </div>
 
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="w-full rounded-lg bg-[#eef3f8]"
-        data-target={target.toFixed(2)}
-        data-testid="meniscus-svg"
-      >
-        {/* liquid below the meniscus (scale increases downwards) */}
-        <path
-          d={`M ${TUBE_L} ${menY - 7} Q ${(TUBE_L + TUBE_R) / 2} ${menY + 7} ${TUBE_R} ${menY - 7} L ${TUBE_R} ${H} L ${TUBE_L} ${H} Z`}
-          fill="#b7d9f2"
-          opacity="0.9"
-        />
-        {/* meniscus curve */}
-        <path
-          d={`M ${TUBE_L} ${menY - 7} Q ${(TUBE_L + TUBE_R) / 2} ${menY + 7} ${TUBE_R} ${menY - 7}`}
-          fill="none"
-          stroke="#5b93bd"
-          strokeWidth="1.6"
-        />
-        {/* tube walls */}
-        <line x1={TUBE_L} y1="0" x2={TUBE_L} y2={H} stroke="#8fa3b5" strokeWidth="2" />
-        <line x1={TUBE_R} y1="0" x2={TUBE_R} y2={H} stroke="#8fa3b5" strokeWidth="2" />
-        {/* graduations (on the left wall, like a real burette) */}
-        {ticks.map(({ y, v, len, whole }) => (
-          <g key={v}>
-            <line x1={TUBE_L} y1={y} x2={TUBE_L + len} y2={y} stroke="#3d5468" strokeWidth={whole ? 1.6 : 1} />
-            {whole && (
-              <text x={TUBE_L + len + 4} y={y + 4} fontSize="12" fontFamily="JetBrains Mono, monospace" fill="#26394a">
-                {Math.round(v)}
-              </text>
-            )}
-          </g>
-        ))}
-      </svg>
+      <BuretteScale value={target} testid="meniscus-svg" showTarget />
 
       <div className="flex items-center gap-1.5">
         <input

@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useLabStore, TITRATION_PRESETS } from '../store.js'
 import MeniscusPractice from './MeniscusPractice.jsx'
+import BuretteScale from './BuretteScale.jsx'
 
-function ReadingDisplay({ label, value, unit = 'cm³' }) {
+function ReadingDisplay({ label, value, unit = 'cm³', masked = false }) {
   return (
     <div className="flex flex-col">
       <span className="text-[10px] text-lab-muted uppercase tracking-wider">{label}</span>
       <span className="font-mono text-lab-ink text-base">
-        {value.toFixed(2)} <span className="text-lab-muted text-xs">{unit}</span>
+        {masked ? '?.??' : value.toFixed(2)} <span className="text-lab-muted text-xs">{unit}</span>
       </span>
     </div>
   )
@@ -16,8 +17,13 @@ function ReadingDisplay({ label, value, unit = 'cm³' }) {
 export default function TitrationUI({ onBack }) {
   const {
     titration, titrationDispense, titrationReset,
-    titrationRecordTitre, setTitrationPreset
+    setTitrationPreset,
+    titrationReadInput, titrationReadCheckSubmit, titrationReadReveal,
   } = useLabStore()
+
+  // At the endpoint the numeric reading is hidden — the student must read
+  // the burette scale themselves before the titre can be recorded.
+  const mustRead = titration.endpointReached
 
   const [showPractice, setShowPractice] = useState(false)
   const preset = TITRATION_PRESETS[titration.preset]
@@ -70,16 +76,8 @@ export default function TitrationUI({ onBack }) {
       <div className="md:hidden absolute top-12 left-2 right-2 pointer-events-auto">
         <div className="bg-lab-panel/90 backdrop-blur-sm border border-lab-border rounded-xl px-3 py-2 flex items-center justify-between gap-2">
           <ReadingDisplay label="Initial" value={titration.initialReading} />
-          <ReadingDisplay label="Current" value={titration.buretteReading} />
-          <ReadingDisplay label="Titre" value={titre} />
-          {titration.endpointReached && (
-            <button
-              onClick={titrationRecordTitre}
-              className="shrink-0 px-2 py-1.5 bg-lab-success/20 border border-lab-success/40 text-lab-success text-[11px] rounded-lg"
-            >
-              ✓ Record
-            </button>
-          )}
+          <ReadingDisplay label="Current" value={titration.buretteReading} masked={mustRead} />
+          <ReadingDisplay label="Titre" value={titre} masked={mustRead} />
         </div>
         {concordant && (
           <p className="mt-1 text-right text-[11px] text-lab-accent font-mono pr-1">mean {meanTitre} cm³</p>
@@ -100,25 +98,12 @@ export default function TitrationUI({ onBack }) {
         {/* Burette readings */}
         <div className="bg-lab-panel/90 backdrop-blur-sm border border-lab-border rounded-xl p-3 space-y-3">
           <ReadingDisplay label="Initial reading" value={titration.initialReading} />
-          <ReadingDisplay label="Current reading" value={titration.buretteReading} />
+          <ReadingDisplay label="Current reading" value={titration.buretteReading} masked={mustRead} />
           <div className="border-t border-lab-border pt-2">
-            <ReadingDisplay label="Titre" value={titre} />
+            <ReadingDisplay label="Titre" value={titre} masked={mustRead} />
           </div>
         </div>
 
-        {/* Endpoint status */}
-        {titration.endpointReached && (
-          <div className="bg-lab-success/10 border border-lab-success/40 rounded-xl p-3">
-            <p className="text-lab-success text-xs font-medium">✓ Endpoint reached</p>
-            <p className="text-lab-muted text-[10px] mt-1">Titre: {titre.toFixed(2)} cm³</p>
-            <button
-              onClick={titrationRecordTitre}
-              className="mt-2 w-full py-1.5 bg-lab-success/20 hover:bg-lab-success/30 border border-lab-success/40 text-lab-success text-xs rounded-lg"
-            >
-              Record & Refill
-            </button>
-          </div>
-        )}
 
         {/* Past titres */}
         {titration.titreValues.length > 0 && (
@@ -181,6 +166,55 @@ export default function TitrationUI({ onBack }) {
           {showPractice ? 'Hide meniscus practice' : 'Practise reading the meniscus'}
         </button>
       </div>
+
+      {/* Endpoint — read the burette yourself (ONE shared instance).
+          Numeric reading is masked; the student reads this zoomed scale and
+          types the final reading to the nearest 0.05 before recording. */}
+      {mustRead && (
+        <div
+          data-testid="endpoint-read-card"
+          className="absolute pointer-events-auto left-1/2 -translate-x-1/2 top-[7.5rem] md:top-16 w-[220px] bg-lab-panel/95 backdrop-blur-sm border border-lab-success/40 rounded-xl p-3 space-y-2 max-h-[70%] overflow-y-auto"
+        >
+          <p className="text-lab-success text-xs font-medium">✓ Endpoint reached</p>
+          <p className="text-[10px] text-lab-muted leading-snug">
+            Read the burette: bottom of the meniscus, to the nearest 0.05 cm³.
+          </p>
+          <BuretteScale value={titration.buretteReading} testid="endpoint-scale" />
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              inputMode="decimal"
+              value={titration.readCheck.entered}
+              onChange={(e) => titrationReadInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && titrationReadCheckSubmit()}
+              placeholder="0.00"
+              data-testid="burette-read-input"
+              className="w-full min-w-0 bg-lab-bg border border-lab-border rounded-lg px-2 py-1.5 font-mono text-sm text-lab-ink placeholder:text-lab-muted/50 focus:border-lab-accent focus:outline-none"
+            />
+            <button
+              onClick={titrationReadCheckSubmit}
+              data-testid="burette-read-check"
+              className="px-2.5 py-1.5 rounded-lg border border-lab-success/50 text-lab-success bg-lab-success/10 hover:bg-lab-success/20 text-xs font-mono shrink-0"
+            >
+              Record
+            </button>
+          </div>
+          {titration.readCheck.status === 'wrong' && (
+            <p data-testid="burette-read-feedback" className="text-[11px] leading-snug text-lab-warning">
+              ✗ Not quite — read the bottom of the meniscus, to the nearest 0.05 cm³. The scale increases downwards.
+            </p>
+          )}
+          {titration.readCheck.attempts >= 3 && (
+            <button
+              onClick={titrationReadReveal}
+              data-testid="burette-read-reveal"
+              className="w-full py-1.5 rounded-lg border border-lab-border text-lab-muted hover:text-lab-ink text-xs"
+            >
+              Show me the reading
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Meniscus practice — one shared instance (mobile + desktop toggles) */}
       {showPractice && (

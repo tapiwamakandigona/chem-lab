@@ -32,6 +32,10 @@ export const useLabStore = create((set) => ({
     endpointReached: false,
     titreValues: [],        // array of completed titre cm3 values
     phase: 'setup',         // 'setup' | 'running' | 'endpoint' | 'complete'
+    // "Read the burette yourself" (P3 skill): at the endpoint the numeric
+    // reading is masked; the student reads the zoomed scale and types the
+    // final reading (nearest 0.05) before the titre records.
+    readCheck: { entered: '', status: 'idle', attempts: 0 }, // status: idle|wrong|correct
   },
   titrationDispense: (delta) => set((s) => {
     const t = s.titration
@@ -73,6 +77,7 @@ export const useLabStore = create((set) => ({
       indicatorColor: [0.95, 0.95, 0.95, 0.85],
       endpointReached: false,
       phase: 'setup',
+      readCheck: { entered: '', status: 'idle', attempts: 0 },
     }
   })),
   titrationRecordTitre: () => set((s) => {
@@ -86,6 +91,50 @@ export const useLabStore = create((set) => ({
         indicatorColor: [0.95, 0.95, 0.95, 0.85],
         endpointReached: false,
         phase: 'setup',
+        readCheck: { entered: '', status: 'idle', attempts: 0 },
+      }
+    }
+  }),
+  // --- endpoint "read the burette" check ---
+  titrationReadInput: (txt) => set((s) => ({
+    titration: { ...s.titration, readCheck: { ...s.titration.readCheck, entered: txt } }
+  })),
+  titrationReadReveal: () => set((s) => ({
+    titration: {
+      ...s.titration,
+      readCheck: { ...s.titration.readCheck, entered: s.titration.buretteReading.toFixed(2) },
+    }
+  })),
+  // Validates the typed final reading. Correct = exactly the true reading
+  // (burette dispenses in 0.05 quanta, so the scale IS readable exactly).
+  // On success the titre is recorded (same transition as titrationRecordTitre).
+  titrationReadCheckSubmit: () => set((s) => {
+    const t = s.titration
+    const v = parseFloat(t.readCheck.entered)
+    const quantized = !Number.isNaN(v) && Math.abs(v * 20 - Math.round(v * 20)) < 1e-6
+    const correct = quantized && Math.abs(v - t.buretteReading) < 0.001
+    if (!correct) {
+      return {
+        titration: {
+          ...t,
+          readCheck: {
+            ...t.readCheck,
+            status: 'wrong',
+            attempts: t.readCheck.attempts + 1,
+          },
+        }
+      }
+    }
+    const titre = Math.round((t.buretteReading - t.initialReading) * 20) / 20
+    return {
+      titration: {
+        ...t,
+        titreValues: [...t.titreValues, titre],
+        initialReading: t.buretteReading,
+        indicatorColor: [0.95, 0.95, 0.95, 0.85],
+        endpointReached: false,
+        phase: 'setup',
+        readCheck: { entered: '', status: 'idle', attempts: 0 },
       }
     }
   }),
@@ -99,6 +148,7 @@ export const useLabStore = create((set) => ({
       endpointReached: false,
       titreValues: [],
       phase: 'setup',
+      readCheck: { entered: '', status: 'idle', attempts: 0 },
     }
   })),
 

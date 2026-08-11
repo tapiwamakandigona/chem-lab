@@ -39,3 +39,16 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
   boots the full 3D titration scene, 1 SW registration, zero console errors
   (shots/live-menu.png, live-titration.png).
 - Also: iter-17 regression (11 gates + shots) all green before deploy.
+
+## iter-19 (2026-08-11)
+- F16 "read the burette yourself": endpoint masks CURRENT READING/TITRE
+  (?.??); single shared endpoint card (store-driven readCheck state — safe
+  across responsive renders) with zoomed BuretteScale SVG (extracted from
+  MeniscusPractice into components/BuretteScale.jsx, no data-target leak in
+  live mode), exact-0.05 validation, warning feedback, reveal after 3 misses.
+- Store: titration.readCheck + titrationReadInput/ReadCheckSubmit/ReadReveal;
+  all resets clear it. Record & Refill button removed — recording now flows
+  only through a correct reading (or reveal).
+- Gates: new probe/read.py (19 checks, desktop + 390x844 mobile) exit 0;
+  probe/titrate.py STRENGTHENED (masked at endpoint + read-check records
+  titre) exit 0.
