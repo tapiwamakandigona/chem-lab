@@ -3,8 +3,9 @@ import http.server, socketserver, threading, functools, time, sys, re
 from playwright.sync_api import sync_playwright
 
 import os
-DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
-SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
+from pathlib import Path
+DIST = os.environ.get("CHEMLAB_DIST", str(Path(__file__).resolve().parents[2] / "dist"))
+SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] / "test-results"))
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))

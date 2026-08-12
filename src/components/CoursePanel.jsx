@@ -32,6 +32,7 @@ const EXPERIMENT_LABEL = {
   distill: 'Simple Distillation',
   solubility: 'Solubility Curve',
   peroxide: 'Catalytic Kinetics',
+  'iodine-rate': 'Iodine Rate Titration',
 }
 
 // Menu-level "learn by doing" path: ordered milestones across all

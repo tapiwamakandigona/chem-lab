@@ -12,14 +12,14 @@ import functools
 import http.server
 import io
 import os
+from pathlib import Path
 import threading
 import time
 
 from playwright.sync_api import sync_playwright
 
-import os
-DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
-SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
+DIST = os.environ.get("CHEMLAB_DIST", str(Path(__file__).resolve().parents[2] / "dist"))
+SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] / "test-results"))
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
@@ -35,7 +35,7 @@ def snap(page, name):
 
 
 DIST = os.environ.get("CHEMLAB_DIST", DIST)
-SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
+SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] / "test-results"))
 os.makedirs(SHOTS, exist_ok=True)
 
 PORT = 8797

@@ -30,4 +30,5 @@ dist-ssr
 
 # probe gate output
 shots/
+test-results/
 __pycache__/

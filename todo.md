@@ -39,3 +39,29 @@
 - [x] Gate controls, one-variable validity, graph, conclusion, desktop and mobile.
 - [x] Inspect the full apparatus from four angles and fix visual defects.
 - [x] Re-run affected/offline regressions, record evidence, commit and push.
+
+## Iteration 37 — production landing page
+
+- [x] Critique the current desktop/mobile entry screen and research current virtual-lab landing patterns.
+- [x] Establish the ChemLab brand spec from the shipped identity and verified product claims.
+- [x] Replace the internal-looking menu with an outcome-led, mobile-first landing page.
+- [x] Use a real ChemLab product capture and verified proof only; refresh stale social metadata/art.
+- [x] Keep the expanded 14-practical library, 19-unit learner guide, quality controls and existing gate locators functional.
+- [x] Add a dedicated landing-page gate for structure, actions, mobile layout, keyboard access and truthful counts.
+- [x] Run lint/build, landing/offline/course/gfx regressions and inspect desktop plus both phone orientations.
+- [ ] Record final 29-gate evidence, commit and push only after every affected check is green.
+- [x] Rebuild after the final zoom, contrast, filter-count and six-card mobile fixes.
+- [x] Run the landing gate against the frozen final build.
+- [ ] Run all 29 gates against that exact build; below-fold section-by-section review is already complete.
+- [ ] Only after those checks: mark F33/F34, commit/push, verify Actions/deployment/live counts, and consider F22.
+
+## Iteration 38 — iodine/thiosulfate titration (queued research)
+
+- [x] Check the official 2025–2027 practical scope and recent Paper 3 examples.
+- [x] Confirm the chemistry/procedure: I₂ + 2S₂O₃²⁻, starch only near the pale-yellow endpoint.
+- [x] Define the complete learner flow, zero-order timed model, persistent-complex endpoint consequence and 10-mark ECF scheme.
+- [x] Build the two-stage 3D bench, phone-first controls, five-step coach and 19th learner-course milestone.
+- [x] Add pure-model invariants and a dedicated gate covering removal-only, timed quench, early starch, dry closed stopcock, concordancy, ECF, mobile and landscape.
+- [x] Inspect the current model from front, side and both three-quarter views; correct depth separation, framing and quench visibility defects rather than accepting the first camera.
+- [x] Run landing/course/offline/gfx plus full 29-gate regression against one immutable final build.
+- [ ] Mark F33/F34 only with final evidence; commit/push once, then verify all Actions shards, deployment, live counts/hash/robots/sitemap before F22.

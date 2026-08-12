@@ -18,6 +18,13 @@ import {
   syringeReading as peroxideReading,
   compareRuns as comparePeroxideRuns,
 } from './lib/peroxide.js'
+import {
+  endpointTitreAt,
+  markIodineRate,
+  starchTiming as iodineStarchTiming,
+  titrationAppearance as iodineAppearance,
+  visibleEndpoint as iodineVisibleEndpoint,
+} from './lib/iodineRate.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
@@ -908,6 +915,240 @@ export const useLabStore = create((set) => ({
       readings: Object.fromEntries(
         Object.entries(s.peroxide.readings).filter(([id]) => id !== s.peroxide.runId),
       ),
+      result: null,
+    },
+  })),
+
+  // --- iodine–propanone rate by thiosulfate titration ---
+  iodineRate: {
+    phase: 'setup', // setup | timing | quenched | prepared | titrating | endpoint
+    timeSec: 0,
+    quenchTime: null,
+    removedAt: null,
+    preparedAfterQuench: false,
+    runKind: 'rough',
+    runIndex: 0,
+    buretteReading: 0,
+    endpoint: null,
+    visibleEndpoint: null,
+    starchDrops: 0,
+    starchTiming: null,
+    appearance: 'brown',
+    tapOpen: false,
+    titres: [],
+    answers: {
+      mean: '',
+      nThio: '',
+      nIodine: '',
+      concentration: '',
+      initial: '',
+      rate: '',
+      units: '',
+      starchReason: '',
+      quenchReason: '',
+    },
+    result: null,
+  },
+  iodineStart: () => set((s) => {
+    if (s.iodineRate.phase !== 'setup') return {}
+    return {
+      iodineRate: {
+        ...s.iodineRate,
+        phase: 'timing',
+        timeSec: 0,
+        removedAt: 0,
+        quenchTime: null,
+        preparedAfterQuench: false,
+        tapOpen: false,
+        result: null,
+      },
+    }
+  }),
+  iodineTick: (deltaSec) => set((s) => {
+    const x = s.iodineRate
+    if (x.phase !== 'timing') return {}
+    return { iodineRate: { ...x, timeSec: Math.min(140, x.timeSec + deltaSec) } }
+  }),
+  iodineQuench: () => set((s) => {
+    const x = s.iodineRate
+    if (x.phase !== 'timing') return {}
+    const quenchTime = Math.round(x.timeSec * 10) / 10
+    return {
+      iodineRate: {
+        ...x,
+        phase: 'quenched',
+        timeSec: quenchTime,
+        quenchTime,
+        result: null,
+      },
+    }
+  }),
+  iodineRemoveSample: () => set((s) => {
+    const x = s.iodineRate
+    if (x.phase !== 'timing') return {}
+    return {
+      iodineRate: {
+        ...x,
+        removedAt: Math.round(x.timeSec * 10) / 10,
+      },
+    }
+  }),
+  iodinePrepare: () => set((s) => {
+    const x = s.iodineRate
+    if (x.phase !== 'quenched') return {}
+    return {
+      iodineRate: {
+        ...x,
+        phase: 'prepared',
+        preparedAfterQuench: true,
+        result: null,
+      },
+    }
+  }),
+  iodineBeginTitration: (kind = 'accurate') => set((s) => {
+    const x = s.iodineRate
+    if (!['prepared', 'endpoint'].includes(x.phase) || !Number.isFinite(x.quenchTime)) return {}
+    const endpoint = endpointTitreAt(x.quenchTime, x.runIndex)
+    return {
+      iodineRate: {
+        ...x,
+        phase: 'titrating',
+        runKind: kind,
+        buretteReading: 0,
+        endpoint,
+        visibleEndpoint: endpoint,
+        starchDrops: 0,
+        starchTiming: null,
+        appearance: 'brown',
+        tapOpen: false,
+        result: null,
+      },
+    }
+  }),
+  iodineDispense: (delta) => set((s) => {
+    const x = s.iodineRate
+    if (x.phase !== 'titrating' || !Number.isFinite(x.visibleEndpoint)) return {}
+    const buretteReading = Math.min(
+      50,
+      Math.round((x.buretteReading + Math.max(0, delta)) * 20) / 20,
+    )
+    const appearance = iodineAppearance(
+      buretteReading,
+      x.endpoint,
+      x.starchDrops,
+      x.starchTiming,
+    )
+    const endpointReached =
+      x.starchDrops > 0 && buretteReading >= x.visibleEndpoint && appearance === 'colourless'
+    return {
+      iodineRate: {
+        ...x,
+        buretteReading,
+        appearance,
+        tapOpen: endpointReached ? false : x.tapOpen,
+        phase: endpointReached ? 'endpoint' : 'titrating',
+      },
+    }
+  }),
+  iodineSetTapOpen: (tapOpen) => set((s) => {
+    const x = s.iodineRate
+    if (x.phase !== 'titrating') return { iodineRate: { ...x, tapOpen: false } }
+    return { iodineRate: { ...x, tapOpen } }
+  }),
+  iodineAddStarch: (count = 1) => set((s) => {
+    const x = s.iodineRate
+    if (x.phase !== 'titrating' || !Number.isFinite(x.endpoint)) return {}
+    const starchDrops = Math.min(10, x.starchDrops + Math.max(1, count))
+    const timing = x.starchTiming ?? iodineStarchTiming(x.buretteReading, x.endpoint)
+    const visibleEndpoint = iodineVisibleEndpoint(x.endpoint, timing)
+    const appearance = iodineAppearance(
+      x.buretteReading,
+      x.endpoint,
+      starchDrops,
+      timing,
+    )
+    return {
+      iodineRate: {
+        ...x,
+        starchDrops,
+        starchTiming: timing,
+        visibleEndpoint,
+        appearance,
+      },
+    }
+  }),
+  iodineAbortTitration: () => set((s) => {
+    const x = s.iodineRate
+    if (!['titrating', 'endpoint'].includes(x.phase)) return {}
+    return {
+      iodineRate: {
+        ...x,
+        phase: 'prepared',
+        tapOpen: false,
+        result: null,
+      },
+    }
+  }),
+  iodineRecordTitre: () => set((s) => {
+    const x = s.iodineRate
+    if (x.phase !== 'endpoint') return {}
+    const valid = x.starchTiming === 'good' && x.starchDrops === 10
+    const run = {
+      kind: x.runKind,
+      titre: x.buretteReading,
+      valid,
+      starchTiming: x.starchTiming,
+      starchDrops: x.starchDrops,
+    }
+    return {
+      iodineRate: {
+        ...x,
+        phase: 'prepared',
+        tapOpen: false,
+        runIndex: x.runIndex + 1,
+        titres: [...x.titres, run],
+        result: null,
+      },
+    }
+  }),
+  iodineSetAnswer: (field, value) => set((s) => ({
+    iodineRate: {
+      ...s.iodineRate,
+      answers: { ...s.iodineRate.answers, [field]: value },
+      result: null,
+    },
+  })),
+  iodineSubmit: () => set((s) => ({
+    iodineRate: { ...s.iodineRate, result: markIodineRate(s.iodineRate) },
+  })),
+  iodineReset: () => set(() => ({
+    iodineRate: {
+      phase: 'setup',
+      timeSec: 0,
+      quenchTime: null,
+      removedAt: null,
+      preparedAfterQuench: false,
+      runKind: 'rough',
+      runIndex: 0,
+      buretteReading: 0,
+      endpoint: null,
+      visibleEndpoint: null,
+      starchDrops: 0,
+      starchTiming: null,
+      appearance: 'brown',
+      tapOpen: false,
+      titres: [],
+      answers: {
+        mean: '',
+        nThio: '',
+        nIodine: '',
+        concentration: '',
+        initial: '',
+        rate: '',
+        units: '',
+        starchReason: '',
+        quenchReason: '',
+      },
       result: null,
     },
   })),

@@ -1,18 +1,19 @@
 """F21 gate: learner's guide course — menu entry, unit list, learn-by-doing
 milestone ticking, and localStorage persistence across reload.
 
-Flow: menu shows course-open with 0/18 → panel lists 18 units all not-done →
+Flow: menu shows course-open with 0/19 → panel lists 19 units all not-done →
 Start on unit 1 drops into titration with guide open → drive titration to a
 recorded titre (endpoint + read-check) → back to menu → units 1+2 ticked,
-badge 2/18 → reload page → progress persists from localStorage.
+badge 2/19 → reload page → progress persists from localStorage.
 Exit 1 on any failure.
 """
 import http.server, socketserver, threading, functools, time, sys
 from playwright.sync_api import sync_playwright
 
 import os
-DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
-SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
+from pathlib import Path
+DIST = os.environ.get("CHEMLAB_DIST", str(Path(__file__).resolve().parents[2] / "dist"))
+SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] / "test-results"))
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
@@ -63,16 +64,16 @@ with sync_playwright() as p:
 
     # --- menu entry ---
     check("menu shows course-open", pg.locator('[data-testid="course-open"]').count() == 1)
-    check("badge starts 0/18", "0/18" in pg.locator('[data-testid="course-open"]').inner_text())
+    check("badge starts 0/19", "0/19" in pg.locator('[data-testid="course-open"]').inner_text())
 
     pg.locator('[data-testid="course-open"]').click()
     time.sleep(0.4)
     check("panel opens", pg.locator('[data-testid="course-panel"]').count() == 1)
-    check("18 units listed", pg.locator('[data-testid^="course-unit-"]').count() == 18)
+    check("19 units listed", pg.locator('[data-testid^="course-unit-"]').count() == 19)
     all_zero = all(unit_done(pg, u) == "0" for u in UNIT_IDS)
     check("all units not done at start", all_zero)
     prog = pg.locator('[data-testid="course-progress"]')
-    check("progress reads 0/18", prog.get_attribute("data-done") == "0" and prog.get_attribute("data-total") == "18")
+    check("progress reads 0/19", prog.get_attribute("data-done") == "0" and prog.get_attribute("data-total") == "19")
     snap(pg, "course-panel.png")
 
     # --- start unit 1 → titration with guide open ---
@@ -99,7 +100,7 @@ with sync_playwright() as p:
     # --- back to menu, verify ticks ---
     pg.locator("button", has_text="Menu").first.click()
     time.sleep(0.8)
-    check("badge now 2/18", "2/18" in pg.locator('[data-testid="course-open"]').inner_text(),
+    check("badge now 2/19", "2/19" in pg.locator('[data-testid="course-open"]').inner_text(),
           pg.locator('[data-testid="course-open"]').inner_text()[:80])
     pg.locator('[data-testid="course-open"]').click()
     time.sleep(0.4)
@@ -113,8 +114,8 @@ with sync_playwright() as p:
     # --- persistence: reload, progress must survive ---
     pg.reload(wait_until="load")
     time.sleep(2)
-    check("after reload badge still 2/18",
-          "2/18" in pg.locator('[data-testid="course-open"]').inner_text())
+    check("after reload badge still 2/19",
+          "2/19" in pg.locator('[data-testid="course-open"]').inner_text())
     pg.locator('[data-testid="course-open"]').click()
     time.sleep(0.4)
     check("after reload endpoint unit still ticked", unit_done(pg, "titration-endpoint") == "1")

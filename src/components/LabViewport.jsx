@@ -16,6 +16,7 @@ import FlameScene from './FlameScene.jsx'
 import DistillScene from './DistillScene.jsx'
 import SolubilityScene from './SolubilityScene.jsx'
 import PeroxideScene from './PeroxideScene.jsx'
+import IodineRateScene from './IodineRateScene.jsx'
 
 /**
  * Per-experiment camera composition: [position, target].
@@ -35,6 +36,7 @@ const CAMERAS = {
   distill: { pos: [-0.22, 0.36, 1.18], target: [-0.01, 0.2, 0] },
   solubility: { pos: [-0.2, 0.32, 0.75], target: [-0.01, 0.16, 0] },
   peroxide: { pos: [-0.18, 0.31, 0.72], target: [-0.01, 0.11, 0] },
+  'iodine-rate': { pos: [-0.08, 0.31, 1.18], target: [0, 0.29, 0] },
 }
 
 function LabCanvas({ children, quality, view, controlsRef }) {
@@ -116,6 +118,7 @@ const SCENES = {
   distill: DistillScene,
   solubility: SolubilityScene,
   peroxide: PeroxideScene,
+  'iodine-rate': IodineRateScene,
 }
 
 /** DOM zoom buttons — the touch/mouse-free way to dolly the camera.

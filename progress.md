@@ -231,3 +231,102 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
   offline/guided/gfx/gas/distill/solubility/course/peroxide is 8/8 green. Evidence:
   /tmp/chemlab-iter36-peroxide-retry.log, /tmp/chemlab-iter36-spot.log,
   shots/peroxide-marked.png, peroxide-mobile.png and peroxide-angles-grid.png.
+
+## iter-37 checkpoint (2026-08-12)
+- Replaced the internal experiment menu with a production-oriented, mobile-first landing
+  page: outcome-led hero, real catalytic-kinetics capture, verified 13/18/3/offline proof,
+  guided-learning path, phone/offline section, complete filterable library, FAQ, quality
+  controls and an independent-product disclaimer. Existing experiment/course/quality
+  locators remain present.
+- Added deterministic 1200x630 social artwork, a matching cyan flask favicon, canonical
+  and social metadata, a landing-specific Playwright gate, and registered gate 28.
+- Critique fixes made before checkpoint: all five featured cards now remain visible on
+  phones; library categories state 7 Cambridge 9701 exam-skill practicals and 6
+  enrichment practicals honestly; browser pinch/page zoom is no longer disabled; visible
+  focus, skip navigation, reduced motion, touch targets, short-landscape CTA fit and
+  low-contrast microcopy were addressed.
+- VERIFIED on current source: ESLint green, `git diff --check` green and landing/social
+  Python scripts compile. A pre-final-build serial sweep completed 12 gates green
+  (offline, course, gfx, titrate, clock, enthalpy, guided, mock, qual, mock2, grav, gas)
+  before being stopped at a safe boundary; this is supporting evidence only because the
+  dist predates the last accessibility/filter edits.
+- NOT YET VERIFIED: final current-source build, landing gate retry, full 28-gate run,
+  trustworthy below-fold desktop/portrait/landscape screenshot review, commit/push,
+  Actions/deployment and live-bundle verification. F33 and F22 correctly remain false.
+- First current-bundle landing run exposed a gate-selector defect after the product
+  filter counts themselves passed: `FAIL library distinguishes exam skills and
+  enrichment`, followed by strict-mode failure because `get_by_role("button",
+  name="All 13")` matched both the filter and “View all 13 practicals”. The gate
+  was corrected to scope exact button names inside `.library-filters`; assertions
+  and expected 7/6 counts were not weakened. Evidence:
+  `/tmp/chemlab-iter37-landing-retry.log`.
+- The selector-corrected run proved the filters and nearly every desktop/mobile/
+  landscape assertion, then exposed two order-dependent gate failures:
+  `FAIL primary CTA reaches practical library 3721->3806` and
+  `FAIL skip link is first visible keyboard target {'active': False, ...}`.
+  Earlier filter clicks had scrolled and focused controls before checks that require
+  a fresh top-of-page state. The gate now resets scroll and focus explicitly before
+  those checks; the CTA delta and skip-link expectations are unchanged. Evidence:
+  `/tmp/chemlab-iter37-landing-selector-retry.log`.
+- The first scroll/focus reset still failed with `3721->3785`; assigning
+  `scrollTop = 0` itself animated because the scroll container declares smooth
+  behavior. The skip link was correctly focused with a solid outline but was
+  measured before its 160 ms reveal transition (`top: -51.2`). The identical
+  retry budget was exhausted, so the gate setup was structurally isolated:
+  setup scrolling now temporarily uses `scroll-behavior: auto`, and visual
+  focus is measured after the declared transition. Required destination delta,
+  outline and non-negative top assertions remain unchanged. Evidence:
+  `/tmp/chemlab-iter37-landing-state-retry.log`.
+- Trustworthy section-by-section screenshot capture (internal scroll container,
+  not `full_page=True`) found the page coherent across desktop, 390x844 portrait
+  and 844x390 landscape, with all five phone feature cards visible. Critique also
+  found anchored mobile sections could place their heading under the 70 px header.
+  Added matching responsive `scroll-margin-top` to all navigation targets and a
+  landing-gate assertion for the `#offline` deep-link clearance. Screenshot sets:
+  `shots/landing-sections-iter37/` and `shots/landing-aligned-iter37/`.
+- The first anchor assertion sampled during smooth scrolling and therefore saw the
+  heading still far below the viewport; a timed trace showed the animation settling
+  after ~1 s with the heading at y=180.7, safely below the 70 px header. The gate now
+  measures after 1.4 s rather than accepting an in-flight position; the clearance
+  criterion itself is unchanged.
+
+## iter-38 checkpoint (2026-08-12)
+- Added the 14th practical: iodine–propanone timed rate followed by residual-I₂
+  titration with 0.0100 mol dm⁻³ Na₂S₂O₃. Learners withdraw 25.0 cm³, add
+  NaHCO₃ at 80 s, dilute to 150.0 cm³, complete one rough plus two concordant
+  accurate titres and calculate [I₂] plus average rate from their own mean.
+- The model makes technique consequential: removal alone leaves the acid-catalysed
+  reaction running; bicarbonate freezes it; early starch creates a persistent
+  blue-black complex and a 0.60 cm³ visible-endpoint lag; closed stopcocks are dry.
+  Evidence marking awards 10 marks with error-carried-forward calculations.
+- Added a five-step coach, 19th persistent course unit, two-stage 3D apparatus and
+  responsive portrait/landscape controls. Four-angle critique exposed overlapping
+  preparation/titration props and distant framing; depth separation and camera were
+  corrected. Quench bubbles were enlarged and labelled after state-shot critique.
+- VERIFIED: official 2025–2027 syllabus plus 9701/34/O/N/24 question/mark scheme
+  informed the technique; pure model invariants are green; dedicated browser gate
+  is green with a 79.6 s quench, early invalid 26.95 cm³ rough, concordant
+  26.40/26.30 cm³ accurate titres, dry closed stopcock, 10/10 marking, guide 5/5,
+  course unit 19, 390×844 and 844×390 checks.
+- Landing proof now reads 14 practicals / 19 milestones / 3 mock papers / offline
+  shell. Final landing gate is green: all 14 cards, 8 exam-skill + 6 enrichment,
+  desktop/portrait/landscape overflow and CTA checks, keyboard focus, deep-link
+  clearance, reduced motion and truthful-copy checks. Course, offline and ULTRA/
+  zoom spot gates are green on the same frozen build.
+- Frozen production build: Vite 8.2.1, 628 modules, 22 unique PWA entries
+  (2119.38 KiB), index bundle `assets/index-DCwjovJc.js`; immutable manifest stayed
+  identical across the iodine and spot gates. Lint, two npm audits, Python compile,
+  bounded-screenshot audit, actionlint 1.7.12 and `git diff --check` are green.
+- NEXT: one serial 29-gate run against this exact immutable build. Do not rebuild
+  during it. Only then mark F33/F34, commit/push and verify all four CI shards,
+  Appwrite deployment, live hash/counts, robots.txt and sitemap.xml.
+
+## iter-38 release evidence (2026-08-12 ~16:50 CAT)
+- Full 29-gate verification on frozen build assets/index-DCwjovJc.js:
+  - 10 gates green earlier (gfx gas organic electro chroma flame distill solubility peroxide iodine_rate).
+  - 19 remaining gates re-run serially after an operator port-8797 collision (not a product defect):
+    19/19 green (/tmp/chemlab-iter38-rerun19.log); mock2 slowest at 169s.
+  - dist manifest identical before/after every run (immutable build: PASS).
+- F33 and F34 flipped true with gate evidence. Still false: F5 (AAA look), F22 (flips only after
+  Actions run is green, Appwrite deploy succeeds, and live hash/counts/robots/sitemap verify).
+- Committing combined iter-37 landing + iter-38 iodine-rate release next.

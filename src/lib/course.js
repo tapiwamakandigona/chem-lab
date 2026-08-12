@@ -168,6 +168,13 @@ export const COURSE_UNITS = [
     desc: 'Collect two full O₂–time curves, compare their initial gradients, and explain the one changed variable (3/3).',
     check: (s) => s.peroxide.result?.ok === true,
   },
+  {
+    id: 'iodine-rate-titration',
+    experiment: 'iodine-rate',
+    title: 'Quench and titrate a timed sample',
+    desc: 'Stop the iodine–propanone reaction at 80 s, obtain concordant thiosulfate titres, and calculate the rate with full technique evidence (10/10).',
+    check: (s) => s.iodineRate.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {

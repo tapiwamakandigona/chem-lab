@@ -235,6 +235,41 @@ export function peroxideSteps(p) {
   ]
 }
 
+export function iodineRateSteps(x) {
+  const rough = x.titres.some((run) => run.kind === 'rough')
+  const accurate = x.titres.filter((run) => run.kind === 'accurate' && run.valid)
+  let concordant = false
+  for (let i = 0; i < accurate.length - 1; i += 1) {
+    for (let j = i + 1; j < accurate.length; j += 1) {
+      if (Math.abs(accurate[i].titre - accurate[j].titre) <= 0.100001) {
+        concordant = true
+      }
+    }
+  }
+  return [
+    {
+      text: 'Withdraw 25.0 cm³, start the clock, then add NaHCO₃ at 80 s',
+      done: Number.isFinite(x.quenchTime) && Math.abs(x.quenchTime - 80) <= 1,
+    },
+    {
+      text: 'Dilute the quenched sample to 150.0 cm³ and prepare a 25.0 cm³ aliquot',
+      done: x.preparedAfterQuench,
+    },
+    {
+      text: 'Run a rough titre; add 10 drops starch only when the iodine is pale yellow',
+      done: rough,
+    },
+    {
+      text: 'Repeat until two valid accurate titres agree within 0.10 cm³',
+      done: concordant,
+    },
+    {
+      text: 'Use your mean to calculate [I₂], average rate and explain both technique decisions',
+      done: x.result?.ok === true,
+    },
+  ]
+}
+
 export function organicSteps(o) {
   const did = (id) => o.tests.some((t) => t.test === id)
   return [
@@ -361,6 +396,7 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'distill') return distillSteps(state.distill)
   if (experiment === 'solubility') return solubilitySteps(state.solubility)
   if (experiment === 'peroxide') return peroxideSteps(state.peroxide)
+  if (experiment === 'iodine-rate') return iodineRateSteps(state.iodineRate)
   if (experiment === 'grav') return gravSteps(state.grav)
   if (experiment === 'gas') return gasSteps(state.gas)
   return []

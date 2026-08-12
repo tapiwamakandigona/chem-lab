@@ -7,13 +7,13 @@ guide completion, reset and 390x844 mobile controls.
 """
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-import os
-DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
-SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
+DIST = os.environ.get("CHEMLAB_DIST", str(Path(__file__).resolve().parents[2] / "dist"))
+SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] / "test-results"))
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
@@ -28,9 +28,9 @@ def snap(page, name):
         print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
 
 
-ROOT = Path(os.environ.get("DIST", DIST))
-SHOTS = Path(os.environ.get("SHOTS", "/work/build/chemlab/shots"))
-PORT = int(os.environ.get("PORT", "8797"))
+ROOT = Path(DIST)
+SHOTS = Path(SHOTS)
+PORT = 8797
 URL = f"http://127.0.0.1:{PORT}"
 SHOTS.mkdir(parents=True, exist_ok=True)
 
@@ -40,7 +40,7 @@ def check(name, ok, detail=""):
     print(f"PASS {name}{' ' + str(detail) if detail else ''}", flush=True)
 
 server = subprocess.Popen(
-    ["python3", "-m", "http.server", str(PORT), "--directory", str(ROOT)],
+    [sys.executable, "-m", "http.server", str(PORT), "--directory", str(ROOT)],
     stdout=subprocess.DEVNULL,
     stderr=subprocess.STDOUT,
 )
@@ -108,8 +108,7 @@ try:
         check("complete investigation scores 3/3", result.get_attribute("data-score") == "3")
         check("result passes", result.get_attribute("data-ok") == "1")
         check("guide finished 5/5", page.locator('[data-testid="guide-step"][data-done="1"]').count() == 5)
-        page.screenshot(path=str(SHOTS / "solubility-marked.png"), full_page=True)
-        print("shot: solubility-marked.png", flush=True)
+        snap(page, "solubility-marked.png")
 
         # A second assigned mass persists alongside the first, building a real
         # multi-point curve rather than replacing prior data.
@@ -137,8 +136,7 @@ try:
         page.locator('[data-testid="solubility-heat"]').scroll_into_view_if_needed()
         page.locator('[data-testid="solubility-heat"]').click()
         check("mobile heating control tappable", "Stop heating" in page.locator('[data-testid="solubility-heat"]').inner_text())
-        page.screenshot(path=str(SHOTS / "solubility-mobile.png"), full_page=True)
-        print("shot: solubility-mobile.png", flush=True)
+        snap(page, "solubility-mobile.png")
         browser.close()
         print("GATE PASS", flush=True)
 finally:

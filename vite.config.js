@@ -7,8 +7,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // The workbox glob already includes PNG icons; avoid adding manifest icons twice.
+      includeManifestIcons: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2,txt}'],
         // vendor-three chunk is ~1 MB raw; raise the precache cap
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
@@ -17,7 +19,7 @@ export default defineConfig({
         name: 'ChemLab ZW — Virtual Chemistry Lab',
         short_name: 'ChemLab ZW',
         description:
-          'Cambridge AS/A Level Chemistry (9701) virtual lab — thirteen interactive practicals and an 18-unit course that work fully offline.',
+          'Cambridge AS/A Level Chemistry (9701) virtual lab — fourteen interactive practicals and a 19-unit course that work fully offline.',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',

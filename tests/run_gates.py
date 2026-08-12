@@ -5,7 +5,7 @@ Each gate is a standalone Playwright script in tests/gates/ that serves
 dist/ itself on port 8797 and exits non-zero on any failed check.
 Usage:  python tests/run_gates.py [gate ...]
 Env:    CHEMLAB_DIST  (default: <repo>/dist)
-        CHEMLAB_SHOTS (default: <repo>/shots)
+        CHEMLAB_SHOTS (default: <repo>/test-results)
 """
 import os
 import subprocess
@@ -16,39 +16,90 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 
 GATES = [
+    "landing",
     "titrate", "clock", "enthalpy", "offline", "meniscus", "meniscus_mobile",
     "pour", "tip", "tap", "graph", "cooling", "read", "guided", "mock",
     "qual", "mock2", "course", "grav", "gfx", "gas", "organic", "electro",
-    "chroma", "flame", "distill", "solubility", "peroxide",
+    "chroma", "flame", "distill", "solubility", "peroxide", "iodine_rate",
 ]
+
+# Every gate binds the same local probe port, so the sandbox still runs the
+# canonical serial list. CI gives each shard its own runner, cutting the
+# SwiftShader wall-clock without changing any chemistry/product assertion.
+CI_SHARDS = {
+    "core": ["landing", "titrate", "clock", "enthalpy", "offline", "meniscus", "meniscus_mobile"],
+    "interaction": ["pour", "tip", "tap", "graph", "cooling", "read", "guided"],
+    "assessment": ["mock", "qual", "mock2", "course", "grav", "gfx", "gas"],
+    "library": [
+        "organic", "electro", "chroma", "flame", "distill", "solubility",
+        "peroxide", "iodine_rate",
+    ],
+}
+
+
+def validate_shards():
+    flat = [gate for shard in CI_SHARDS.values() for gate in shard]
+    if flat != GATES or len(flat) != len(set(flat)):
+        sys.exit("CI_SHARDS must contain every GATES entry exactly once and in canonical order")
+
+
+def run_gate(gate, env, attempts=1):
+    t0 = time.time()
+    rc = 1
+    for attempt in range(1, attempts + 1):
+        suffix = f" (attempt {attempt}/{attempts})" if attempts > 1 else ""
+        print(f"\n=== gate {gate}{suffix} ===", flush=True)
+        try:
+            r = subprocess.run(
+                [sys.executable, os.path.join(HERE, "gates", f"{gate}.py")],
+                env=env, timeout=900,
+            )
+            rc = r.returncode
+        except subprocess.TimeoutExpired:
+            print(f"gate {gate} exceeded 900s hard timeout", flush=True)
+            rc = 124
+        if rc == 0:
+            break
+        if attempt < attempts:
+            print(f"gate {gate} failed with exit {rc}; retrying once on a fresh browser", flush=True)
+    print(f"=== gate {gate}: {'PASS' if rc == 0 else 'FAIL'} "
+          f"({time.time() - t0:.0f}s) ===", flush=True)
+    return rc
 
 
 def main():
-    wanted = sys.argv[1:] or GATES
+    validate_shards()
+    args = sys.argv[1:]
+    if len(args) == 2 and args[0] == "--shard":
+        shard = args[1]
+        if shard not in CI_SHARDS:
+            sys.exit(f"unknown shard {shard!r}; valid: {list(CI_SHARDS)}")
+        wanted = CI_SHARDS[shard]
+    elif "--shard" in args:
+        sys.exit("usage: tests/run_gates.py [--shard NAME | gate ...]")
+    else:
+        wanted = args or GATES
     unknown = [g for g in wanted if g not in GATES]
     if unknown:
         sys.exit(f"unknown gates: {unknown}; valid: {GATES}")
 
     env = dict(os.environ)
     env.setdefault("CHEMLAB_DIST", os.path.join(REPO, "dist"))
-    env.setdefault("CHEMLAB_SHOTS", os.path.join(REPO, "shots"))
+    env.setdefault("CHEMLAB_SHOTS", os.path.join(REPO, "test-results"))
     if not os.path.exists(os.path.join(env["CHEMLAB_DIST"], "index.html")):
         sys.exit(f"no index.html in {env['CHEMLAB_DIST']} — run `npm run build` first")
 
     results = {}
+    # A product assertion must pass on its first fresh browser. Retrying a
+    # failed gate can hide a deterministic defect and doubles an already-long
+    # SwiftShader shard, so CI and local runs use the same one-attempt rule.
+    attempts = 1
     for g in wanted:
-        t0 = time.time()
-        print(f"\n=== gate {g} ===", flush=True)
-        r = subprocess.run(
-            [sys.executable, os.path.join(HERE, "gates", f"{g}.py")],
-            env=env, timeout=600,
-        )
-        results[g] = r.returncode
-        print(f"=== gate {g}: {'PASS' if r.returncode == 0 else 'FAIL'} "
-              f"({time.time() - t0:.0f}s) ===", flush=True)
+        results[g] = run_gate(g, env, attempts=attempts)
 
     print("\n===== SUMMARY =====")
-    for g, rc in results.items():
+    for g in wanted:
+        rc = results[g]
         print(f"{'PASS' if rc == 0 else 'FAIL'}  {g}")
     failed = [g for g, rc in results.items() if rc != 0]
     print(f"{len(results) - len(failed)}/{len(results)} gates green")

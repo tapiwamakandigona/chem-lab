@@ -11,6 +11,9 @@ Transforms applied:
      gain the env timeout.
 
 Usage: python tools/vendor_gates.py <probe_dir> [gate ...]
+
+With no explicit gate list, one-off ``dbg*.py`` and the visual ``shot.py``
+utility stay in the local probe workspace; only assertion gates are vendored.
 """
 import os
 import re
@@ -21,8 +24,10 @@ OUT = os.path.join(REPO, 'tests', 'gates')
 
 PRELUDE = '''
 import os
-DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
-SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
+from pathlib import Path as _Path
+_REPO_ROOT = _Path(__file__).resolve().parents[2]
+DIST = os.environ.get("CHEMLAB_DIST", str(_REPO_ROOT / "dist"))
+SHOTS = os.environ.get("CHEMLAB_SHOTS", str(_REPO_ROOT / "test-results"))
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
@@ -38,8 +43,8 @@ def snap(page, name):
 
 '''
 
-DIST_LITERAL = '"/work/build/chemlab/main/dist"'
-SHOTS_LITERAL = '"/work/build/chemlab/shots/'
+DIST_LITERAL = '"/work/build/chemlab/main/dist"'  # legacy probe source
+SHOTS_LITERAL = '"/work/build/chemlab/shots/'  # legacy probe source
 
 
 def vendor(src):
@@ -103,7 +108,9 @@ def vendor(src):
 def main():
     probe_dir = sys.argv[1]
     names = sys.argv[2:] or [f[:-3] for f in sorted(os.listdir(probe_dir))
-                             if f.endswith('.py')]
+                             if f.endswith('.py')
+                             and not f.startswith('dbg')
+                             and f != 'shot.py']
     os.makedirs(OUT, exist_ok=True)
     for n in names:
         src = open(os.path.join(probe_dir, n + '.py')).read()

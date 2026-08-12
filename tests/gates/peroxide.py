@@ -6,13 +6,13 @@ guide completion, alternate-condition labels and mobile start controls.
 """
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-import os
-DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
-SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
+DIST = os.environ.get("CHEMLAB_DIST", str(Path(__file__).resolve().parents[2] / "dist"))
+SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] / "test-results"))
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
@@ -27,9 +27,9 @@ def snap(page, name):
         print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
 
 
-DIST = Path(os.environ.get("DIST", DIST))
-SHOTS = Path(os.environ.get("SHOTS", "/work/build/chemlab/shots"))
-PORT = int(os.environ.get("PORT", "8797"))
+DIST = Path(DIST)
+SHOTS = Path(SHOTS)
+PORT = 8797
 URL = f"http://127.0.0.1:{PORT}"
 SHOTS.mkdir(parents=True, exist_ok=True)
 
@@ -45,7 +45,7 @@ def wait_complete(page):
     )
 
 server = subprocess.Popen(
-    ["python3", "-m", "http.server", str(PORT), "--directory", str(DIST)],
+    [sys.executable, "-m", "http.server", str(PORT), "--directory", str(DIST)],
     stdout=subprocess.DEVNULL,
     stderr=subprocess.STDOUT,
 )
@@ -103,8 +103,7 @@ try:
         check("correct comparison scores 3/3", result.get_attribute("data-score") == "3")
         check("result passes", result.get_attribute("data-ok") == "1")
         check("guide finished 5/5", page.locator('[data-testid="guide-step"][data-done="1"]').count() == 5)
-        page.screenshot(path=str(SHOTS / "peroxide-marked.png"), full_page=True)
-        print("shot: peroxide-marked.png", flush=True)
+        snap(page, "peroxide-marked.png")
 
         # Alternate configurations remain fair-test presets with clear labels.
         page.locator('[data-testid="peroxide-run-no-catalyst"]').click()
@@ -120,8 +119,7 @@ try:
         page.locator('[data-testid="peroxide-start"]').scroll_into_view_if_needed()
         page.locator('[data-testid="peroxide-start"]').click()
         check("mobile start control tappable", "Collecting" in page.locator('[data-testid="peroxide-start"]').inner_text())
-        page.screenshot(path=str(SHOTS / "peroxide-mobile.png"), full_page=True)
-        print("shot: peroxide-mobile.png", flush=True)
+        snap(page, "peroxide-mobile.png")
         browser.close()
         print("GATE PASS", flush=True)
 finally:

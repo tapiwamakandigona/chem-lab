@@ -14,6 +14,7 @@ import FlameUI from './components/FlameUI.jsx'
 import DistillUI from './components/DistillUI.jsx'
 import SolubilityUI from './components/SolubilityUI.jsx'
 import PeroxideUI from './components/PeroxideUI.jsx'
+import IodineRateUI from './components/IodineRateUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
@@ -130,6 +131,16 @@ export default function App() {
           </Suspense>
           <PeroxideUI onBack={() => setExperiment(null)} />
           <GuideCoach experiment="peroxide" />
+        </>
+      )}
+
+      {experiment === 'iodine-rate' && (
+        <>
+          <Suspense fallback={<LoadingScreen />}>
+            <LabViewport experiment="iodine-rate" quality={quality} />
+          </Suspense>
+          <IodineRateUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="iodine-rate" />
         </>
       )}
 

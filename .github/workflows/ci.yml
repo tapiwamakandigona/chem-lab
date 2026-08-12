@@ -10,62 +10,107 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
 
-      - name: Build
+      - name: Install, audit, lint and build
         run: |
           npm ci
+          npm audit --audit-level=high
+          npm run lint
+          python -m py_compile tests/run_gates.py tests/gates/*.py tools/*.py
+          python - <<'PY'
+          from pathlib import Path
+
+          offenders = []
+          for path in Path("tests/gates").glob("*.py"):
+              text = path.read_text()
+              if "def snap(" not in text or "timeout=TIMEOUT_MS" not in text:
+                  offenders.append(path.name)
+          if offenders:
+              raise SystemExit(f"unbounded evidence screenshots: {offenders}")
+          PY
           npm run build
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install Playwright chromium
-        run: |
-          pip install playwright pillow
-          playwright install --with-deps chromium
-
-      - name: Run probe gates
-        env:
-          CHEMLAB_DIST: ${{ github.workspace }}/dist
-          CHEMLAB_SHOTS: ${{ github.workspace }}/shots
-          # 2-core SwiftShader runner needs far more headroom than the sandbox
-          CHEMLAB_TIMEOUT_MS: '120000'
-        run: python tests/run_gates.py
-
-      - name: Upload gate screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gate-shots
-          path: shots/
-          if-no-files-found: ignore
-
       - name: Upload dist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          retention-days: 14
+
+  probe-gates:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      contents: read
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [core, interaction, assessment, library]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
 
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-test.txt
+
+      - name: Install Playwright and Chromium
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-test.txt
+          playwright install-deps chromium
+          playwright install chromium
+
+      - name: Run ${{ matrix.shard }} probe shard
+        env:
+          CHEMLAB_DIST: ${{ github.workspace }}/dist
+          CHEMLAB_SHOTS: ${{ github.workspace }}/test-results/${{ matrix.shard }}
+          # CI screenshots are evidence, never assertions. A tight screenshot
+          # budget prevents slow SwiftShader captures from advancing a
+          # simulation by minutes and corrupting subsequent interaction checks.
+          CHEMLAB_TIMEOUT_MS: '15000'
+        run: python tests/run_gates.py --shard "${{ matrix.shard }}"
+
+      - name: Upload gate screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gate-shots-${{ matrix.shard }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
   deploy:
-    needs: build-test
+    needs: [build, probe-gates]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
@@ -79,8 +124,21 @@ jobs:
 
       - name: Verify live
         run: |
-          sleep 10
           local_hash=$(grep -o 'assets/index-[^"]*\.js' dist/index.html | head -1)
-          live_hash=$(curl -s https://chemlab.tapiwa.me/ | grep -o 'assets/index-[^"]*\.js' | head -1)
-          echo "local=$local_hash live=$live_hash"
-          test -n "$local_hash" && test "$local_hash" = "$live_hash"
+          test -n "$local_hash"
+          for attempt in $(seq 1 12); do
+            live_html=$(curl --fail --silent --show-error https://chemlab.tapiwa.me/) || true
+            live_hash=$(printf '%s' "$live_html" | grep -o 'assets/index-[^"]*\.js' | head -1)
+            echo "attempt=$attempt local=$local_hash live=$live_hash"
+            if [ "$local_hash" = "$live_hash" ]; then
+              printf '%s' "$live_html" | grep -q '14 interactive Cambridge'
+              curl --fail --silent --show-error https://chemlab.tapiwa.me/robots.txt |
+                grep -q 'Sitemap: https://chemlab.tapiwa.me/sitemap.xml'
+              curl --fail --silent --show-error https://chemlab.tapiwa.me/sitemap.xml |
+                grep -q '<loc>https://chemlab.tapiwa.me/</loc>'
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "live bundle did not converge to $local_hash" >&2
+          exit 1
