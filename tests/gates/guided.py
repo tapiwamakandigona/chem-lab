@@ -14,6 +14,18 @@ DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
 SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
 os.makedirs(SHOTS, exist_ok=True)
 
+TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+
+
+def snap(page, name):
+    """Best-effort evidence screenshot — never fails the gate."""
+    try:
+        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        print("shot: " + name, flush=True)
+    except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
+        print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
+
+
 PORT = 8797
 h = functools.partial(http.server.SimpleHTTPRequestHandler, directory=DIST)
 socketserver.TCPServer.allow_reuse_address = True
@@ -40,6 +52,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(args=["--use-gl=angle", "--use-angle=swiftshader",
                                 "--enable-unsafe-swiftshader"])
     pg = b.new_page(viewport={"width": 1280, "height": 720})
+    pg.set_default_timeout(TIMEOUT_MS)
     pg.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pg.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)
@@ -74,8 +87,7 @@ with sync_playwright() as p:
     time.sleep(1.0)
     d = dones(pg)
     check("titration: record ticks after read-check", d[4] == "1" and d[5] == "0", str(d))
-    pg.screenshot(path=SHOTS + "/guided-titration.png")
-    print("shot: guided-titration.png", flush=True)
+    snap(pg, "guided-titration.png")
 
     # toggle hide/show
     pg.locator('[data-testid="guide-toggle"]').click()
@@ -102,6 +114,7 @@ with sync_playwright() as p:
 
     # --- mobile ---
     pgm = b.new_page(viewport={"width": 390, "height": 844})
+    pgm.set_default_timeout(TIMEOUT_MS)
     pgm.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pgm.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)
@@ -111,8 +124,7 @@ with sync_playwright() as p:
     check("mobile: guide visible", panel.count() == 1)
     box = panel.bounding_box() if panel.count() else None
     check("mobile: guide fits viewport", bool(box) and box["x"] >= 0 and box["x"] + box["width"] <= 390 and box["y"] + box["height"] <= 844, str(box))
-    pgm.screenshot(path=SHOTS + "/guided-mobile.png")
-    print("shot: guided-mobile.png", flush=True)
+    snap(pgm, "guided-mobile.png")
 
     b.close()
 

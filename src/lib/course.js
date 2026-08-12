@@ -105,6 +105,20 @@ export const COURSE_UNITS = [
     desc: 'Pick an unknown, run the reagent tests, and name both ions with supporting evidence (2/2).',
     check: (s) => !!s.qual.result && s.qual.result.total === 2,
   },
+  {
+    id: 'grav-constant-mass',
+    experiment: 'grav',
+    title: 'Heat to constant mass',
+    desc: 'Heat, cool and re-weigh the crucible until two masses agree within 0.01 g, then find x from your own readings.',
+    check: (s) => s.grav.result?.ok === true,
+  },
+  {
+    id: 'gas-purity',
+    experiment: 'gas',
+    title: 'Collect a gas and find purity',
+    desc: 'Collect CO₂ in the gas syringe until the volume is constant, then calculate the % purity from your final volume.',
+    check: (s) => s.gas.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {

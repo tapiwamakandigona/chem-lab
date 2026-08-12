@@ -2,10 +2,13 @@ import { useEffect } from 'react'
 import { useLabStore } from '../store.js'
 import { getGuideSteps } from '../lib/guides.js'
 
-// Landscape phones have almost no vertical room — start the coach collapsed
-// there so it never covers the experiment controls. One-time, not reactive:
-// the user's open/close choice always wins afterwards.
-const SHORT_SCREEN = typeof window !== 'undefined' && window.matchMedia('(max-height: 500px)').matches
+// Phones have almost no spare room — landscape (short) OR portrait (narrow,
+// where the bottom sheet + guide share the same corner and the open panel
+// steals taps from the action buttons; caught by the gas gate). Start the
+// coach collapsed there so it never covers experiment controls. One-time,
+// not reactive: the user's open/close choice always wins afterwards.
+const SHORT_SCREEN = typeof window !== 'undefined' &&
+  window.matchMedia('(max-height: 500px), (max-width: 767px)').matches
 
 // Guided-mode coach — ONE shared instance rendered by App for the active
 // experiment. Collapsible pill (bottom-left, above the mobile controls);

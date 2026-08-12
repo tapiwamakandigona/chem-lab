@@ -18,6 +18,18 @@ DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
 SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
 os.makedirs(SHOTS, exist_ok=True)
 
+TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+
+
+def snap(page, name):
+    """Best-effort evidence screenshot — never fails the gate."""
+    try:
+        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        print("shot: " + name, flush=True)
+    except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
+        print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
+
+
 PORT = 8797
 h = functools.partial(http.server.SimpleHTTPRequestHandler, directory=DIST)
 socketserver.TCPServer.allow_reuse_address = True
@@ -37,6 +49,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(args=["--use-gl=angle", "--use-angle=swiftshader",
                                 "--enable-unsafe-swiftshader"])
     pg = b.new_page(viewport={"width": 1280, "height": 720})
+    pg.set_default_timeout(TIMEOUT_MS)
     pg.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pg.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)
@@ -81,8 +94,7 @@ with sync_playwright() as p:
     submit("9.99")
     check("reveal appears after 3 misses", pg.locator('[data-testid="burette-read-reveal"]').count() == 1)
 
-    pg.screenshot(path=SHOTS + "/read-endpoint.png")
-    print("shot: read-endpoint.png", flush=True)
+    snap(pg, "read-endpoint.png")
 
     # reveal fills the true value; Record accepts it
     pg.click('[data-testid="burette-read-reveal"]')
@@ -102,6 +114,7 @@ with sync_playwright() as p:
 
     # --- mobile pass (390x844): card usable on phones ---
     pgm = b.new_page(viewport={"width": 390, "height": 844})
+    pgm.set_default_timeout(TIMEOUT_MS)
     pgm.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pgm.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)
@@ -120,8 +133,7 @@ with sync_playwright() as p:
     box = card.bounding_box() if card.count() else None
     check("mobile: card fits viewport", bool(box) and box["x"] >= 0 and box["x"] + box["width"] <= 390 and box["y"] + box["height"] <= 844, str(box))
     pgm.fill('[data-testid="burette-read-input"]', "23.85")
-    pgm.screenshot(path=SHOTS + "/read-mobile.png")
-    print("shot: read-mobile.png", flush=True)
+    snap(pgm, "read-mobile.png")
     pgm.click('[data-testid="burette-read-check"]')
     time.sleep(1.0)
     check("mobile: titre recorded", "23.85" in pgm.locator("body").inner_text() and pgm.locator('[data-testid="endpoint-read-card"]').count() == 0)

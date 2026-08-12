@@ -22,6 +22,18 @@ DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
 SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
 os.makedirs(SHOTS, exist_ok=True)
 
+TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+
+
+def snap(page, name):
+    """Best-effort evidence screenshot — never fails the gate."""
+    try:
+        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        print("shot: " + name, flush=True)
+    except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
+        print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
+
+
 PORT = 8797
 URL = f"http://127.0.0.1:{PORT}/"
 _h = functools.partial(http.server.SimpleHTTPRequestHandler,
@@ -91,8 +103,7 @@ def main():
 
         score, marks = fill_paper(pg, {"a": "25.0", "b": "250", "c": "1", "d": "80"})
         check("clock: all-correct 6/6", score.startswith("6/6"), score + " " + str(marks))
-        pg.screenshot(path=SHOTS + "/mock-clock.png")
-        print("shot: mock-clock.png", flush=True)
+        snap(pg, "mock-clock.png")
 
         # ECF: a wrong (20) -> b=200 ecf ok, d=100 ecf ok => 5/6
         score, marks = fill_paper(pg, {"a": "20.0", "b": "200", "c": "1", "d": "100"})
@@ -125,8 +136,7 @@ def main():
         # true values: T1 22.0, Textrap 32.7 -> dT 10.7, q 1123.5, n 0.050, dH -22.5
         score, marks = fill_paper(pg, {"a": "10.7", "b": "1123.5", "c": "0.050", "d": "-22.5"})
         check("enthalpy: all-correct 5/5", score.startswith("5/5"), score + " " + str(marks))
-        pg.screenshot(path=SHOTS + "/mock-enthalpy.png")
-        print("shot: mock-enthalpy.png", flush=True)
+        snap(pg, "mock-enthalpy.png")
 
         # ECF: a=10.0 wrong -> b=1050 ecf, c right, d=-21.0 ecf => 4/5
         score, marks = fill_paper(pg, {"a": "10.0", "b": "1050", "c": "0.050", "d": "-21.0"})

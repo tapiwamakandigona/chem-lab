@@ -24,6 +24,18 @@ DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
 SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
 os.makedirs(SHOTS, exist_ok=True)
 
+TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+
+
+def snap(page, name):
+    """Best-effort evidence screenshot — never fails the gate."""
+    try:
+        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        print("shot: " + name, flush=True)
+    except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
+        print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
+
+
 PORT = 8797
 URL = f"http://127.0.0.1:{PORT}/"
 _h = functools.partial(http.server.SimpleHTTPRequestHandler,
@@ -62,8 +74,7 @@ def main():
 
         pg.locator("text=/Qualitative Analysis/i").first.click()
         time.sleep(16)
-        pg.screenshot(path=SHOTS + "/qual-scene.png")
-        print("shot: qual-scene.png", flush=True)
+        snap(pg, "qual-scene.png")
 
         check("guide: qual panel with 6 steps",
               pg.locator('[data-testid="guide-step"]').count() == 6)
@@ -100,8 +111,7 @@ def main():
         res = pg.locator('[data-testid="qual-result"]')
         check("CuSO4 identified 2/2", res.get_attribute("data-score") == "2", res.inner_text())
         check("formula revealed", "CuSO" in res.inner_text(), res.inner_text())
-        pg.screenshot(path=SHOTS + "/qual-marked.png")
-        print("shot: qual-marked.png", flush=True)
+        snap(pg, "qual-marked.png")
 
         # wrong cation => 1/2
         pg.select_option('[data-testid="qual-cation"]', "Fe2+")
@@ -179,8 +189,7 @@ def main():
         box = panel.bounding_box()
         check("mobile: observations table fits",
               bool(box) and box["x"] >= 0 and box["x"] + box["width"] <= 390, str(box))
-        pgm.screenshot(path=SHOTS + "/qual-mobile.png")
-        print("shot: qual-mobile.png", flush=True)
+        snap(pgm, "qual-mobile.png")
 
         b.close()
 

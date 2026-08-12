@@ -173,6 +173,13 @@
       "criteria": "Opt-in ULTRA quality tier (soft shadows, 2.5x DPR, 4096 shadow maps, contact shadows, richer env) persisted in localStorage and visibly different from HIGH; on-screen zoom +/- buttons plus working wheel/pinch dolly (two-finger DOLLY_PAN mapping); landscape phone 844x390 usable in titration and grav with guide auto-collapsed on short screens; new animations: drop splash ripple, flame point-light flicker.",
       "passes": true,
       "evidence": "probe/gfx.py exit 0 (15 checks: ultra vs high mean pixel diff 2.07, zoom-in diff 16.29 with zoom-out returning to 0.00, wheel diff 4.88, persistence 'ultra' after reload, landscape dispense buttons elementFromPoint==BUTTON, guide collapsed); shots gfx-ultra/gfx-landscape-titration/gfx-landscape-grav.png inspected."
+    },
+    {
+      "id": "F25",
+      "name": "Molar gas volume experiment (gas collection)",
+      "description": "Impure CaCO3 + excess HCl; CO2 collected in 100 cm3 gas syringe; record until constant volume; % purity marked against learner's own final volume (\u00b12%). Guide steps, course unit, mobile guide-collapse fix.",
+      "passes": true,
+      "evidence": "probe/gas.py 25/25 PASS + guided/course gates green (/tmp/g26.log, /tmp/g26b.log 2026-08-12); shots gas-running.png gas-marked.png"
     }
   ]
 }

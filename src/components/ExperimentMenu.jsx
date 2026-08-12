@@ -42,6 +42,14 @@ const EXPERIMENTS = [
     papers: ['9701 P3 Q2 style'],
     available: true,
   },
+  {
+    id: 'gas',
+    icon: '💨',
+    title: 'Molar Gas Volume',
+    desc: 'Collect CO₂ from impure CaCO₃ + HCl in a gas syringe, find the % purity',
+    papers: ['9701 P3 Q2 style'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
+import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
 
 // Quality tiers for low-end device support (Zimbabwe context).
 // ULTRA is opt-in only (never auto-detected): soft shadows, higher DPR,
@@ -393,6 +394,42 @@ export const useLabStore = create((set) => ({
       phase: 'idle', loaded: false, heats: 0, lastWeighedHeats: -1,
       readings: [], answer: '', result: null,
     },
+  })),
+
+  // --- gas collection (molar gas volume, purity of impure carbonate) ---
+  gas: {
+    phase: 'setup',   // 'setup' | 'running' | 'done'
+    timeSec: 0,       // SIMULATED seconds since acid added
+    readings: [],     // [{ t, v }] syringe readings the learner recorded
+    answer: '',
+    result: null,     // markPurity() output
+  },
+  gasStart: () => set((s) => {
+    if (s.gas.phase !== 'setup') return {}
+    return { gas: { ...s.gas, phase: 'running', timeSec: 0, readings: [], result: null } }
+  }),
+  gasTick: (dSec) => set((s) => {
+    if (s.gas.phase !== 'running') return {}
+    return { gas: { ...s.gas, timeSec: s.gas.timeSec + dSec } }
+  }),
+  gasRecord: () => set((s) => {
+    const g = s.gas
+    if (g.phase !== 'running') return {}
+    const t = Math.round(g.timeSec)
+    if (g.readings.length && t - g.readings[g.readings.length - 1].t < 5) return {}
+    const readings = [...g.readings, { t, v: readSyringe(g.timeSec) }]
+    const done = isConstantVolume(readings)
+    return { gas: { ...g, readings, phase: done ? 'done' : 'running', result: null } }
+  }),
+  gasSetAnswer: (answer) => set((s) => ({ gas: { ...s.gas, answer, result: null } })),
+  gasSubmit: () => set((s) => {
+    const g = s.gas
+    const p = parseFloat(g.answer)
+    if (!Number.isFinite(p)) return {}
+    return { gas: { ...g, result: markPurity(g.readings, p) } }
+  }),
+  gasReset: () => set(() => ({
+    gas: { phase: 'setup', timeSec: 0, readings: [], answer: '', result: null },
   })),
 
   // --- learner's guide course (persistent, offline-first) ---

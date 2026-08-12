@@ -112,3 +112,9 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
   in/out inverse. Vendored to tests/gates, added to runner (19 gates).
 - Push HELD until CI run 31571702300 (7b5a5be) concludes — pushing would cancel
   it (concurrency) and F22 needs a green run first.
+
+## iter-26 (2026-08-12)
+- F25 Molar Gas Volume: src/lib/gas.js (Vmax 83.92, k 0.02, purity vs learner's OWN final volume ±2%), GasScene.jsx (flask+fizz+delivery tube+100cm3 syringe, slim steel stand w/ cradle rings), GasUI.jsx, menu card 💨, gasSteps guide, course unit (11 units total). probe/gas.py 25/25 PASS (VERIFIED).
+- Scene polish after screenshot review: camera pulled back [-0.06,0.3,0.74], apparatus shifted left, black slab stand → cylinders+torus rings, plunger seal lightened. Gate re-run green.
+- GuideCoach: starts collapsed on mobile portrait too (max-width 767px) — fixed tap interception on gas-start at 390x844. guided.py mobile section rewritten to gate collapse both ways; course.py 11 units.
+- CI timeout fix: tools/vendor_gates.py vendors probe/*→tests/gates/* with CHEMLAB_TIMEOUT_MS (ci.yml sets 120000) + best-effort evidence shots; assertions untouched. All 20 gates re-vendored.

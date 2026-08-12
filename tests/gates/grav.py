@@ -20,6 +20,19 @@ DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
 SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
 os.makedirs(SHOTS, exist_ok=True)
 
+TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+
+
+def snap(page, name):
+    """Best-effort evidence screenshot — never fails the gate."""
+    try:
+        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        print("shot: " + name, flush=True)
+    except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
+        print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
+
+
+
 PORT = 8797
 h = functools.partial(http.server.SimpleHTTPRequestHandler, directory=DIST)
 socketserver.TCPServer.allow_reuse_address = True
@@ -53,6 +66,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(args=["--use-gl=angle", "--use-angle=swiftshader",
                                 "--enable-unsafe-swiftshader"])
     pg = b.new_page(viewport={"width": 1280, "height": 720})
+    pg.set_default_timeout(TIMEOUT_MS)
     pg.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pg.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)
@@ -80,8 +94,7 @@ with sync_playwright() as p:
     time.sleep(0.3)
     r1 = reading(pg, 1)
     check("loaded mass 25.91", r1 is not None and "25.91" in r1, str(r1))
-    pg.screenshot(path=SHOTS + "/grav-loaded.png")
-    print("shot: grav-loaded.png", flush=True)
+    snap(pg, "grav-loaded.png")
 
     # --- heat/cool/weigh cycles to constant mass ---
     expected = ["24.83", "24.66", "24.65"]
@@ -93,8 +106,7 @@ with sync_playwright() as p:
             check("heating phase runs", ph in ("heating", "cooling"), str(ph))
             check("weigh disabled while hot",
                   pg.locator('[data-testid="grav-weigh"]').is_disabled())
-            pg.screenshot(path=SHOTS + "/grav-heating.png")
-            print("shot: grav-heating.png", flush=True)
+            snap(pg, "grav-heating.png")
         check(f"cycle {cyc + 1} returns to idle", wait_idle(pg))
         pg.click('[data-testid="grav-weigh"]')
         time.sleep(0.3)
@@ -121,8 +133,7 @@ with sync_playwright() as p:
     time.sleep(0.3)
     check("x=7 marked correct", res.get_attribute("data-ok") == "1", res.inner_text()[:90])
     check("worked answer quotes own water mass", "1.26" in res.inner_text(), res.inner_text()[:90])
-    pg.screenshot(path=SHOTS + "/grav-marked.png")
-    print("shot: grav-marked.png", flush=True)
+    snap(pg, "grav-marked.png")
 
     # --- guide steps all ticked ---
     done = pg.locator('[data-testid="guide-step"][data-done="1"]').count()
@@ -131,6 +142,7 @@ with sync_playwright() as p:
 
     # --- mobile ---
     pgm = b.new_page(viewport={"width": 390, "height": 844})
+    pgm.set_default_timeout(TIMEOUT_MS)
     pgm.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pgm.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)
@@ -139,8 +151,7 @@ with sync_playwright() as p:
     check("mobile: weigh button visible", pgm.locator('[data-testid="grav-weigh"]').is_visible())
     box = pgm.locator('[data-testid="grav-weigh"]').bounding_box()
     check("mobile: controls fit width", box is not None and box["x"] + box["width"] <= 390, str(box))
-    pgm.screenshot(path=SHOTS + "/grav-mobile.png")
-    print("shot: grav-mobile.png", flush=True)
+    snap(pgm, "grav-mobile.png")
 
     b.close()
 

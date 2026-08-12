@@ -148,11 +148,28 @@ export function gravSteps(g) {
   ]
 }
 
+export function gasSteps(g) {
+  const constant = (() => {
+    if (g.readings.length < 2) return false
+    const a = g.readings[g.readings.length - 1]
+    const b = g.readings[g.readings.length - 2]
+    return Math.abs(a.v - b.v) <= 0.500001 && a.t - b.t >= 20
+  })()
+  return [
+    { text: 'Add the excess acid and stopper the flask quickly', done: g.phase !== 'setup' },
+    { text: 'Record the syringe reading at regular intervals', done: g.readings.length >= 1 },
+    { text: 'Keep recording — the readings level off as CO\u2082 stops', done: g.readings.length >= 3 },
+    { text: 'Stop when two readings \u226520 s apart agree within 0.5 cm\u00b3', done: constant },
+    { text: 'Use YOUR final volume to calculate the % purity', done: g.result?.ok === true },
+  ]
+}
+
 export function getGuideSteps(experiment, state) {
   if (experiment === 'titration') return titrationSteps(state.titration)
   if (experiment === 'clock') return clockSteps(state.clock)
   if (experiment === 'enthalpy') return enthalpySteps(state.enthalpy)
   if (experiment === 'qual') return qualSteps(state.qual)
   if (experiment === 'grav') return gravSteps(state.grav)
+  if (experiment === 'gas') return gasSteps(state.gas)
   return []
 }

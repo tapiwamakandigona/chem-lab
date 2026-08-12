@@ -8,6 +8,7 @@ import ClockScene from './ClockScene.jsx'
 import EnthalpyScene from './EnthalpyScene.jsx'
 import QualScene from './QualScene.jsx'
 import GravScene from './GravScene.jsx'
+import GasScene from './GasScene.jsx'
 
 /**
  * Per-experiment camera composition: [position, target].
@@ -19,6 +20,7 @@ const CAMERAS = {
   enthalpy: { pos: [-0.3, 0.3, 0.6], target: [0.1, 0.09, 0.04] },
   qual: { pos: [-0.24, 0.34, 0.55], target: [-0.04, 0.05, -0.05] },
   grav: { pos: [-0.1, 0.3, 0.52], target: [-0.02, 0.1, 0] },
+  gas: { pos: [-0.06, 0.3, 0.74], target: [-0.05, 0.11, 0] },
 }
 
 function LabCanvas({ children, quality, view, controlsRef }) {
@@ -90,6 +92,7 @@ const SCENES = {
   enthalpy: EnthalpyScene,
   qual: QualScene,
   grav: GravScene,
+  gas: GasScene,
 }
 
 /** DOM zoom buttons — the touch/mouse-free way to dolly the camera.

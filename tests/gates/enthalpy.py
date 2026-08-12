@@ -7,6 +7,18 @@ DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
 SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
 os.makedirs(SHOTS, exist_ok=True)
 
+TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+
+
+def snap(page, name):
+    """Best-effort evidence screenshot — never fails the gate."""
+    try:
+        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        print("shot: " + name, flush=True)
+    except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
+        print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
+
+
 PORT = 8797
 h = functools.partial(http.server.SimpleHTTPRequestHandler, directory=DIST)
 socketserver.TCPServer.allow_reuse_address = True
@@ -26,6 +38,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(args=["--use-gl=angle", "--use-angle=swiftshader",
                                 "--enable-unsafe-swiftshader"])
     pg = b.new_page(viewport={"width": 1280, "height": 720})
+    pg.set_default_timeout(TIMEOUT_MS)
     pg.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pg.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)
@@ -34,7 +47,7 @@ with sync_playwright() as p:
 
     pg.locator("button", has_text="Add Na").click()
     time.sleep(3)
-    pg.screenshot(path=SHOTS + "/f4-mid.png")
+    snap(pg, "f4-mid.png")
     time.sleep(5)  # animation is 5 s total
     body = pg.locator("body").inner_text()
 
@@ -49,7 +62,7 @@ with sync_playwright() as p:
     dH = float(m.group(1)) if m else 0
     check("ΔH ≈ -21.2 kJ/mol (exothermic)", dH < 0 and abs(dH + 21.2) < 0.5, f"got {dH}")
     check("T2 field ≈ 32.1", bool(re.search(r"32\.[01]", body)))
-    pg.screenshot(path=SHOTS + "/f4-done.png")
+    snap(pg, "f4-done.png")
     b.close()
 
 sys.exit(1 if fails else 0)

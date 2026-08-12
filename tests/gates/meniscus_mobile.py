@@ -5,6 +5,18 @@ import os
 DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
 SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
 os.makedirs(SHOTS, exist_ok=True)
+
+TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+
+
+def snap(page, name):
+    """Best-effort evidence screenshot — never fails the gate."""
+    try:
+        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        print("shot: " + name, flush=True)
+    except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
+        print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
+
 PORT=8797
 h=functools.partial(http.server.SimpleHTTPRequestHandler, directory=DIST)
 socketserver.TCPServer.allow_reuse_address=True
@@ -32,7 +44,7 @@ with sync_playwright() as p:
     pg.locator('[data-testid=meniscus-check]').click(); time.sleep(0.3)
     r=pg.locator('[data-testid=meniscus-result]').inner_text()
     check("exact graded correct on mobile","Correct" in r,r)
-    pg.screenshot(path=SHOTS + "/meniscus-mobile.png")
+    snap(pg, "meniscus-mobile.png")
     b.close()
 httpd.shutdown()
 sys.exit(1 if fails else 0)

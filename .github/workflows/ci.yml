@@ -39,6 +39,8 @@ jobs:
         env:
           CHEMLAB_DIST: ${{ github.workspace }}/dist
           CHEMLAB_SHOTS: ${{ github.workspace }}/shots
+          # 2-core SwiftShader runner needs far more headroom than the sandbox
+          CHEMLAB_TIMEOUT_MS: '120000'
         run: python tests/run_gates.py
 
       - name: Upload gate screenshots

@@ -17,7 +17,24 @@ import time
 
 from playwright.sync_api import sync_playwright
 
+import os
 DIST = os.environ.get("CHEMLAB_DIST", "/work/build/chemlab/main/dist")
+SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
+os.makedirs(SHOTS, exist_ok=True)
+
+TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+
+
+def snap(page, name):
+    """Best-effort evidence screenshot — never fails the gate."""
+    try:
+        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        print("shot: " + name, flush=True)
+    except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
+        print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
+
+
+DIST = os.environ.get("CHEMLAB_DIST", DIST)
 SHOTS = os.environ.get("CHEMLAB_SHOTS", "/work/build/chemlab/shots")
 os.makedirs(SHOTS, exist_ok=True)
 
@@ -50,7 +67,7 @@ def png_diff(a_bytes, b_bytes):
 
 
 def canvas_shot(pg):
-    return pg.locator("canvas").first.screenshot()
+    return pg.locator("canvas").first.screenshot(timeout=TIMEOUT_MS)
 
 
 def main():
@@ -87,7 +104,7 @@ def main():
         pg.wait_for_selector('[data-testid="gfx-root"][data-quality="ultra"]')
         time.sleep(4)
         shot_ultra = canvas_shot(pg)
-        pg.screenshot(path=f"{SHOTS}/gfx-ultra.png")
+        snap(pg, "gfx-ultra.png")
         print("shot: gfx-ultra.png")
         d = png_diff(shot_high, shot_ultra)
         check("ultra changes rendered pixels", d > 0.5, f"mean diff {d:.2f}")
@@ -142,7 +159,7 @@ def main():
         lp.click('text=Acid-Base & Redox')
         lp.wait_for_selector('[data-testid="zoom-in"]')
         time.sleep(3)
-        lp.screenshot(path=f"{SHOTS}/gfx-landscape-titration.png")
+        snap(lp, "gfx-landscape-titration.png")
         print("shot: gfx-landscape-titration.png")
         # all four dispense buttons on-screen and NOT covered by the guide
         all_ok = True
@@ -171,7 +188,7 @@ def main():
         lp.click('text=Water of Crystallisation')
         lp.wait_for_selector('[data-testid="grav-weigh"]')
         time.sleep(2)
-        lp.screenshot(path=f"{SHOTS}/gfx-landscape-grav.png")
+        snap(lp, "gfx-landscape-grav.png")
         print("shot: gfx-landscape-grav.png")
         wb = lp.locator('[data-testid="grav-weigh"]').bounding_box()
         check("landscape grav: weigh button visible",
