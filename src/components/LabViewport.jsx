@@ -79,6 +79,8 @@ function LabCanvas({ children, quality, view, controlsRef }) {
         minDistance={0.5}
         maxDistance={4.5}
         maxPolarAngle={Math.PI / 1.9}
+        minAzimuthAngle={-Math.PI / 2.15}
+        maxAzimuthAngle={Math.PI / 2.15}
         enableDamping
         dampingFactor={0.08}
         touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}

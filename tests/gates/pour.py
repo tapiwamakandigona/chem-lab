@@ -54,6 +54,13 @@ with sync_playwright() as p:
     body = pg.locator("body").inner_text()
     check("starts in setup", "Mix & start" in body)
 
+    # Pick the slowest concentration (0.020 M -> 200 s sim endpoint = 40 s
+    # real at 5x) so SwiftShader screenshot stalls (~5-7 s real each) can't
+    # run the reaction to completion before the "Reacting" assertion. The
+    # assertions themselves are unchanged.
+    pg.locator("button", has_text="0.020").click()
+    time.sleep(0.3)
+
     # drag beaker (left) onto reaction beaker (centre)
     pg.mouse.move(110, 440)
     pg.mouse.down()

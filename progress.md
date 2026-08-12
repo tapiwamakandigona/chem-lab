@@ -130,3 +130,15 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - Voltmeter recentred to [-0.05,0,0.18] after screenshot review showed it clipped behind panel (VERIFIED electro-marked.png).
 - NEW standing decision (Tapiwa): review models from multiple angles. 4-angle orbit review of electro scene done (electro-angles-grid.png) — found shelf plank invisible from reverse angle (single-sided material) → queued for iter-30.
 - Vendored electro gate into tests/gates/, added to run_gates.py GATES (22 CI gates).
+
+## iter-30 (2026-08-12)
+- OrbitControls azimuth clamp ±π/2.15 (LabViewport.jsx) — multi-angle review found orbit could
+  leave the room (single-sided back wall vanishes from behind). 4-angle grid re-verified coherent.
+- Spot regression: titrate=0, gfx=0, meniscus_mobile=0; pour failed → investigated:
+  VERIFIED engine sim rate exactly 5x (8.06s real → 38.7s sim via button start, no screenshots).
+  Root cause: probe timing — SwiftShader full-scene screenshots post-pour now cost ~5-7s real
+  (~30s sim), so the 40s (0.100 M) reaction completed before the "Reacting" assertion.
+- Fix: pour probe selects 0.020 M (200s sim endpoint = 40s real) before dragging; assertions
+  unchanged. Gate PASSES 4/4 serially. Vendored to tests/gates/pour.py.
+- Learning: sim-speed-dependent gates must use the slowest variant; parallel gate runs stretch
+  sleeps ~10x under SwiftShader — only trust serial runs for timing-sensitive gates.
