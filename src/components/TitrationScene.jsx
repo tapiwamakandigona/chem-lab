@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
@@ -274,26 +274,36 @@ export default function TitrationScene() {
   const tapDown = () => { tapRef.current = true; accRef.current = 0; setTapOpen(true) }
   const tapUp = () => { tapRef.current = false; setTapOpen(false) }
 
-  // A closed stopcock must NOT drip. A drop falls only for ~1 s after
-  // titrant actually left the tip (reading changed), as the tip drains.
+  // A closed stopcock must NOT drip. A drop falls only for ~1 sim-second
+  // after titrant actually left the tip (reading changed), as the tip drains.
+  // Sim-time, not wall-time: on a slow renderer a single frame can exceed a
+  // wall window, skipping the drain state entirely (CI 2026-08-12).
   const [dropActive, setDropActive] = useState(false)
   const prevReadingRef = useRef(titration.buretteReading)
-  const lastFlowRef = useRef(-10)
+  const sinceFlowRef = useRef(10)
   const dropActiveRef = useRef(false)
-  useFrame(({ clock }) => {
+  useFrame((_, dt) => {
     const t = useLabStore.getState().titration
-    const now = clock.getElapsedTime()
+    sinceFlowRef.current += clampSimDelta(dt)
     if (t.buretteReading !== prevReadingRef.current) {
+      // Only an increasing reading means titrant left the tip. Resetting the
+      // burette (a decrease to 0.00) must not manufacture a drain animation.
+      if (t.buretteReading > prevReadingRef.current) sinceFlowRef.current = 0
       prevReadingRef.current = t.buretteReading
-      lastFlowRef.current = now
     }
-    const act = !tapRef.current && now - lastFlowRef.current < 1.0
+    const act = !tapRef.current && sinceFlowRef.current < 1.0
     if (act !== dropActiveRef.current) {
       dropActiveRef.current = act
       setDropActive(act)
       useLabStore.getState().setDripping(act)
     }
   })
+  useEffect(() => () => {
+    // The indicator lives in the global store for the UI/gate marker. Never
+    // leak an active drain state when this scene unmounts (Menu or practical
+    // switch) before its one simulated second has elapsed.
+    useLabStore.getState().setDripping(false)
+  }, [])
 
   const [r, g, b, a] = titration.indicatorColor
   // Near-white "colourless" state must render as water, not milk.

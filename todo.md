@@ -65,3 +65,16 @@
 - [x] Inspect the current model from front, side and both three-quarter views; correct depth separation, framing and quench visibility defects rather than accepting the first camera.
 - [x] Run landing/course/offline/gfx plus full 29-gate regression against one immutable final build.
 - [ ] Mark F33/F34 only with final evidence; commit/push once, then verify all Actions shards, deployment, live counts/hash/robots/sitemap before F22.
+
+## Iteration 43 — CI timing defect repair and release sanity pass
+
+- [x] Reproduce and isolate the failed tap probe without weakening its assertion.
+- [x] Replace the burette tip-drain wall-time window with clamped simulation time.
+- [x] Verify the exact tap regression and the complete 7-gate interaction shard locally.
+- [x] Retrieve the independent library-shard CI failures and quote their real failure points.
+- [x] Audit every multi-page gate for concurrent SwiftShader/WebGL contention.
+- [x] Split slow CI groups so healthy jobs cannot overrun the 75-minute shard cap.
+- [x] Re-run every affected multi-page gate against one frozen production build.
+- [x] Run lint, Python compile, test-harness audits, model checks, and immutable-build checks.
+- [x] Commit and push only after the old CI run has yielded all remaining shard evidence.
+- [ ] Require all seven fresh CI shards, deployment, and hard live-domain verification before F22.

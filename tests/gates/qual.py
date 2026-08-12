@@ -199,6 +199,10 @@ def main():
         dones = [s.get_attribute("data-done") for s in pg.locator('[data-testid="guide-step"]').all()]
         check("guide all 6 steps done after full run", dones == ["1"] * 6, str(dones))
 
+        # Release the desktop WebGL canvas before mounting the phone canvas;
+        # otherwise concurrent SwiftShader pages can starve React on Actions.
+        pg.close()
+
         # --- mobile ---
         pgm = b.new_page(viewport={"width": 390, "height": 844})
         pgm.set_default_timeout(TIMEOUT_MS)

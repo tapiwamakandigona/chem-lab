@@ -178,6 +178,10 @@ with sync_playwright() as p:
     check("cannot add granules while heating", pg.locator('[data-testid="distill-granules"]').is_disabled())
     snap(pg, "distill-bumping.png")
 
+    # Keep only one WebGL canvas alive at a time. Two SwiftShader pages can
+    # starve the newly opened phone page on Actions before React mounts.
+    pg.close()
+
     # Mobile first actions reachable.
     pg2 = b.new_page(
         viewport={"width": 390, "height": 844},

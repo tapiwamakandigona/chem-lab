@@ -172,6 +172,10 @@ with sync_playwright() as p:
     check("clean FT2 gives intense yellow", "intense yellow" in obs and "sodium emission" in obs, obs)
     snap(pg, "flame-sodium.png")
 
+    # Keep only one WebGL canvas alive at a time. Two SwiftShader pages can
+    # starve the newly opened phone page on Actions before React mounts.
+    pg.close()
+
     # Mobile: bottom sheet is usable and first actions are tappable.
     pg2 = b.new_page(
         viewport={"width": 390, "height": 844},

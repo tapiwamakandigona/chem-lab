@@ -45,6 +45,20 @@ after first load. Loop runs until Tapiwa stops it.
   only after every shard succeeds. Bound best-effort screenshot waits so a
   slow software renderer cannot advance live simulations by minutes.
   (2026-08-12)
+- Keep each CI shard comfortably below its 75-minute job cap; isolate the
+  slowest software-rendered simulations rather than raising that outer cap.
+  `validate_shards()` must still prove exact, duplicate-free canonical gate
+  coverage. (Actions run 31636085980, 2026-08-12)
+- Within a probe, keep only one WebGL page alive at a time. Close the desktop
+  page before opening its mobile page: simultaneous SwiftShader canvases can
+  starve the new page before React mounts, producing false missing-control
+  timeouts after all desktop assertions have passed. (Actions run
+  31636085980, 2026-08-12)
+- State-bearing frame windows use accumulated `clampSimDelta(dt)`, never
+  `clock.getElapsedTime()`. One slow SwiftShader frame can exceed a short
+  wall-time window entirely; wall clock remains valid only for cosmetic
+  animation and UI-only accelerated waits. (Actions run 31636085980,
+  2026-08-12)
 - CI must install browser-test dependencies from the pinned
   `requirements-test.txt`, lint and audit before building, and verify the
   deployed bundle plus robots/sitemap with bounded retries. Gate defaults are

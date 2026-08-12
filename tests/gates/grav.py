@@ -163,6 +163,10 @@ with sync_playwright() as p:
     total = pg.locator('[data-testid="guide-step"]').count()
     check("all guide steps ticked", total == 5 and done == 5, f"{done}/{total}")
 
+    # Release the desktop WebGL canvas before mounting the phone canvas;
+    # otherwise concurrent SwiftShader pages can starve React on Actions.
+    pg.close()
+
     # --- mobile ---
     pgm = b.new_page(viewport={"width": 390, "height": 844})
     pgm.set_default_timeout(TIMEOUT_MS)

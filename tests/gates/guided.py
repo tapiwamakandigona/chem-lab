@@ -135,6 +135,10 @@ with sync_playwright() as p:
     check("enthalpy: guide panel visible", pg.locator('[data-testid="guide-panel"]').count() == 1)
     check("enthalpy: 4 steps", pg.locator('[data-testid="guide-step"]').count() == 4, str(dones(pg)))
 
+    # Release the desktop WebGL canvas before mounting the phone canvas;
+    # otherwise concurrent SwiftShader pages can starve React on Actions.
+    pg.close()
+
     # --- mobile ---
     pgm = b.new_page(viewport={"width": 390, "height": 844})
     pgm.set_default_timeout(TIMEOUT_MS)

@@ -29,11 +29,14 @@ GATES = [
 CI_SHARDS = {
     "core": ["landing", "titrate", "clock", "enthalpy", "offline", "meniscus", "meniscus_mobile"],
     "interaction": ["pour", "tip", "tap", "graph", "cooling", "read", "guided"],
-    "assessment": ["mock", "qual", "mock2", "course", "grav", "gfx", "gas"],
-    "library": [
-        "organic", "electro", "chroma", "flame", "distill", "solubility",
-        "peroxide", "iodine_rate",
-    ],
+    # Slow SwiftShader simulations are split so no healthy shard approaches
+    # the Actions 75-minute job cap. The canonical flattened order remains
+    # exactly GATES, enforced by validate_shards().
+    "assessment-a": ["mock", "qual"],
+    "mock-clock": ["mock2"],
+    "assessment-b": ["course", "grav", "gfx", "gas"],
+    "library-a": ["organic", "electro", "chroma", "flame"],
+    "library-b": ["distill", "solubility", "peroxide", "iodine_rate"],
 }
 
 
@@ -44,9 +47,10 @@ def validate_shards():
 
 
 # Per-gate wall cap. CI SwiftShader runners are ~2.5x slower than a dev
-# sandbox (mock2: 391s local vs >900s CI on 2026-08-12), so ci.yml raises
-# this via CHEMLAB_GATE_TIMEOUT_S=1800. Not a pass/fail assertion — just a
-# hang killer; the gates' own stall guards fail much earlier on real bugs.
+# sandbox (mock2: 391s local vs >1800s CI on 2026-08-12). ci.yml gives its
+# isolated mock-clock shard 2400 s and keeps every other gate at 1800 s. Not a
+# pass/fail assertion — just a hang killer; internal stall guards report real
+# simulation stalls much earlier.
 GATE_TIMEOUT_S = int(os.environ.get("CHEMLAB_GATE_TIMEOUT_S", "900"))
 
 

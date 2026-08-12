@@ -2,7 +2,8 @@
 
 Flow: open titration, hold pointer on the stopcock key (~572,380).
 Asserts: reading climbs while held (in 0.05 quanta), stops when released,
-phase goes to running, Reset burette restores 0.00. Exit 1 on any failure.
+phase goes to running, Reset burette restores 0.00 without a false drip.
+Exit 1 on any failure.
 """
 import http.server, socketserver, threading, functools, time, sys, re
 from playwright.sync_api import sync_playwright
@@ -139,10 +140,14 @@ with sync_playwright() as p:
     body = pg.locator("body").inner_text()
     check("phase left setup (titre panel live)", r2 > 0, str(r2))
 
-    # Reset restores 0.00
+    # Reset restores 0.00 and a falling reading must not look like new flow.
     pg.locator("text=Reset burette").click()
-    time.sleep(0.8)
+    time.sleep(0.2)
     check("reset restores 0.00", reading() == 0.0, str(reading()))
+    check(
+        "reset does not manufacture a tip drain",
+        pg.locator('[data-testid="tip-drip"]').get_attribute("data-active") == "0",
+    )
 
     b.close()
 

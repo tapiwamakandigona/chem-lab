@@ -166,6 +166,10 @@ with sync_playwright() as p:
     d1 = pg.locator('[data-testid="chroma-dist-1"]').inner_text()
     check("FB 20 spot distances 1.4 / 5.4 cm", "1.4" in d0 and "5.4" in d1, f"{d0} {d1}")
 
+    # Keep only one WebGL canvas alive at a time. Two SwiftShader pages can
+    # starve the newly opened phone page on Actions before React mounts.
+    pg.close()
+
     # --- mobile: start button tappable, panel reachable ---
     pg2 = b.new_page(viewport={"width": 390, "height": 844},
                      user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)")

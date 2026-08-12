@@ -135,6 +135,10 @@ with sync_playwright() as p:
     cur2 = pg.locator("text=CURRENT READING").locator("..").inner_text()
     check("mask lifted after record", "?.??" not in cur2, cur2.replace("\n", " "))
 
+    # Release the desktop WebGL canvas before mounting the phone canvas;
+    # otherwise concurrent SwiftShader pages can starve React on Actions.
+    pg.close()
+
     # --- mobile pass (390x844): card usable on phones ---
     pgm = b.new_page(viewport={"width": 390, "height": 844})
     pgm.set_default_timeout(TIMEOUT_MS)

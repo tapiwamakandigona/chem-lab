@@ -369,3 +369,42 @@ Fixes (gates + CI config only, zero product changes):
 - solubility.py: 25s waits -> 300s.
 - iodine_rate.py: sim-time waits -> 300s; removal-no-quench check polls until displayed clock ticks past baseline (30s cap).
 Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js): 11/11 PASS (/tmp/chemlab-iter42-fixed11.log; mock2 386s, gas 137s, graph 78s, peroxide 164s). Dist manifest 25/25 OK vs iter-40 sha256. VERIFIED.
+
+## iter-43 (2026-08-12) — drain-window product fix + full CI sanity audit
+- Actions run 31636085980 improved core to 7/7 but interaction failed only
+  `tap`, verbatim: `FAIL tip drains briefly after release 0`. Root cause was
+  product timing, not chemistry: `TitrationScene` measured the ~1 s tip-drain
+  state with `clock.getElapsedTime()`, and one slow CI frame could skip that
+  whole window. The drain now accumulates clamped simulation delta; the closed
+  stopcock remains dry and no gate assertion changed.
+- VERIFIED locally on rebuilt bundle `assets/index-Bc6WPutc.js`: exact tap
+  regression PASS (`tip drains briefly after release 1`), then the complete
+  interaction shard 7/7 PASS.
+- The same old CI run's library shard later failed only when opening phone
+  pages: desktop flame/distillation assertions were complete, then
+  `[data-testid="flame-acid"]` and
+  `[data-testid="distill-cooling-lower"]` never mounted within 60 s. Audit
+  found those gates kept the heavy desktop WebGL page alive while mounting a
+  second SwiftShader canvas. All eight remaining desktop→mobile gates now
+  close the first page before opening the second, matching organic/electro's
+  already-safe pattern; product assertions are byte-for-byte unchanged.
+- Static sanity checks green: ESLint, Python compile, all gate ASTs,
+  bounded-screenshot audit, `git diff --check`, actionlint, both npm audits
+  (0 vulnerabilities), iodine-rate model invariants, and canonical shard
+  coverage. The old assessment job approached the 75-minute outer cap, so
+  the next workflow splits assessment and library into smaller jobs and gives
+  `mock2` its own `mock-clock` runner: 7 total shards covering 29/29 gates
+  exactly once in canonical order. The old run proved mock2's clock half
+  correct but hit its 1800 s per-gate cap before enthalpy (`gate mock2
+  exceeded 1800s hard timeout`); isolation removes cross-gate resource
+  contention and allows a dedicated budget without holding every gate open.
+- VERIFIED multi-page audit on frozen bundle `assets/index-Bc6WPutc.js`: all
+  eight changed gates PASS (chroma, flame, distill, gas, grav, guided, qual,
+  read), and its 25-file manifest remained byte-identical.
+- Final clean build after the reset/unmount hardening:
+  `assets/index-YfwhpEog.js`, Vite 8.2.1, 629 modules, 22 PWA entries,
+  2119.53 KiB. Exact final tap gate PASS: drain appears after real flow,
+  closes dry, flow stops, reset returns 0.00 and does not manufacture a drain.
+  The final 25-file build manifest remained byte-identical across the gate.
+- Ready to commit/push. F22 remains false until the fresh 7-shard workflow,
+  Appwrite deploy and live bundle/count/robots/sitemap/disclaimer checks pass.
