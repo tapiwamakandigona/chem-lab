@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
 import { observeOrganic, organicVisual, markOrganic } from './lib/organic.js'
+import { measureCell, markElectro } from './lib/electro.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
@@ -358,6 +359,36 @@ export const useLabStore = create((set) => ({
   }),
   organicReset: () => set((s) => ({
     organic: { ...s.organic, tests: [], lastVisual: null, answer: '', result: null },
+  })),
+
+  // --- electrochemical cell state (A2 practical: identify unknown metal) ---
+  electro: {
+    unknown: 'fb16',       // key into ELECTRO_UNKNOWNS
+    measurements: [],      // [{ ref, emf, unknownIsNegative, obs }]
+    answer: '',            // metal symbol from ELECTRODES
+    result: null,          // markElectro() output after submit
+  },
+  electroSetUnknown: (unknown) => set((s) => ({
+    electro: { ...s.electro, unknown, measurements: [], answer: '', result: null },
+  })),
+  electroMeasure: (ref) => set((s) => {
+    const e = s.electro
+    if (e.measurements.some((m) => m.ref === ref)) return {}
+    const m = measureCell(e.unknown, ref)
+    if (!m) return {}
+    return { electro: { ...e, measurements: [...e.measurements, m], result: null } }
+  }),
+  electroSetAnswer: (answer) => set((s) => ({
+    electro: { ...s.electro, answer, result: null },
+  })),
+  electroSubmit: () => set((s) => {
+    const e = s.electro
+    if (!e.answer) return {}
+    const result = markElectro(e.unknown, e.answer, e.measurements.map((m) => m.ref))
+    return { electro: { ...e, result } }
+  }),
+  electroReset: () => set((s) => ({
+    electro: { ...s.electro, measurements: [], answer: '', result: null },
   })),
 
   // Tip-drain indicator (true only ~1 s after titrant actually left the tip;

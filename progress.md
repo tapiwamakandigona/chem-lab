@@ -123,3 +123,10 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - F26 Organic Analysis (P3 Q4 style): src/lib/organic.js (5 unknowns FA10-14, 7 deduction tests, unique observation rows VERIFIED via node, markOrganic = class mark + evidence mark keyed to deciding tests), OrganicScene (rack, water bath w/ steam during warm tests, Tollens' silver-mirror tube, dropper), OrganicUI, menu card 🍊, organicSteps guide, 12th course unit (course.py gate bumped 11→12, green).
 - probe/organic.py 21/21 GATE PASS (VERIFIED /tmp/g27b.log, /tmp/g27c.log after mirror-material fix — metalness-only mirror rendered black under SwiftShader; use lower metalness + slight emissive).
 - Vendored organic gate into tests/gates + runner GATES list (CI now 21 gates).
+
+## iter-29 (2026-08-12)
+- F27 Electrochemical Cells: lib/scene/UI/store/guide + 13th course unit. probe/electro.py GATE PASS (VERIFIED /tmp/g29b.log).
+- Menu clipping fix: removed justify-center+overflow clip, my-auto wrapper; spot regression course/electro/organic/gas all exit 0 (VERIFIED /tmp/g28b.log).
+- Voltmeter recentred to [-0.05,0,0.18] after screenshot review showed it clipped behind panel (VERIFIED electro-marked.png).
+- NEW standing decision (Tapiwa): review models from multiple angles. 4-angle orbit review of electro scene done (electro-angles-grid.png) — found shelf plank invisible from reverse angle (single-sided material) → queued for iter-30.
+- Vendored electro gate into tests/gates/, added to run_gates.py GATES (22 CI gates).

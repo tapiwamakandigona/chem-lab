@@ -76,6 +76,32 @@ export function clockSteps(c) {
   ]
 }
 
+export function electroSteps(e) {
+  const did = (r) => e.measurements.some((m) => m.ref === r)
+  return [
+    {
+      text: 'Connect the unknown half-cell to the Cu²⁺/Cu reference and read E cell',
+      done: did('Cu'),
+    },
+    {
+      text: 'Note the polarity — which terminal is the unknown?',
+      done: e.measurements.length >= 1,
+    },
+    {
+      text: 'Repeat against the Zn²⁺/Zn reference — one reading can fit two metals',
+      done: did('Zn'),
+    },
+    {
+      text: 'Match magnitude AND sign to the Data Booklet E° values',
+      done: did('Cu') && did('Zn'),
+    },
+    {
+      text: 'Identify the metal — both measurements must support it (2/2)',
+      done: e.result?.ok === true,
+    },
+  ]
+}
+
 export function organicSteps(o) {
   const did = (id) => o.tests.some((t) => t.test === id)
   return [
@@ -196,6 +222,7 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'enthalpy') return enthalpySteps(state.enthalpy)
   if (experiment === 'qual') return qualSteps(state.qual)
   if (experiment === 'organic') return organicSteps(state.organic)
+  if (experiment === 'electro') return electroSteps(state.electro)
   if (experiment === 'grav') return gravSteps(state.grav)
   if (experiment === 'gas') return gasSteps(state.gas)
   return []

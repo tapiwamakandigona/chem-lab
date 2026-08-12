@@ -58,6 +58,14 @@ const EXPERIMENTS = [
     papers: ['9701 P3 Q4 style'],
     available: true,
   },
+  {
+    id: 'electro',
+    icon: '🔋',
+    title: 'Electrochemical Cells',
+    desc: 'Wire half-cells, read the voltmeter, identify an unknown metal from E° values',
+    papers: ['9701 A2 practical'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {
@@ -65,7 +73,8 @@ export default function ExperimentMenu({ onSelect }) {
   const courseCount = courseProgressCount(courseDone)
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full bg-lab-bg px-4 py-8 overflow-y-auto">
+    <div className="flex flex-col items-center w-full h-full bg-lab-bg px-4 py-8 overflow-y-auto">
+      <div className="flex flex-col items-center w-full my-auto">
       {/* Header */}
       <div className="text-center mb-8">
         <div className="text-5xl mb-3">⚗</div>
@@ -153,6 +162,7 @@ export default function ExperimentMenu({ onSelect }) {
         ))}
       </div>
       <p className="text-[10px] text-lab-muted mt-1 opacity-60">Lower quality recommended on mobile / slow devices · ULTRA needs a real GPU</p>
+      </div>
     </div>
   )
 }

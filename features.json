@@ -187,6 +187,13 @@
       "description": "9701 P3 Q4-style deduction: 5 unknown organic liquids, 7 tests (2,4-DNPH, Tollens', Fehling's, acidified dichromate, bromine water, Na2CO3, iodoform). Marks class + evidence (deciding tests must be performed). Silver-mirror/ppt/decolourise visuals, water bath with steam, guide steps, 12th course unit.",
       "passes": true,
       "evidence": "probe/organic.py 21/21 GATE PASS + course gate 12-unit green (/tmp/g27b.log, /tmp/g27.log 2026-08-12); shots organic-mirror.png organic-marked.png organic-mobile.png"
+    },
+    {
+      "id": "F27",
+      "name": "Electrochemical cells experiment",
+      "description": "9701 P3 Q3-style: identify unknown metal electrode (fb15-fb19: Mg/Fe/Ni/Pb/Ag) by measuring E cell vs Cu2+/Cu and Zn2+/Zn references. |dE| + polarity, Data Booklet E table, digital voltmeter, salt bridge, drooping wires. markElectro needs both references for evidence mark. Guide steps + 13th course unit.",
+      "passes": true,
+      "evidence": "probe/electro.py GATE PASS (/tmp/g29b.log 2026-08-12) after voltmeter recentred; spot regression course/organic/gas/electro all 0 (/tmp/g28b.log); shots electro-marked.png multi-angle reviewed"
     }
   ]
 }

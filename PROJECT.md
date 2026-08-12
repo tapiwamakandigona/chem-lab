@@ -26,6 +26,9 @@ after first load. Loop runs until Tapiwa stops it.
 - Stack stays React 19 + R3F + Zustand + Tailwind + Vite. No new heavy deps
   without need. (2026-08-11)
 - Single agent, sequenced work, one task per iteration (harness v3.0.1).
+- Review every new/changed 3D model from multiple camera angles (front,
+  side, three-quarter) via probe screenshots before calling it done —
+  single-angle review missed a clipped voltmeter. (Tapiwa, 2026-08-12)
 
 ## Constraints
 

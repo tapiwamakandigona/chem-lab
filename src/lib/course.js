@@ -126,6 +126,13 @@ export const COURSE_UNITS = [
     desc: 'Run the deduction tests on an unknown organic liquid and conclude its functional group with evidence (2/2).',
     check: (s) => s.organic.result?.ok === true,
   },
+  {
+    id: 'electro-identify',
+    experiment: 'electro',
+    title: 'Identify a metal from E cell',
+    desc: 'Measure the unknown half-cell against both references and identify the metal from the Data Booklet (2/2).',
+    check: (s) => s.electro.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {
