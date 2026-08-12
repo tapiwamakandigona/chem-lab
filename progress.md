@@ -154,3 +154,9 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - Probe-side guide check must count guide-step[data-done] — the open panel's toggle reads "Hide".
 - User granted multi-agent use in the gauntlet (2026-08-12 10:52); subagents now allowed for
   parallel regressions/research; single-agent harness note overridden for this project.
+
+## iter-32 (2026-08-12)
+- Marketing/SEO: robots.txt + sitemap.xml, JSON-LD WebApplication structured data, meta refreshed
+  to nine practicals (incl. electro + chromatography). Offline gate re-PASS after public/ changes.
+- Subagent regression attempt: workspace out of credits for subagent execution
+  (spawn_subagent -> status='out_of_credits') — full-sweep verification delegated to CI instead.
