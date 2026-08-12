@@ -67,3 +67,18 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 ## iter-22 (2026-08-11)
 - F20 Mock papers for clock + enthalpy: CLOCK_PAPER_S23 (rate from own 0.100 M run, least-squares-through-origin gradient, order, predicted time at 0.050 M — ECF from gradient) and ENTHALPY_PAPER_S20 (cooling-corrected dT, q, n, signed dH — ECF chain; sign required) in src/lib/marking.js; wired into ClockUI (unlocks at 5 results) and EnthalpyUI (unlocks on complete). MockPaper component reused unchanged.
 - Gate probe/mock2.py 13 checks exit 0 (VERIFIED). Every experiment now has: guided steps + a mock paper (titration/clock/enthalpy) or evidence-marked ID (qual).
+
+## iter-23 (2026-08-12)
+- F21 Learner's Guide course: src/lib/course.js (9 milestone units w/ state checks,
+  localStorage chemlab-course-v1), CoursePanel.jsx + CourseTracker, store slices
+  courseDone/courseOpen/courseMarkDone + mockResults/recordMockResult (MockPaper submits
+  record). Menu 🎓 card with {n}/9 badge.
+- BUG found by gate: Start left courseOpen=true → panel overlay re-covered menu on return,
+  probe click-retry hang. Fix: start() calls setCourseOpen(false). Lesson: any full-screen
+  overlay must close itself on navigation it triggers.
+- probe/course.py 19 checks GATE PASS (VERIFIED). reg23 full regression: 16/16 gates =0 on
+  this bundle (VERIFIED /tmp/reg23-summary.log) → 17 gates total now.
+- F22 CI: vendored all 17 gates to tests/gates/ (CHEMLAB_DIST/CHEMLAB_SHOTS env override,
+  sandbox defaults intact), tests/run_gates.py runner, .github/workflows/ci.yml
+  (build → gates → artifacts → deploy from repo secrets → live-hash verify). Appwrite
+  secrets set on repo via API (VERIFIED 201). F22 stays false until first Actions run green.

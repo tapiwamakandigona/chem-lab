@@ -145,6 +145,20 @@
       "name": "Clock (S23) + enthalpy (S20) mock papers \u2014 all 4 experiments now have exam practice",
       "passes": true,
       "evidence": "probe/mock2.py exit 0 (13 checks: unlock gating both papers, clock 6/6 correct + 5/6 ECF chain from wrong rate, enthalpy 5/5 with cooling-corrected Textrap + 4/5 ECF + sign rejection); shots mock-clock.png, mock-enthalpy.png inspected"
+    },
+    {
+      "id": "F21",
+      "name": "Learner's guide course \u2014 menu-level learn-by-doing path with persistent progress",
+      "criteria": "Menu shows a Learner's Guide entry with progress badge; panel lists 9 ordered milestones across all 4 experiments (technique -> analysis -> mock paper); milestones tick automatically from live lab state (CourseTracker) incl. mock-paper scores recorded to the store; Start jumps into the right experiment with the step coach open; progress persists in localStorage across reload; usable at 390x844.",
+      "passes": true,
+      "evidence": "probe/course.py exit 0 (19 checks: menu badge 0/9, 9 units listed, Start drops into titration with guide open, S22 endpoint + read-check auto-tick 2 units, badge 2/9, done unit loses Start btn, reload persists via localStorage chemlab-course-v1, mobile 390x844 panel fits); shots course-panel/progress/mobile.png inspected. Full 16-gate regression on same bundle: /tmp/reg23-summary.log all =0."
+    },
+    {
+      "id": "F22",
+      "name": "GitHub Actions CI \u2014 build + all 17 probe gates + auto-deploy on green",
+      "criteria": "Push to main triggers workflow: npm build, Playwright chromium (swiftshader) runs tests/run_gates.py (all 17 vendored gates, env-overridable DIST/SHOTS), shots uploaded as artifacts; deploy job runs tools/deploy.py from repo secrets only after gates pass and verifies live bundle hash matches dist. Local sandbox gates keep working unchanged (defaults preserved).",
+      "passes": false,
+      "evidence": ""
     }
   ]
 }

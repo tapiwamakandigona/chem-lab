@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
+import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 
 // Quality tiers for low-end device support (Zimbabwe context)
 export const QUALITY = { LOW: 'low', MED: 'med', HIGH: 'high' }
@@ -307,6 +308,25 @@ export const useLabStore = create((set) => ({
   qualReset: () => set((s) => ({
     qual: { ...s.qual, tests: [], lastVisual: null, answer: { cation: '', anion: '' }, result: null },
   })),
+
+  // --- learner's guide course (persistent, offline-first) ---
+  courseDone: loadCourseProgress(), // { unitId: true }
+  courseOpen: false,
+  setCourseOpen: (courseOpen) => set({ courseOpen }),
+  courseMarkDone: (id) => set((s) => {
+    if (s.courseDone[id]) return {}
+    const courseDone = { ...s.courseDone, [id]: true }
+    saveCourseProgress(courseDone)
+    return { courseDone }
+  }),
+
+  // --- mock paper results (feeds course milestones) ---
+  mockResults: {}, // { paperId: { score, total } }
+  recordMockResult: (paperId, score, total) => set((s) => {
+    const prev = s.mockResults[paperId]
+    if (prev && prev.score >= score) return {}
+    return { mockResults: { ...s.mockResults, [paperId]: { score, total } } }
+  }),
 }))
 
 export function getEnthalpyCalc(enthalpy) {

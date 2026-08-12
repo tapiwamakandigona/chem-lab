@@ -8,19 +8,26 @@ import QualUI from './components/QualUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
+import CoursePanel, { CourseTracker } from './components/CoursePanel.jsx'
 
 // three.js + scenes load only when an experiment opens — the menu paints
 // with the small react chunk even on a 2G connection.
 const LabViewport = lazy(() => import('./components/LabViewport.jsx'))
 
 export default function App() {
-  const { experiment, setExperiment, quality } = useLabStore()
+  const { experiment, setExperiment, quality, courseOpen, setCourseOpen } = useLabStore()
   const [showTitrationCalc, setShowTitrationCalc] = useState(false)
 
   return (
     <div className="relative w-full h-full bg-lab-bg overflow-hidden">
+      {/* Ticks learner's-guide milestones from live state, everywhere */}
+      <CourseTracker />
+
       {experiment === null && (
         <ExperimentMenu onSelect={setExperiment} />
+      )}
+      {experiment === null && courseOpen && (
+        <CoursePanel onClose={() => setCourseOpen(false)} />
       )}
 
       {experiment === 'titration' && (

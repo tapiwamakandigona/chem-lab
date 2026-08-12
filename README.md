@@ -81,3 +81,12 @@ src/
 ## License
 
 ISC
+
+## CI / gates
+
+Every push to `main` runs `.github/workflows/ci.yml`: build → all 17
+Playwright probe gates (`python tests/run_gates.py`, screenshots uploaded
+as artifacts) → deploy to https://chemlab.tapiwa.me/ (Appwrite, repo
+secrets) only when every gate is green, then verifies the live bundle
+hash. Run a single gate locally with
+`CHEMLAB_DIST=dist CHEMLAB_SHOTS=shots python tests/run_gates.py meniscus`.

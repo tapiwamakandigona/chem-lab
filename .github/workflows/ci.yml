@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Playwright chromium
+        run: |
+          pip install playwright pillow
+          playwright install --with-deps chromium
+
+      - name: Run probe gates
+        env:
+          CHEMLAB_DIST: ${{ github.workspace }}/dist
+          CHEMLAB_SHOTS: ${{ github.workspace }}/shots
+        run: python tests/run_gates.py
+
+      - name: Upload gate screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-shots
+          path: shots/
+          if-no-files-found: ignore
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  deploy:
+    needs: build-test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Deploy to Appwrite (chemlab.tapiwa.me)
+        env:
+          APPWRITE_ENDPOINT: ${{ secrets.APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ secrets.APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: python3 tools/deploy.py
+
+      - name: Verify live
+        run: |
+          sleep 10
+          local_hash=$(grep -o 'assets/index-[^"]*\.js' dist/index.html | head -1)
+          live_hash=$(curl -s https://chemlab.tapiwa.me/ | grep -o 'assets/index-[^"]*\.js' | head -1)
+          echo "local=$local_hash live=$live_hash"
+          test -n "$local_hash" && test "$local_hash" = "$live_hash"

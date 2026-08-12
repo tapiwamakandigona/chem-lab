@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { markPaper } from '../lib/marking.js'
+import { useLabStore } from '../store.js'
 
 // Exam-style mock paper overlay. Generic over a paper spec + ctx built from
 // the student's OWN results (like real Paper 3 — you analyse what you got).
@@ -8,8 +9,13 @@ import { markPaper } from '../lib/marking.js'
 export default function MockPaper({ paper, ctx, onClose }) {
   const [answers, setAnswers] = useState({})
   const [marked, setMarked] = useState(null)
+  const recordMockResult = useLabStore((s) => s.recordMockResult)
 
-  const submit = () => setMarked(markPaper(paper.parts, ctx, answers))
+  const submit = () => {
+    const m = markPaper(paper.parts, ctx, answers)
+    setMarked(m)
+    recordMockResult(paper.id, m.score, m.total)
+  }
 
   return createPortal(
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 pointer-events-auto" onClick={onClose}>

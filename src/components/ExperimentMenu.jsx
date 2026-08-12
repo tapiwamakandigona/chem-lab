@@ -1,4 +1,5 @@
 import { QUALITY, useLabStore } from '../store.js'
+import { COURSE_UNITS, courseProgressCount } from '../lib/course.js'
 
 const EXPERIMENTS = [
   {
@@ -36,7 +37,8 @@ const EXPERIMENTS = [
 ]
 
 export default function ExperimentMenu({ onSelect }) {
-  const { quality, setQuality } = useLabStore()
+  const { quality, setQuality, courseDone, setCourseOpen } = useLabStore()
+  const courseCount = courseProgressCount(courseDone)
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full bg-lab-bg px-4 py-8 overflow-y-auto">
@@ -45,6 +47,31 @@ export default function ExperimentMenu({ onSelect }) {
         <div className="text-5xl mb-3">⚗</div>
         <h1 className="text-2xl font-semibold text-lab-ink tracking-tight">ChemLab ZW</h1>
         <p className="text-lab-muted text-sm mt-1">Cambridge AS/A Level Chemistry · Paper 3 Practicals</p>
+      </div>
+
+      {/* Learner's guide entry — learn by doing, tracked automatically */}
+      <div className="w-full max-w-lg mb-3">
+        <button
+          onClick={() => setCourseOpen(true)}
+          data-testid="course-open"
+          className="w-full text-left p-4 rounded-xl border border-lab-accent/50 bg-lab-accent/5 hover:bg-lab-accent/10 active:scale-[0.98] transition-all cursor-pointer"
+        >
+          <div className="flex items-start gap-3">
+            <span className="text-2xl mt-0.5">🎓</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-lab-ink text-sm">Learner&apos;s Guide</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-lab-accent/15 text-lab-accent border border-lab-accent/30">
+                  {courseCount}/{COURSE_UNITS.length}
+                </span>
+              </div>
+              <p className="text-lab-muted text-xs mt-1 leading-relaxed">
+                New here? Learn Paper 3 by practising — guided milestones from first
+                burette reading to full mock papers, ticked off as you do them.
+              </p>
+            </div>
+          </div>
+        </button>
       </div>
 
       {/* Experiment cards */}
