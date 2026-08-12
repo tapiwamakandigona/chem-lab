@@ -4,6 +4,7 @@ import { observeOrganic, organicVisual, markOrganic } from './lib/organic.js'
 import { measureCell, markElectro } from './lib/electro.js'
 import { markChroma } from './lib/chroma.js'
 import { flameAppearance, markFlame } from './lib/flame.js'
+import { distillStatus, markDistillation } from './lib/distill.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
@@ -595,6 +596,76 @@ export const useLabStore = create((set) => ({
       active: false,
       observations: [],
       answer: '',
+      result: null,
+    },
+  })),
+
+  // --- simple distillation (apparatus/technique enrichment) ---
+  distill: {
+    cooling: 'off',       // 'off' | 'lower' (correct) | 'upper' (reversed)
+    granules: false,
+    heating: false,
+    timeSec: 0,
+    observations: [],     // [{time, temperature, volume, colourless}]
+    result: null,
+  },
+  distillSetCooling: (cooling) => set((s) => (
+    s.distill.heating
+      ? {}
+      : { distill: { ...s.distill, cooling, result: null } }
+  )),
+  distillAddGranules: () => set((s) => (
+    s.distill.heating || s.distill.granules
+      ? {}
+      : { distill: { ...s.distill, granules: true, result: null } }
+  )),
+  distillStart: () => set((s) => (
+    s.distill.heating || s.distill.timeSec >= 180
+      ? {}
+      : { distill: { ...s.distill, heating: true, result: null } }
+  )),
+  distillStop: () => set((s) => (
+    s.distill.heating
+      ? { distill: { ...s.distill, heating: false } }
+      : {}
+  )),
+  distillTick: (dSec) => set((s) => {
+    const d = s.distill
+    if (!d.heating) return {}
+    const timeSec = Math.min(180, d.timeSec + dSec)
+    const heating = timeSec < 180
+    return { distill: { ...d, timeSec, heating } }
+  }),
+  distillRecord: () => set((s) => {
+    const d = s.distill
+    const status = distillStatus(d)
+    if (status.volume < 0.5) return {}
+    const observation = {
+      time: Math.round(d.timeSec),
+      temperature: status.temperature,
+      volume: status.volume,
+      colourless: true,
+    }
+    return {
+      distill: {
+        ...d,
+        observations: [...d.observations, observation],
+        result: null,
+      },
+    }
+  }),
+  distillSubmit: () => set((s) => {
+    const d = s.distill
+    const result = markDistillation(d.cooling, d.granules, d.observations)
+    return { distill: { ...d, result } }
+  }),
+  distillReset: () => set(() => ({
+    distill: {
+      cooling: 'off',
+      granules: false,
+      heating: false,
+      timeSec: 0,
+      observations: [],
       result: null,
     },
   })),

@@ -82,6 +82,14 @@ const EXPERIMENTS = [
     papers: ['qualitative enrichment'],
     available: true,
   },
+  {
+    id: 'distill',
+    icon: '💧',
+    title: 'Simple Distillation',
+    desc: 'Assemble cooling flow, control boiling and separate pure water from a coloured solution',
+    papers: ['separation enrichment'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

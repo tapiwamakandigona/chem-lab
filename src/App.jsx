@@ -11,6 +11,7 @@ import OrganicUI from './components/OrganicUI.jsx'
 import ElectroUI from './components/ElectroUI.jsx'
 import ChromaUI from './components/ChromaUI.jsx'
 import FlameUI from './components/FlameUI.jsx'
+import DistillUI from './components/DistillUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
@@ -100,6 +101,15 @@ export default function App() {
           </Suspense>
           <FlameUI onBack={() => setExperiment(null)} />
           <GuideCoach experiment="flame" />
+        </>
+      )}
+      {experiment === 'distill' && (
+        <>
+          <Suspense fallback={<LoadingScreen />}>
+            <LabViewport experiment="distill" quality={quality} />
+          </Suspense>
+          <DistillUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="distill" />
         </>
       )}
 

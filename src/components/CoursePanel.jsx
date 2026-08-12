@@ -29,6 +29,7 @@ const EXPERIMENT_LABEL = {
   electro: 'Electrochemical Cells',
   chroma: 'Chromatography',
   flame: 'Flame Tests',
+  distill: 'Simple Distillation',
 }
 
 // Menu-level "learn by doing" path: ordered milestones across all

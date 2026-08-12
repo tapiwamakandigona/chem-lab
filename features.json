@@ -208,6 +208,13 @@
       "description": "Qualitative-observation enrichment: identify Li+/Na+/K+/Ca2+/Cu2+ from flame colours using a reusable nichrome loop. Procedure requires dilute-HCl cleaning plus a confirmed colourless blank before evidence credit; dirty-loop sodium masking and cobalt-blue-glass diagnosis are modelled. Animated non-luminous Bunsen flame, five unknowns, evidence-based 2-mark conclusion, guide, 15th course unit and mobile controls.",
       "passes": true,
       "evidence": "tests/run_gates.py course flame exits 0: course 19 checks at 15 units; flame 18 checks covering dirty-loop mask, blank lock, lilac K, yellow Na, cobalt glass, 2/2 marking, guide 5/5 and 390x844 mobile (/tmp/chemlab-iter33-course-flame.log, 2026-08-12). Chemistry invariants node check green; flame-lilac/sodium/mobile and four-angle grid inspected."
+    },
+    {
+      "id": "F30",
+      "name": "Simple-distillation practical",
+      "description": "Separation-technique enrichment: distil water from blue CuSO4(aq) using a supported round-bottom flask, correctly sloped Liebig condenser and open receiver. Learner chooses cooling direction, adds anti-bumping granules, heats electrically, tracks vapour temperature and distillate volume, records colourless water, and receives 3-mark evidence-based technique feedback. Reversed cooling, missing cooling and violent bumping are modelled; guide plus 16th course unit.",
+      "passes": true,
+      "evidence": "tests/run_gates.py course distill exits 0: course 19 checks at 16 units; distill 18 checks covering initial state, 0/3 preflight, reversed-flow warning, granule interlock, 100.0 C plateau, >=5 cm3 colourless distillate, 3/3 marking, guide 5/5, bumping safety and 390x844 mobile (/tmp/chemlab-iter34-course-distill.log, 2026-08-12). Pure model invariant checks and lint/build green; correct/bumping/mobile and revised four-angle grid inspected."
     }
   ]
 }

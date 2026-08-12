@@ -2,7 +2,7 @@
 
 **Live: [chemlab.tapiwa.me](https://chemlab.tapiwa.me/)**
 
-A virtual chemistry lab for **Cambridge AS/A Level Chemistry (9701)** students — built for learners without access to physical lab equipment. Ten interactive practicals with 3D apparatus, guided procedures, live worked calculations, and marked past-paper-style questions. Offline-first and phone-friendly, because that's how most of its students will use it.
+A virtual chemistry lab for **Cambridge AS/A Level Chemistry (9701)** students — built for learners without access to physical lab equipment. Eleven interactive practicals with 3D apparatus, guided procedures, live worked calculations, and marked past-paper-style questions. Offline-first and phone-friendly, because that's how most of its students will use it.
 
 ## Experiments
 
@@ -18,10 +18,11 @@ A virtual chemistry lab for **Cambridge AS/A Level Chemistry (9701)** students �
 | **Electrochemical Cells** | A2 practical | Wire half-cells, read polarity and E cell, identify an unknown metal from E° |
 | **Paper Chromatography** | AS technique | Develop a chromatogram, measure spot distances, calculate Rf, identify dyes |
 | **Flame Tests** | Enrichment | Clean a nichrome loop, observe five cations, diagnose sodium contamination |
+| **Simple Distillation** | Enrichment | Fill a Liebig condenser upward, prevent bumping, collect colourless water at 100 °C |
 
 ## Learn mode
 
-- 🎓 **15-unit guided course** with progress tracking (stored locally, no account)
+- 🎓 **16-unit guided course** with progress tracking (stored locally, no account)
 - 🧭 **In-experiment coach** — step-by-step guidance that ticks off as you work
 - 📝 **Marked mock papers** — past-paper-style questions marked with tolerance + error-carried-forward, like a real examiner
 - 📏 **Meniscus reading trainer** with randomised burette sections
@@ -43,7 +44,7 @@ React 19 · Three.js / React Three Fiber / Drei · Zustand · Tailwind CSS 3 · 
 npm install
 npm run dev        # local dev server
 npm run build      # production build to dist/
-python tests/run_gates.py   # full 24-gate Playwright regression
+python tests/run_gates.py   # full 25-gate Playwright regression
 ```
 
 Every experiment ships with a Playwright **gate** (`tests/gates/`) asserting the full user flow — from menu click to marked answer — plus mobile usability. CI runs all gates on every push and deploys only when green.

@@ -175,3 +175,20 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - Screenshots inspected: flame-lilac/sodium/mobile and four-angle grid. Multi-angle pass found
   idle-loop composition too tall and the hot-zone placement implausible; holder was lowered,
   extended and repositioned across the inner-cone tip before the final gate.
+
+## iter-34 (2026-08-12)
+- F30 simple distillation enrichment: 20 cm³ blue CuSO₄(aq), supported round-bottom flask,
+  electric heater, still head with correctly positioned thermometer bulb, downward Liebig
+  condenser, labelled lower inlet/upper outlet, second condenser support and open receiver.
+- Physics/safety: 22→100 °C heat-up then water-boiling plateau; condensate starts only after the
+  plateau; lower-inlet cooling is 95% efficient, reversed flow 55%, cooling off 0%; anti-bumping
+  granules prevent violent boiling. Cooling direction locks while hot and granules cannot be
+  added after heating starts. Marking awards lower-inlet flow, granules, and ≥5 cm³ colourless
+  distillate recorded at 98–102 °C (3 marks).
+- Research checked the current Cambridge 9701 syllabus and RSC/standard apparatus guidance;
+  feature is honestly labelled enrichment because simple distillation is a theory/separation
+  outcome, not one of the standard current Paper 3 quantitative categories.
+- Verification: pure model invariants green; lint/build green; course + distill gates 2/2,
+  including 16 course units, reversed-flow warning, 100.0 °C plateau, bumping safety and mobile.
+  Two four-angle passes: first exposed oversized framing and unsupported condenser; camera pulled
+  back and a dedicated second support added. Revised multi-angle grid is coherent.

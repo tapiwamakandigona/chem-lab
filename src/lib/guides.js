@@ -155,6 +155,34 @@ export function flameSteps(f) {
   ]
 }
 
+export function distillSteps(d) {
+  const goodObservation = d.observations.some(
+    (o) => o.volume >= 5 && o.temperature >= 98 && o.temperature <= 102 && o.colourless,
+  )
+  return [
+    {
+      text: 'Connect cooling water to the LOWER condenser nozzle so the jacket fills upward',
+      done: d.cooling === 'lower',
+    },
+    {
+      text: 'Add anti-bumping granules BEFORE heating for smooth boiling',
+      done: d.granules,
+    },
+    {
+      text: 'Start the electric heater and watch the vapour temperature rise',
+      done: d.timeSec > 0,
+    },
+    {
+      text: 'At the ~100 °C plateau, collect and record ≥5 cm³ colourless distillate',
+      done: goodObservation,
+    },
+    {
+      text: 'Check the full technique — cooling, granules and observation (3/3)',
+      done: d.result?.ok === true,
+    },
+  ]
+}
+
 export function organicSteps(o) {
   const did = (id) => o.tests.some((t) => t.test === id)
   return [
@@ -278,6 +306,7 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'electro') return electroSteps(state.electro)
   if (experiment === 'chroma') return chromaSteps(state.chroma)
   if (experiment === 'flame') return flameSteps(state.flame)
+  if (experiment === 'distill') return distillSteps(state.distill)
   if (experiment === 'grav') return gravSteps(state.grav)
   if (experiment === 'gas') return gasSteps(state.gas)
   return []

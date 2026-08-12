@@ -147,6 +147,13 @@ export const COURSE_UNITS = [
     desc: 'Clean the nichrome loop, confirm a colourless blank, record the flame and identify the metal ion with evidence (2/2).',
     check: (s) => s.flame.result?.ok === true,
   },
+  {
+    id: 'distill-water',
+    experiment: 'distill',
+    title: 'Run a safe simple distillation',
+    desc: 'Fill the condenser jacket upward, prevent bumping and collect colourless water at its vapour-temperature plateau (3/3).',
+    check: (s) => s.distill.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {
