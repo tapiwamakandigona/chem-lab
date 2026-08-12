@@ -3,11 +3,18 @@ import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 
-// Quality tiers for low-end device support (Zimbabwe context)
-export const QUALITY = { LOW: 'low', MED: 'med', HIGH: 'high' }
+// Quality tiers for low-end device support (Zimbabwe context).
+// ULTRA is opt-in only (never auto-detected): soft shadows, higher DPR,
+// richer environment — for laptops/desktops with a real GPU.
+export const QUALITY = { LOW: 'low', MED: 'med', HIGH: 'high', ULTRA: 'ultra' }
+const QUALITY_KEY = 'chemlab-quality'
 
 // Detect device capability on first load
 function detectQuality() {
+  try {
+    const saved = localStorage.getItem(QUALITY_KEY)
+    if (Object.values(QUALITY).includes(saved)) return saved
+  } catch { /* private mode */ }
   const gpu = navigator.hardwareConcurrency ?? 2
   const memory = navigator.deviceMemory ?? 2
   if (gpu <= 2 || memory <= 1) return QUALITY.LOW
@@ -22,7 +29,10 @@ export const useLabStore = create((set) => ({
 
   // --- quality / rendering ---
   quality: detectQuality(),
-  setQuality: (q) => set({ quality: q }),
+  setQuality: (q) => {
+    try { localStorage.setItem(QUALITY_KEY, q) } catch { /* private mode */ }
+    set({ quality: q })
+  },
 
   // --- guided mode (PhET-style step coach) ---
   guideOpen: true,

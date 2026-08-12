@@ -166,6 +166,13 @@
       "criteria": "5th experiment: weigh crucible/sample, Bunsen heat-cool-weigh cycles with real constant-mass loop (>=3 heats, last two within 0.01 g), weighing locked while hot, one reading per cycle, x marked against the learner's OWN readings, guide steps, mobile 390x844; plus burette closed-tap drip bug fixed and gated both ways.",
       "passes": true,
       "evidence": "probe/grav.py exit 0 (28 checks; masses 23.45/25.91/24.83/24.66/24.65, x=7 accepted, x=3 rejected); shots grav-heating/marked/mobile.png inspected. probe/tap.py exit 0 incl. new 'tip drains briefly after release'=1 and 'no drip when closed'=0/0 checks."
+    },
+    {
+      "id": "F24",
+      "name": "Ultra graphics mode, zoom controls, landscape mobile, extra animations",
+      "criteria": "Opt-in ULTRA quality tier (soft shadows, 2.5x DPR, 4096 shadow maps, contact shadows, richer env) persisted in localStorage and visibly different from HIGH; on-screen zoom +/- buttons plus working wheel/pinch dolly (two-finger DOLLY_PAN mapping); landscape phone 844x390 usable in titration and grav with guide auto-collapsed on short screens; new animations: drop splash ripple, flame point-light flicker.",
+      "passes": true,
+      "evidence": "probe/gfx.py exit 0 (15 checks: ultra vs high mean pixel diff 2.07, zoom-in diff 16.29 with zoom-out returning to 0.00, wheel diff 4.88, persistence 'ultra' after reload, landscape dispense buttons elementFromPoint==BUTTON, guide collapsed); shots gfx-ultra/gfx-landscape-titration/gfx-landscape-grav.png inspected."
     }
   ]
 }

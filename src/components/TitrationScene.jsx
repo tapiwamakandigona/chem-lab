@@ -167,19 +167,41 @@ function TapStream({ open, tipY, surfaceY }) {
 
 function Drop({ active, tipY, surfaceY }) {
   const ref = useRef()
+  const ringRef = useRef()
   useFrame(({ clock }) => {
     if (!ref.current) return
-    if (!active) { ref.current.visible = false; return }
+    if (!active) {
+      ref.current.visible = false
+      if (ringRef.current) ringRef.current.visible = false
+      return
+    }
     ref.current.visible = true
     const t = (clock.getElapsedTime() * 2.2) % 1
     ref.current.position.y = tipY - t * (tipY - surfaceY)
     ref.current.scale.setScalar(t < 0.08 ? t / 0.08 : 1)
+    // splash ripple: expanding, fading ring right after the drop lands
+    if (ringRef.current) {
+      const r = (t + 0.25) % 1 // ring life trails the drop's landing
+      const splashing = r < 0.35
+      ringRef.current.visible = splashing
+      if (splashing) {
+        const life = r / 0.35
+        ringRef.current.scale.setScalar(0.4 + life * 1.6)
+        ringRef.current.material.opacity = 0.5 * (1 - life)
+      }
+    }
   })
   return (
-    <mesh ref={ref} visible={false}>
-      <sphereGeometry args={[0.0035, 10, 8]} />
-      <meshStandardMaterial color="#cfe6f7" transparent opacity={0.9} roughness={0.1} />
-    </mesh>
+    <>
+      <mesh ref={ref} visible={false}>
+        <sphereGeometry args={[0.0035, 10, 8]} />
+        <meshStandardMaterial color="#cfe6f7" transparent opacity={0.9} roughness={0.1} />
+      </mesh>
+      <mesh ref={ringRef} visible={false} rotation={[-Math.PI / 2, 0, 0]} position={[0, surfaceY + 0.001, 0]}>
+        <ringGeometry args={[0.006, 0.008, 24]} />
+        <meshBasicMaterial color="#dcecf7" transparent opacity={0.5} depthWrite={false} />
+      </mesh>
+    </>
   )
 }
 

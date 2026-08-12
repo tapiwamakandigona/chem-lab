@@ -121,10 +121,11 @@ export default function ExperimentMenu({ onSelect }) {
       {/* Quality selector */}
       <div className="mt-6 flex items-center gap-2 text-xs text-lab-muted">
         <span>Quality:</span>
-        {[QUALITY.LOW, QUALITY.MED, QUALITY.HIGH].map((q) => (
+        {[QUALITY.LOW, QUALITY.MED, QUALITY.HIGH, QUALITY.ULTRA].map((q) => (
           <button
             key={q}
             onClick={() => setQuality(q)}
+            data-testid={`quality-${q}`}
             className={`px-2 py-1 rounded border text-xs transition-colors ${
               quality === q
                 ? 'border-lab-accent text-lab-accent bg-lab-accent/10'
@@ -135,7 +136,7 @@ export default function ExperimentMenu({ onSelect }) {
           </button>
         ))}
       </div>
-      <p className="text-[10px] text-lab-muted mt-1 opacity-60">Lower quality recommended on mobile / slow devices</p>
+      <p className="text-[10px] text-lab-muted mt-1 opacity-60">Lower quality recommended on mobile / slow devices · ULTRA needs a real GPU</p>
     </div>
   )
 }

@@ -97,3 +97,18 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
   Clock/Enthalpy (DragTipper pours only while dragging) and Qual (Dropper per test) —
   no equivalent always-on flows. Lesson: never key fluid visuals to experiment phase.
 - Vendored tap.py + grav.py into tests/gates/; grav added to run_gates.py list.
+
+## iter-25 (2026-08-12)
+- F24 graphics/mobile: ULTRA quality tier (opt-in only, never auto-detected; soft
+  shadows, dpr 2.5, 4096 shadow maps, ContactShadows, env res 256 + extra
+  Lightformers), quality persisted (chemlab-quality); zoom +/- DOM buttons dollying
+  via OrbitControls ref; FIXED broken touch mapping (touches={ONE:2,TWO:512} was
+  nonsense enum values — pinch did nothing; now THREE.TOUCH.ROTATE/DOLLY_PAN);
+  landscape phones: GuideCoach auto-collapses below 501px height (gate proved the
+  open guide covered the 5/1 cm3 dispense buttons at 844x390 via elementFromPoint).
+- New animations: titration drop splash ripple (expanding fading ring at surface),
+  grav Bunsen point-light flicker while heating.
+- Gate probe/gfx.py 15 checks incl. pixel-diff proof ultra != high and zoom
+  in/out inverse. Vendored to tests/gates, added to runner (19 gates).
+- Push HELD until CI run 31571702300 (7b5a5be) concludes — pushing would cancel
+  it (concurrency) and F22 needs a green run first.

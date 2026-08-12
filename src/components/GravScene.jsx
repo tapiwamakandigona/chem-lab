@@ -14,7 +14,12 @@ const CRUCIBLE_Y = TRIPOD_H + 0.012
 function Bunsen({ heating }) {
   const flameRef = useRef()
   const innerRef = useRef()
+  const lightRef = useRef()
   useFrame(({ clock }) => {
+    if (lightRef.current) {
+      const tt = clock.getElapsedTime()
+      lightRef.current.intensity = heating ? 0.55 + Math.sin(tt * 11) * 0.12 + Math.sin(tt * 23) * 0.05 : 0
+    }
     if (!flameRef.current) return
     const t = clock.getElapsedTime()
     const flick = heating ? 1 + Math.sin(t * 22) * 0.07 + Math.sin(t * 9.3) * 0.05 : 0
@@ -39,6 +44,7 @@ function Bunsen({ heating }) {
         <meshStandardMaterial color="#8a6a1f" roughness={0.4} metalness={0.7} />
       </mesh>
       {/* outer flame */}
+      <pointLight ref={lightRef} position={[0, 0.11, 0]} color="#7fb4ff" intensity={0} distance={0.45} decay={2} />
       <mesh ref={flameRef} position={[0, 0.092, 0]}>
         <coneGeometry args={[0.013, 0.055, 12]} />
         <meshBasicMaterial color="#7fb4ff" transparent opacity={0.55} />
