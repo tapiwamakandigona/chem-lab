@@ -192,3 +192,21 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
   including 16 course units, reversed-flow warning, 100.0 °C plateau, bumping safety and mobile.
   Two four-angle passes: first exposed oversized framing and unsupported condenser; camera pulled
   back and a dedicated second support added. Revised multi-angle grid is coherent.
+
+## iter-35 (2026-08-12)
+- F31 KNO₃ solubility-curve investigation: five assigned mixtures containing 7.0–30.0 g KNO₃
+  in 20.0 g water, hot-water bath, clamped boiling tube, thermometer, stirring rod and live
+  digital readout. The learner heats until clear, cools to the first crystals, records to 0.5 °C,
+  calculates g solute per 100 g water and accumulates measured crosses on an offline SVG curve.
+- Model linearly interpolates a six-point school-lab KNO₃ table (13.25, 31.66, 63.9, 109.9,
+  169.0, 245.2 g per 100 g H₂O at 0–100 °C). SC2's 50.0 g/100 g saturation point is 31.38 °C.
+  Premature records are locked; a guessed calculation earns only 1/3. Slow cooling gives larger
+  crystals; crash cooling is faster but warns that fine crystals can trap impurities; scratching/
+  seeding provides a nucleation route.
+- Research cross-checked the Cambridge 2025–2027 syllabus practical expectations (temperature to
+  0.5 °C, tables, graphs, subtle solubility/quantity observations), a school KNO₃ curve procedure,
+  and RSC recrystallisation guidance. It is honestly labelled a temperature investigation rather
+  than a specific past-paper question.
+- Verification: all five model cases green; lint/build green; course + solubility gates 2/2,
+  including 17 course units, 19 practical assertions, two persistent graph points and mobile.
+  Four-angle review found the thermometer bulb initially too high; stem was lowered into solution.

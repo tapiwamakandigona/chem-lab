@@ -90,6 +90,14 @@ const EXPERIMENTS = [
     papers: ['separation enrichment'],
     available: true,
   },
+  {
+    id: 'solubility',
+    icon: '❄️',
+    title: 'Solubility & Crystallisation',
+    desc: 'Build a KNO₃ solubility curve by heating known mixtures and recording the first crystals',
+    papers: ['temperature investigation'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

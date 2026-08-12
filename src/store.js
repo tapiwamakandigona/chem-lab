@@ -5,6 +5,13 @@ import { measureCell, markElectro } from './lib/electro.js'
 import { markChroma } from './lib/chroma.js'
 import { flameAppearance, markFlame } from './lib/flame.js'
 import { distillStatus, markDistillation } from './lib/distill.js'
+import {
+  SOLUBILITY_RUNS,
+  SOLUBILITY_ROOM_C,
+  requiredDissolveTemperature,
+  saturationTemperature,
+  markSolubility,
+} from './lib/solubility.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
@@ -666,6 +673,160 @@ export const useLabStore = create((set) => ({
       heating: false,
       timeSec: 0,
       observations: [],
+      result: null,
+    },
+  })),
+
+  // --- KNO3 solubility curve (temperature-measurement enrichment) ---
+  solubility: {
+    runId: 'sc2',
+    temperature: SOLUBILITY_ROOM_C,
+    phase: 'setup',       // setup | heating | clear | cooling | complete
+    heatedClear: false,
+    rushing: false,       // ice-bath crash cooling
+    nucleated: false,     // learner scratched/seeded the supersaturated solution
+    observations: [],     // one first-crystal temperature per assigned mass
+    answer: '',
+    result: null,
+  },
+  solubilitySetRun: (runId) => set((s) => ({
+    solubility: {
+      ...s.solubility,
+      runId,
+      temperature: SOLUBILITY_ROOM_C,
+      phase: 'setup',
+      heatedClear: false,
+      rushing: false,
+      nucleated: false,
+      answer: '',
+      result: null,
+    },
+  })),
+  solubilityStartHeating: () => set((s) => (
+    ['setup', 'cooling', 'crystals', 'complete'].includes(s.solubility.phase)
+      ? {
+          solubility: {
+            ...s.solubility,
+            phase: 'heating',
+            rushing: false,
+            nucleated: false,
+            result: null,
+          },
+        }
+      : {}
+  )),
+  solubilityStopHeating: () => set((s) => {
+    const x = s.solubility
+    if (x.phase !== 'heating') return {}
+    const run = SOLUBILITY_RUNS.find((item) => item.id === x.runId) ?? SOLUBILITY_RUNS[1]
+    const heatedClear = x.heatedClear || x.temperature >= requiredDissolveTemperature(run)
+    return {
+      solubility: {
+        ...x,
+        heatedClear,
+        phase: heatedClear ? 'clear' : 'setup',
+      },
+    }
+  }),
+  solubilityStartCooling: (rushing = false) => set((s) => (
+    s.solubility.heatedClear && ['clear', 'heating', 'crystals'].includes(s.solubility.phase)
+      ? {
+          solubility: {
+            ...s.solubility,
+            phase: 'cooling',
+            rushing,
+            temperature: s.solubility.phase === 'crystals'
+              ? Math.min(98, s.solubility.temperature + 3)
+              : s.solubility.temperature,
+            result: null,
+          },
+        }
+      : {}
+  )),
+  solubilityStopCooling: () => set((s) => (
+    s.solubility.phase === 'cooling'
+      ? { solubility: { ...s.solubility, phase: 'clear' } }
+      : {}
+  )),
+  solubilityNucleate: () => set((s) => (
+    ['cooling', 'crystals'].includes(s.solubility.phase)
+      ? { solubility: { ...s.solubility, nucleated: true } }
+      : {}
+  )),
+  solubilityTick: (deltaC) => set((s) => {
+    const x = s.solubility
+    const run = SOLUBILITY_RUNS.find((item) => item.id === x.runId) ?? SOLUBILITY_RUNS[1]
+    if (x.phase === 'heating') {
+      const temperature = Math.min(98, x.temperature + deltaC)
+      const heatedClear = x.heatedClear || temperature >= requiredDissolveTemperature(run)
+      return {
+        solubility: {
+          ...x,
+          temperature,
+          heatedClear,
+          phase: heatedClear ? 'clear' : 'heating',
+        },
+      }
+    }
+    if (x.phase === 'cooling') {
+      const next = Math.max(SOLUBILITY_ROOM_C, x.temperature - deltaC)
+      const onset = saturationTemperature(run) + (x.nucleated ? 0.3 : 0) - (x.rushing ? 1 : 0)
+      const appeared = next <= onset
+      const temperature = appeared ? Math.round(onset * 10) / 10 : next
+      return {
+        solubility: {
+          ...x,
+          temperature,
+          phase: appeared ? 'crystals' : 'cooling',
+        },
+      }
+    }
+    return {}
+  }),
+  solubilityRecord: () => set((s) => {
+    const x = s.solubility
+    const run = SOLUBILITY_RUNS.find((item) => item.id === x.runId) ?? SOLUBILITY_RUNS[1]
+    const target = saturationTemperature(run)
+    const firstCrystals =
+      x.heatedClear &&
+      ['cooling', 'crystals', 'complete'].includes(x.phase) &&
+      x.temperature <= target + 0.5
+    if (!firstCrystals || x.observations.some((item) => item.runId === x.runId)) return {}
+    return {
+      solubility: {
+        ...x,
+        observations: [
+          ...x.observations,
+          {
+            runId: x.runId,
+            temperature: Math.round(x.temperature * 2) / 2,
+            appearance: 'first crystals',
+            heatedClear: x.heatedClear,
+            rushing: x.rushing,
+          },
+        ],
+        phase: 'complete',
+        result: null,
+      },
+    }
+  }),
+  solubilitySetAnswer: (answer) => set((s) => ({
+    solubility: { ...s.solubility, answer, result: null },
+  })),
+  solubilitySubmit: () => set((s) => {
+    const x = s.solubility
+    const result = markSolubility(x.runId, x.observations, x.answer)
+    return { solubility: { ...x, result } }
+  }),
+  solubilityReset: () => set((s) => ({
+    solubility: {
+      ...s.solubility,
+      temperature: SOLUBILITY_ROOM_C,
+      phase: 'setup',
+      heatedClear: false,
+      rushing: false,
+      nucleated: false,
+      answer: '',
       result: null,
     },
   })),

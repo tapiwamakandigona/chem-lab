@@ -215,6 +215,13 @@
       "description": "Separation-technique enrichment: distil water from blue CuSO4(aq) using a supported round-bottom flask, correctly sloped Liebig condenser and open receiver. Learner chooses cooling direction, adds anti-bumping granules, heats electrically, tracks vapour temperature and distillate volume, records colourless water, and receives 3-mark evidence-based technique feedback. Reversed cooling, missing cooling and violent bumping are modelled; guide plus 16th course unit.",
       "passes": true,
       "evidence": "tests/run_gates.py course distill exits 0: course 19 checks at 16 units; distill 18 checks covering initial state, 0/3 preflight, reversed-flow warning, granule interlock, 100.0 C plateau, >=5 cm3 colourless distillate, 3/3 marking, guide 5/5, bumping safety and 390x844 mobile (/tmp/chemlab-iter34-course-distill.log, 2026-08-12). Pure model invariant checks and lint/build green; correct/bumping/mobile and revised four-angle grid inspected."
+    },
+    {
+      "id": "F31",
+      "name": "KNO3 solubility-curve investigation",
+      "description": "Temperature-measurement enrichment: five assigned KNO3 masses in 20.0 g water; heat and stir until clear, cool to the first crystals, record temperature to 0.5 C, calculate g solute per 100 g water and accumulate plotted points on an offline SVG solubility curve. Models temperature-dependent solubility, nucleation and slow versus crash cooling; evidence-based 3-mark result, guide and 17th course unit.",
+      "passes": true,
+      "evidence": "tests/run_gates.py course solubility exits 0: course at 17 units and solubility 19 checks covering locked premature record, calculation-only 1/3, clear solution, crash-cooling warning, nucleation, SC2 first crystals near 31.4 C, persistent two-point SVG graph, 3/3 marking, guide 5/5 and 390x844 mobile (/tmp/chemlab-iter35-course-solubility.log, 2026-08-12). All five pure-model invariants green; lint/build green; marked/mobile and four-angle scene grid inspected, with thermometer placement corrected after review."
     }
   ]
 }

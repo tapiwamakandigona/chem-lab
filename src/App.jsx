@@ -12,6 +12,7 @@ import ElectroUI from './components/ElectroUI.jsx'
 import ChromaUI from './components/ChromaUI.jsx'
 import FlameUI from './components/FlameUI.jsx'
 import DistillUI from './components/DistillUI.jsx'
+import SolubilityUI from './components/SolubilityUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
@@ -110,6 +111,15 @@ export default function App() {
           </Suspense>
           <DistillUI onBack={() => setExperiment(null)} />
           <GuideCoach experiment="distill" />
+        </>
+      )}
+      {experiment === 'solubility' && (
+        <>
+          <Suspense fallback={<LoadingScreen />}>
+            <LabViewport experiment="solubility" quality={quality} />
+          </Suspense>
+          <SolubilityUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="solubility" />
         </>
       )}
 

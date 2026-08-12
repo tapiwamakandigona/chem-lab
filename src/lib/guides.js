@@ -183,6 +183,32 @@ export function distillSteps(d) {
   ]
 }
 
+export function solubilitySteps(s) {
+  const recorded = s.observations.some((o) => o.runId === s.runId)
+  return [
+    {
+      text: 'Use the assigned KNO₃ mass with exactly 20.0 g water',
+      done: s.phase !== 'setup' || s.heatedClear,
+    },
+    {
+      text: 'Heat in the water bath and stir until every crystal dissolves',
+      done: s.heatedClear,
+    },
+    {
+      text: 'Cool slowly while stirring and watch for the FIRST crystals',
+      done: ['cooling', 'crystals', 'complete'].includes(s.phase) || recorded,
+    },
+    {
+      text: 'Record the crystallisation temperature to the nearest 0.5 °C',
+      done: recorded,
+    },
+    {
+      text: 'Calculate g KNO₃ per 100 g H₂O and check all three marks',
+      done: s.result?.ok === true,
+    },
+  ]
+}
+
 export function organicSteps(o) {
   const did = (id) => o.tests.some((t) => t.test === id)
   return [
@@ -307,6 +333,7 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'chroma') return chromaSteps(state.chroma)
   if (experiment === 'flame') return flameSteps(state.flame)
   if (experiment === 'distill') return distillSteps(state.distill)
+  if (experiment === 'solubility') return solubilitySteps(state.solubility)
   if (experiment === 'grav') return gravSteps(state.grav)
   if (experiment === 'gas') return gasSteps(state.gas)
   return []

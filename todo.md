@@ -17,3 +17,14 @@
 - [x] Gate desktop, mobile, safety interlocks and chemistry invariants.
 - [x] Inspect the assembled model from at least four camera angles.
 - [x] Re-run affected regressions, record evidence, commit and push.
+
+## Iteration 35 — solubility curve / crystallisation practical
+
+- [x] Run the clean-baseline lint/build ritual.
+- [x] Research a Cambridge-appropriate solubility/crystallisation task and encode honest assumptions.
+- [x] Define temperature-dependent solubility, saturation, cooling and crystal-yield model.
+- [x] Build heating/cooling apparatus, animations and learner interactions.
+- [x] Add evidence-based marking, guided practice and the 17th course unit.
+- [x] Gate desktop, mobile, model invariants and safety/technique interlocks.
+- [x] Inspect the assembled model from at least four camera angles and fix visual defects.
+- [x] Re-run affected/offline regressions, record evidence, commit and push.

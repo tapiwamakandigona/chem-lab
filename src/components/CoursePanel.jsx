@@ -30,6 +30,7 @@ const EXPERIMENT_LABEL = {
   chroma: 'Chromatography',
   flame: 'Flame Tests',
   distill: 'Simple Distillation',
+  solubility: 'Solubility Curve',
 }
 
 // Menu-level "learn by doing" path: ordered milestones across all

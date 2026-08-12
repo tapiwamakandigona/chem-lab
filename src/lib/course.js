@@ -154,6 +154,13 @@ export const COURSE_UNITS = [
     desc: 'Fill the condenser jacket upward, prevent bumping and collect colourless water at its vapour-temperature plateau (3/3).',
     check: (s) => s.distill.result?.ok === true,
   },
+  {
+    id: 'solubility-curve',
+    experiment: 'solubility',
+    title: 'Measure a saturation point',
+    desc: 'Dissolve KNO₃ completely, record the first crystals while cooling, and calculate solubility per 100 g water (3/3).',
+    check: (s) => s.solubility.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {
