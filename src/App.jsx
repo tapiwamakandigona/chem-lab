@@ -5,6 +5,7 @@ import TitrationUI from './components/TitrationUI.jsx'
 import ClockUI from './components/ClockUI.jsx'
 import EnthalpyUI from './components/EnthalpyUI.jsx'
 import QualUI from './components/QualUI.jsx'
+import GravUI from './components/GravUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
@@ -58,6 +59,16 @@ export default function App() {
           </Suspense>
           <QualUI onBack={() => setExperiment(null)} />
           <GuideCoach experiment="qual" />
+        </>
+      )}
+
+      {experiment === 'grav' && (
+        <>
+          <Suspense fallback={<LoadingScreen />}>
+            <LabViewport experiment="grav" quality={quality} />
+          </Suspense>
+          <GravUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="grav" />
         </>
       )}
 

@@ -129,10 +129,30 @@ export function enthalpySteps(e) {
   ]
 }
 
+export function gravSteps(g) {
+  const emptyDone = g.readings.some((r) => r.kind === 'empty')
+  const loadedDone = g.readings.some((r) => r.kind === 'loaded')
+  const heated = g.readings.filter((r) => r.kind === 'heated')
+  const constant =
+    heated.length >= 2 &&
+    Math.abs(heated[heated.length - 1].mass - heated[heated.length - 2].mass) <= 0.010001
+  return [
+    { text: 'Weigh the empty crucible + lid and record the mass', done: emptyDone },
+    { text: 'Add the hydrated salt and weigh again', done: loadedDone },
+    { text: 'Heat strongly, let it cool completely, then re-weigh', done: heated.length >= 1 },
+    {
+      text: 'Repeat heat-cool-weigh until two masses agree within 0.01 g',
+      done: constant,
+    },
+    { text: 'Use YOUR readings to calculate x in MgSO\u2084\u00b7xH\u2082O', done: g.result?.ok === true },
+  ]
+}
+
 export function getGuideSteps(experiment, state) {
   if (experiment === 'titration') return titrationSteps(state.titration)
   if (experiment === 'clock') return clockSteps(state.clock)
   if (experiment === 'enthalpy') return enthalpySteps(state.enthalpy)
   if (experiment === 'qual') return qualSteps(state.qual)
+  if (experiment === 'grav') return gravSteps(state.grav)
   return []
 }

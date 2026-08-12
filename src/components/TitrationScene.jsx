@@ -251,6 +251,27 @@ export default function TitrationScene() {
   const tapDown = () => { tapRef.current = true; accRef.current = 0; setTapOpen(true) }
   const tapUp = () => { tapRef.current = false; setTapOpen(false) }
 
+  // A closed stopcock must NOT drip. A drop falls only for ~1 s after
+  // titrant actually left the tip (reading changed), as the tip drains.
+  const [dropActive, setDropActive] = useState(false)
+  const prevReadingRef = useRef(titration.buretteReading)
+  const lastFlowRef = useRef(-10)
+  const dropActiveRef = useRef(false)
+  useFrame(({ clock }) => {
+    const t = useLabStore.getState().titration
+    const now = clock.getElapsedTime()
+    if (t.buretteReading !== prevReadingRef.current) {
+      prevReadingRef.current = t.buretteReading
+      lastFlowRef.current = now
+    }
+    const act = !tapRef.current && now - lastFlowRef.current < 1.0
+    if (act !== dropActiveRef.current) {
+      dropActiveRef.current = act
+      setDropActive(act)
+      useLabStore.getState().setDripping(act)
+    }
+  })
+
   const [r, g, b, a] = titration.indicatorColor
   // Near-white "colourless" state must render as water, not milk.
   const isColourless = r > 0.9 && g > 0.9 && b > 0.9
@@ -303,7 +324,7 @@ export default function TitrationScene() {
         />
       </group>
       <TapStream open={tapOpen && canDispense} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
-      <Drop active={isRunning && !tapOpen} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
+      <Drop active={dropActive} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
       {/* pipette resting on bench front-left */}
       <group position={[-0.42, BENCH_Y + 0.012, 0.32]} rotation={[0, 0.5, 0]}>
         <PipetteLying />

@@ -6,6 +6,7 @@ import TitrationScene from './TitrationScene.jsx'
 import ClockScene from './ClockScene.jsx'
 import EnthalpyScene from './EnthalpyScene.jsx'
 import QualScene from './QualScene.jsx'
+import GravScene from './GravScene.jsx'
 
 /**
  * Per-experiment camera composition: [position, target].
@@ -16,6 +17,7 @@ const CAMERAS = {
   clock: { pos: [-0.19, 0.33, 0.5], target: [0.02, 0.07, 0.03] },
   enthalpy: { pos: [-0.3, 0.3, 0.6], target: [0.1, 0.09, 0.04] },
   qual: { pos: [-0.24, 0.34, 0.55], target: [-0.04, 0.05, -0.05] },
+  grav: { pos: [-0.1, 0.3, 0.52], target: [-0.02, 0.1, 0] },
 }
 
 function LabCanvas({ children, quality, view }) {
@@ -72,6 +74,7 @@ const SCENES = {
   clock: ClockScene,
   enthalpy: EnthalpyScene,
   qual: QualScene,
+  grav: GravScene,
 }
 
 export default function LabViewport({ experiment, quality }) {

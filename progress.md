@@ -82,3 +82,18 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
   sandbox defaults intact), tests/run_gates.py runner, .github/workflows/ci.yml
   (build → gates → artifacts → deploy from repo secrets → live-hash verify). Appwrite
   secrets set on repo via API (VERIFIED 201). F22 stays false until first Actions run green.
+
+## iter-24 (2026-08-12)
+- F23 Gravimetric analysis (MgSO4·xH2O, 9701 P3 Q2 style): src/lib/grav.js model +
+  markX own-results marking, grav store slice (phase machine idle/heating/cooling,
+  one-reading-per-cycle guard), GravScene (Bunsen/tripod/crucible glow+steam/balance),
+  GravUI, gravSteps guide, menu card. Gate probe/grav.py 28 checks PASS (VERIFIED).
+- Model bug caught by gate: waterLeft() off-by-one (heats=1 read fraction[1]) — masses
+  skipped 24.83. Fixed with heats-1 indexing; sequence VERIFIED via node import.
+- USER-REPORTED BUG: burette dripped with stopcock closed. Cause: <Drop active={isRunning
+  && !tapOpen}> — drip animation keyed to phase, not to actual flow. Fix: drop renders
+  only ~1 s after buretteReading actually changed (tip drain), store `dripping` flag +
+  hidden tip-drip marker; tap.py now checks drain-on (1) and closed-dry (0,0). Audited
+  Clock/Enthalpy (DragTipper pours only while dragging) and Qual (Dropper per test) —
+  no equivalent always-on flows. Lesson: never key fluid visuals to experiment phase.
+- Vendored tap.py + grav.py into tests/gates/; grav added to run_gates.py list.

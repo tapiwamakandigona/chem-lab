@@ -22,6 +22,7 @@ export default function TitrationUI({ onBack }) {
     setTitrationPreset,
     titrationReadInput, titrationReadCheckSubmit, titrationReadReveal,
   } = useLabStore()
+  const dripping = useLabStore((s) => s.dripping)
 
   // At the endpoint the numeric reading is hidden — the student must read
   // the burette scale themselves before the titre can be recorded.
@@ -55,6 +56,7 @@ export default function TitrationUI({ onBack }) {
 
   return (
     <div className="absolute inset-0 pointer-events-none">
+      <span data-testid="tip-drip" data-active={dripping ? '1' : '0'} className="hidden" />
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-2 bg-lab-bg/80 backdrop-blur-sm border-b border-lab-border pointer-events-auto">
         <button

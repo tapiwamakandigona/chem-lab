@@ -65,11 +65,23 @@ with sync_playwright() as p:
     check("reading lands on 0.05 quanta", abs(moved * 20 - round(moved * 20)) < 1e-6, str(moved))
 
     pg.mouse.up()
-    time.sleep(0.8)
+    time.sleep(0.25)
+    # right after release the tip is still draining -> marker briefly ON
+    d0 = pg.locator('[data-testid="tip-drip"]').get_attribute("data-active")
+    check("tip drains briefly after release", d0 == "1", str(d0))
+    time.sleep(0.55)
     r1 = reading()
     time.sleep(1.0)
     r2 = reading()
     check("flow stops on release", r1 == r2, f"{r1} then {r2}")
+
+    # closed stopcock must NOT keep dripping: the tip-drain marker goes quiet
+    # within ~1 s of release and STAYS quiet.
+    time.sleep(1.2)
+    d1 = pg.locator('[data-testid="tip-drip"]').get_attribute("data-active")
+    time.sleep(1.5)
+    d2 = pg.locator('[data-testid="tip-drip"]').get_attribute("data-active")
+    check("no drip when closed", d1 == "0" and d2 == "0", f"{d1} then {d2}")
 
     body = pg.locator("body").inner_text()
     check("phase left setup (titre panel live)", r2 > 0, str(r2))

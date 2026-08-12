@@ -34,6 +34,14 @@ const EXPERIMENTS = [
     papers: ['9701 P3 Q3 style'],
     available: true,
   },
+  {
+    id: 'grav',
+    icon: '🔥',
+    title: 'Water of Crystallisation',
+    desc: 'Gravimetric analysis: heat MgSO₄·xH₂O to constant mass in a crucible, find x',
+    papers: ['9701 P3 Q2 style'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

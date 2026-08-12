@@ -18,7 +18,7 @@ REPO = os.path.dirname(HERE)
 GATES = [
     "titrate", "clock", "enthalpy", "offline", "meniscus", "meniscus_mobile",
     "pour", "tip", "tap", "graph", "cooling", "read", "guided", "mock",
-    "qual", "mock2", "course",
+    "qual", "mock2", "course", "grav",
 ]
 
 

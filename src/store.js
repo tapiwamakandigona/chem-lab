@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
+import { crucibleMass, round2, markX } from './lib/grav.js'
 
 // Quality tiers for low-end device support (Zimbabwe context)
 export const QUALITY = { LOW: 'low', MED: 'med', HIGH: 'high' }
@@ -307,6 +308,81 @@ export const useLabStore = create((set) => ({
   }),
   qualReset: () => set((s) => ({
     qual: { ...s.qual, tests: [], lastVisual: null, answer: { cation: '', anion: '' }, result: null },
+  })),
+
+  // Tip-drain indicator (true only ~1 s after titrant actually left the tip;
+  // a closed stopcock must never drip) — exposed for UI + gates.
+  dripping: false,
+  setDripping: (dripping) => set((st) => (st.dripping === dripping ? {} : { dripping })),
+
+  // --- gravimetric analysis (water of crystallisation, heat to constant mass) ---
+  grav: {
+    phase: 'idle',        // 'idle' | 'heating' | 'cooling'
+    loaded: false,        // sample added to crucible
+    heats: 0,             // completed heating cycles
+    lastWeighedHeats: -1, // guards one 'heated' reading per cycle
+    readings: [],         // [{ kind: 'empty'|'loaded'|'heated', label, mass }]
+    answer: '',
+    result: null,         // markX() output
+  },
+  gravWeigh: () => set((s) => {
+    const g = s.grav
+    if (g.phase !== 'idle') return {}
+    const mass = round2(crucibleMass(g.heats, g.loaded))
+    let kind, label
+    if (!g.loaded) {
+      if (g.readings.some((r) => r.kind === 'empty')) return {}
+      kind = 'empty'; label = 'crucible + lid'
+    } else if (g.heats === 0) {
+      if (g.readings.some((r) => r.kind === 'loaded')) return {}
+      kind = 'loaded'; label = 'crucible + lid + hydrated salt'
+    } else {
+      if (g.lastWeighedHeats === g.heats) return {}
+      kind = 'heated'; label = `after heating ${g.heats}`
+    }
+    return {
+      grav: {
+        ...g,
+        readings: [...g.readings, { kind, label, mass }],
+        lastWeighedHeats: kind === 'heated' ? g.heats : g.lastWeighedHeats,
+        result: null,
+      },
+    }
+  }),
+  gravAddSample: () => set((s) => {
+    const g = s.grav
+    if (g.loaded || g.phase !== 'idle') return {}
+    if (!g.readings.some((r) => r.kind === 'empty')) return {}
+    return { grav: { ...g, loaded: true } }
+  }),
+  gravStartHeat: () => set((s) => {
+    const g = s.grav
+    if (g.phase !== 'idle' || !g.loaded) return {}
+    if (!g.readings.some((r) => r.kind === 'loaded')) return {}
+    return { grav: { ...g, phase: 'heating' } }
+  }),
+  gravFinishHeat: () => set((s) => {
+    const g = s.grav
+    if (g.phase !== 'heating') return {}
+    return { grav: { ...g, phase: 'cooling', heats: g.heats + 1 } }
+  }),
+  gravFinishCool: () => set((s) => {
+    const g = s.grav
+    if (g.phase !== 'cooling') return {}
+    return { grav: { ...g, phase: 'idle' } }
+  }),
+  gravSetAnswer: (answer) => set((s) => ({ grav: { ...s.grav, answer, result: null } })),
+  gravSubmit: () => set((s) => {
+    const g = s.grav
+    const x = parseFloat(g.answer)
+    if (!Number.isFinite(x)) return {}
+    return { grav: { ...g, result: markX(g.readings, x) } }
+  }),
+  gravReset: () => set(() => ({
+    grav: {
+      phase: 'idle', loaded: false, heats: 0, lastWeighedHeats: -1,
+      readings: [], answer: '', result: null,
+    },
   })),
 
   // --- learner's guide course (persistent, offline-first) ---
