@@ -102,6 +102,33 @@ export function electroSteps(e) {
   ]
 }
 
+export function chromaSteps(c) {
+  const complete = c.phase === 'complete'
+  const rfCount = Object.values(c.rfEntries || {}).filter((v) => v !== '').length
+  return [
+    {
+      text: 'Choose an unknown and lower the paper into the solvent — spot must sit ABOVE the pool',
+      done: c.phase !== 'setup',
+    },
+    {
+      text: 'Keep the lid on and let the solvent rise — stop before it reaches the top',
+      done: complete,
+    },
+    {
+      text: 'Measure the solvent front and each spot from the baseline',
+      done: complete,
+    },
+    {
+      text: 'Compute Rf = spot distance ÷ front distance for every spot',
+      done: complete && rfCount >= 2,
+    },
+    {
+      text: 'Match your Rf values to the reference dyes and identify the mixture (2/2)',
+      done: c.result?.ok === true,
+    },
+  ]
+}
+
 export function organicSteps(o) {
   const did = (id) => o.tests.some((t) => t.test === id)
   return [
@@ -223,6 +250,7 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'qual') return qualSteps(state.qual)
   if (experiment === 'organic') return organicSteps(state.organic)
   if (experiment === 'electro') return electroSteps(state.electro)
+  if (experiment === 'chroma') return chromaSteps(state.chroma)
   if (experiment === 'grav') return gravSteps(state.grav)
   if (experiment === 'gas') return gasSteps(state.gas)
   return []

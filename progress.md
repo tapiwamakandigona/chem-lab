@@ -142,3 +142,15 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
   unchanged. Gate PASSES 4/4 serially. Vendored to tests/gates/pour.py.
 - Learning: sim-speed-dependent gates must use the slowest variant; parallel gate runs stretch
   sleeps ~10x under SwiftShader — only trust serial runs for timing-sensitive gates.
+
+## iter-31 (2026-08-12)
+- F28 paper chromatography: lib/chroma.js (5 dyes E102/E110/E122/E127/E133, unknowns fb20-24 as
+  unambiguous pairs, markChroma = dye set + Rf ±0.05 with developed-run evidence rule), ChromaScene
+  (tank, hanging paper, eased solvent front, migrating/elongating spots, ruler scaled to front
+  travel so 8.0 cm lands on the 8 mark), ChromaUI (readings table with Rf inputs, reference table,
+  dye toggles), guide 5 steps, 14th course unit, menu card 🌈.
+- Gate probe/chroma.py 17/17 PASS; course gate updated 13→14 and PASS; electro spot-check PASS
+  (menu with 9 cards not clipped). Multi-angle grid coherent (shots/chroma-angles-grid.png).
+- Probe-side guide check must count guide-step[data-done] — the open panel's toggle reads "Hide".
+- User granted multi-agent use in the gauntlet (2026-08-12 10:52); subagents now allowed for
+  parallel regressions/research; single-agent harness note overridden for this project.

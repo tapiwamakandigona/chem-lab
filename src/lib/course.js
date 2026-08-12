@@ -133,6 +133,13 @@ export const COURSE_UNITS = [
     desc: 'Measure the unknown half-cell against both references and identify the metal from the Data Booklet (2/2).',
     check: (s) => s.electro.result?.ok === true,
   },
+  {
+    id: 'chroma-identify',
+    experiment: 'chroma',
+    title: 'Identify dyes by Rf',
+    desc: 'Develop a chromatogram, compute the Rf of every spot, and identify both dyes in the unknown (2/2).',
+    check: (s) => s.chroma.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {

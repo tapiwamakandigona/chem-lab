@@ -9,6 +9,7 @@ import GravUI from './components/GravUI.jsx'
 import GasUI from './components/GasUI.jsx'
 import OrganicUI from './components/OrganicUI.jsx'
 import ElectroUI from './components/ElectroUI.jsx'
+import ChromaUI from './components/ChromaUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
@@ -80,6 +81,15 @@ export default function App() {
           </Suspense>
           <ElectroUI onBack={() => setExperiment(null)} />
           <GuideCoach experiment="electro" />
+        </>
+      )}
+      {experiment === 'chroma' && (
+        <>
+          <Suspense fallback={<LoadingScreen />}>
+            <LabViewport experiment="chroma" quality={quality} />
+          </Suspense>
+          <ChromaUI onBack={() => setExperiment(null)} />
+          <GuideCoach experiment="chroma" />
         </>
       )}
 

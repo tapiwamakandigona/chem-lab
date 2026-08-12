@@ -1,10 +1,10 @@
 """F21 gate: learner's guide course — menu entry, unit list, learn-by-doing
 milestone ticking, and localStorage persistence across reload.
 
-Flow: menu shows course-open with 0/13 → panel lists 13 units all not-done →
+Flow: menu shows course-open with 0/14 → panel lists 14 units all not-done →
 Start on unit 1 drops into titration with guide open → drive titration to a
 recorded titre (endpoint + read-check) → back to menu → units 1+2 ticked,
-badge 2/13 → reload page → progress persists from localStorage.
+badge 2/14 → reload page → progress persists from localStorage.
 Exit 1 on any failure.
 """
 import http.server, socketserver, threading, functools, time, sys
@@ -63,16 +63,16 @@ with sync_playwright() as p:
 
     # --- menu entry ---
     check("menu shows course-open", pg.locator('[data-testid="course-open"]').count() == 1)
-    check("badge starts 0/13", "0/13" in pg.locator('[data-testid="course-open"]').inner_text())
+    check("badge starts 0/14", "0/14" in pg.locator('[data-testid="course-open"]').inner_text())
 
     pg.locator('[data-testid="course-open"]').click()
     time.sleep(0.4)
     check("panel opens", pg.locator('[data-testid="course-panel"]').count() == 1)
-    check("13 units listed", pg.locator('[data-testid^="course-unit-"]').count() == 13)
+    check("14 units listed", pg.locator('[data-testid^="course-unit-"]').count() == 14)
     all_zero = all(unit_done(pg, u) == "0" for u in UNIT_IDS)
     check("all units not done at start", all_zero)
     prog = pg.locator('[data-testid="course-progress"]')
-    check("progress reads 0/13", prog.get_attribute("data-done") == "0" and prog.get_attribute("data-total") == "13")
+    check("progress reads 0/14", prog.get_attribute("data-done") == "0" and prog.get_attribute("data-total") == "14")
     snap(pg, "course-panel.png")
 
     # --- start unit 1 → titration with guide open ---
@@ -99,7 +99,7 @@ with sync_playwright() as p:
     # --- back to menu, verify ticks ---
     pg.locator("button", has_text="Menu").first.click()
     time.sleep(0.8)
-    check("badge now 2/13", "2/13" in pg.locator('[data-testid="course-open"]').inner_text(),
+    check("badge now 2/14", "2/14" in pg.locator('[data-testid="course-open"]').inner_text(),
           pg.locator('[data-testid="course-open"]').inner_text()[:80])
     pg.locator('[data-testid="course-open"]').click()
     time.sleep(0.4)
@@ -113,8 +113,8 @@ with sync_playwright() as p:
     # --- persistence: reload, progress must survive ---
     pg.reload(wait_until="load")
     time.sleep(2)
-    check("after reload badge still 2/13",
-          "2/13" in pg.locator('[data-testid="course-open"]').inner_text())
+    check("after reload badge still 2/14",
+          "2/14" in pg.locator('[data-testid="course-open"]').inner_text())
     pg.locator('[data-testid="course-open"]').click()
     time.sleep(0.4)
     check("after reload endpoint unit still ticked", unit_done(pg, "titration-endpoint") == "1")

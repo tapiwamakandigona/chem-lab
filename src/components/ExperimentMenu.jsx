@@ -66,6 +66,14 @@ const EXPERIMENTS = [
     papers: ['9701 A2 practical'],
     available: true,
   },
+  {
+    id: 'chroma',
+    icon: '🌈',
+    title: 'Paper Chromatography',
+    desc: 'Develop a food-dye chromatogram, measure Rf values, identify the mixture',
+    papers: ['9701 AS technique'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

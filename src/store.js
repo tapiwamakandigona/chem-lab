@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
 import { observeOrganic, organicVisual, markOrganic } from './lib/organic.js'
 import { measureCell, markElectro } from './lib/electro.js'
+import { markChroma } from './lib/chroma.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
@@ -389,6 +390,52 @@ export const useLabStore = create((set) => ({
   }),
   electroReset: () => set((s) => ({
     electro: { ...s.electro, measurements: [], answer: '', result: null },
+  })),
+
+  // --- paper chromatography (AS technique: Rf identification of food dyes) ---
+  // progress lives in the store (not a scene ref) so UI and gates can read
+  // it; the scene's useFrame drives it while phase === 'developing'.
+  chroma: {
+    unknown: 'fb21',   // key into CHROMA_UNKNOWNS
+    phase: 'setup',    // 'setup' | 'developing' | 'complete'
+    progress: 0,       // 0..1 solvent-front travel
+    answer: [],        // dye ids the student claims are present
+    rfEntries: {},     // { [spotIndex]: string } typed Rf values
+    result: null,      // markChroma() output after submit
+  },
+  chromaSetUnknown: (unknown) => set((s) => ({
+    chroma: { ...s.chroma, unknown, phase: 'setup', progress: 0, answer: [], rfEntries: {}, result: null },
+  })),
+  chromaStart: () => set((s) => (
+    s.chroma.phase === 'setup'
+      ? { chroma: { ...s.chroma, phase: 'developing', progress: 0, result: null } }
+      : {}
+  )),
+  chromaTick: (dp) => set((s) => {
+    if (s.chroma.phase !== 'developing') return {}
+    const progress = Math.min(1, s.chroma.progress + dp)
+    return { chroma: { ...s.chroma, progress, phase: progress >= 1 ? 'complete' : 'developing' } }
+  }),
+  chromaToggleDye: (dye) => set((s) => ({
+    chroma: {
+      ...s.chroma,
+      answer: s.chroma.answer.includes(dye)
+        ? s.chroma.answer.filter((d) => d !== dye)
+        : [...s.chroma.answer, dye],
+      result: null,
+    },
+  })),
+  chromaSetRf: (idx, value) => set((s) => ({
+    chroma: { ...s.chroma, rfEntries: { ...s.chroma.rfEntries, [idx]: value }, result: null },
+  })),
+  chromaSubmit: () => set((s) => {
+    const c = s.chroma
+    if (c.answer.length === 0) return {}
+    const result = markChroma(c.unknown, c.answer, c.rfEntries, c.phase === 'complete')
+    return { chroma: { ...c, result } }
+  }),
+  chromaReset: () => set((s) => ({
+    chroma: { ...s.chroma, phase: 'setup', progress: 0, answer: [], rfEntries: {}, result: null },
   })),
 
   // Tip-drain indicator (true only ~1 s after titrant actually left the tip;

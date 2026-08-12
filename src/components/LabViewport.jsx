@@ -11,6 +11,7 @@ import OrganicScene from './OrganicScene.jsx'
 import ElectroScene from './ElectroScene.jsx'
 import GravScene from './GravScene.jsx'
 import GasScene from './GasScene.jsx'
+import ChromaScene from './ChromaScene.jsx'
 
 /**
  * Per-experiment camera composition: [position, target].
@@ -25,6 +26,7 @@ const CAMERAS = {
   electro: { pos: [-0.12, 0.27, 0.58], target: [-0.02, 0.06, 0] },
   grav: { pos: [-0.1, 0.3, 0.52], target: [-0.02, 0.1, 0] },
   gas: { pos: [-0.06, 0.3, 0.74], target: [-0.05, 0.11, 0] },
+  chroma: { pos: [-0.2, 0.26, 0.62], target: [-0.01, 0.08, 0] },
 }
 
 function LabCanvas({ children, quality, view, controlsRef }) {
@@ -101,6 +103,7 @@ const SCENES = {
   electro: ElectroScene,
   grav: GravScene,
   gas: GasScene,
+  chroma: ChromaScene,
 }
 
 /** DOM zoom buttons — the touch/mouse-free way to dolly the camera.

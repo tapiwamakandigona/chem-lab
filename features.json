@@ -194,6 +194,13 @@
       "description": "9701 P3 Q3-style: identify unknown metal electrode (fb15-fb19: Mg/Fe/Ni/Pb/Ag) by measuring E cell vs Cu2+/Cu and Zn2+/Zn references. |dE| + polarity, Data Booklet E table, digital voltmeter, salt bridge, drooping wires. markElectro needs both references for evidence mark. Guide steps + 13th course unit.",
       "passes": true,
       "evidence": "probe/electro.py GATE PASS (/tmp/g29b.log 2026-08-12) after voltmeter recentred; spot regression course/organic/gas/electro all 0 (/tmp/g28b.log); shots electro-marked.png multi-angle reviewed"
+    },
+    {
+      "id": "F28",
+      "name": "Paper chromatography experiment",
+      "description": "9701 AS technique: identify a two-dye food colouring (fb20-fb24) by developing a chromatogram, measuring spot distances vs 8.0 cm solvent front, entering Rf values (\u00b10.05) and matching to a 5-dye reference table. Animated solvent front + migrating spots, ruler scaled to front travel, markChroma needs developed run + correct Rf for evidence mark. Guide steps + 14th course unit. Gate probe/chroma.py (17 checks incl. mobile).",
+      "passes": true,
+      "evidence": "gate run 2026-08-12: 17/17 PASS (/tmp/chroma2.out); course gate PASS with 14 units; multi-angle grid shots/chroma-angles-grid.png coherent"
     }
   ]
 }
