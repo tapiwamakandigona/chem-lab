@@ -71,6 +71,13 @@ with sync_playwright() as p:
     pg.locator("text=/Clock/i").first.click()
     time.sleep(16)
 
+    def sim_t():
+        try:
+            return float(pg.locator('[data-testid="clock-time"]').inner_text()
+                         .replace("s", "").strip())
+        except Exception:  # noqa: BLE001 — display briefly replaced at stop
+            return -1.0
+
     def run(conc_label, sim_end_s, mid_shot=None):
         pg.locator("button", has_text=conc_label).click()
         time.sleep(0.3)
@@ -80,14 +87,23 @@ with sync_playwright() as p:
         time.sleep(real / 2)
         if mid_shot:
             snap(pg, mid_shot)
-        # wait for auto-stop. IMPORTANT: match the "Record <t> s" BUTTON,
-        # not bare "Record" in body text — the guide coach step list contains
-        # "Record the time (...)" permanently, which broke the loose check.
+        # wait for auto-stop, pacing on the DISPLAYED sim clock: simClock.js
+        # clamps frame deltas, so slow renderers slow the sim — a wall
+        # deadline fails a correct product. Fail on a 20 s sim stall or cap.
+        # IMPORTANT: match the "Record <t> s" BUTTON, not bare "Record" in
+        # body text — the guide coach step list contains "Record the time
+        # (...)" permanently, which broke the loose check.
         rec_btn = pg.get_by_role("button", name=re.compile(r"Record [0-9.]+ s"))
-        deadline = time.time() + real * 3 + 20
+        deadline = time.time() + 600
+        last, last_progress = -1.0, time.time()
         while time.time() < deadline:
             if rec_btn.count() > 0:
                 break
+            t = sim_t()
+            if t > last:
+                last, last_progress = t, time.time()
+            elif time.time() - last_progress > 20:
+                break  # sim stalled; checks below report precisely
             time.sleep(1)
         check(f"{conc_label} auto-stopped", rec_btn.count() > 0)
         m = re.search(r"Record ([0-9.]+) s", rec_btn.inner_text()) if rec_btn.count() > 0 else None

@@ -177,6 +177,7 @@ with sync_playwright() as p:
         viewport={"width": 390, "height": 844},
         user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
     )
+    pg2.set_default_timeout(TIMEOUT_MS)  # secondary page: same CI-aware budget as pg
     pg2.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pg2.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)

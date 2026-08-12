@@ -77,12 +77,21 @@ def number(text):
     return float(text.split()[0])
 
 
-def wait_volume(pg, minimum, timeout_s=90):
+def wait_volume(pg, minimum, timeout_s=600):
+    """simClock.js clamps sim deltas, so a slow renderer stretches the run
+    arbitrarily in wall time — generous cap with a temperature/volume stall
+    guard instead of a tight wall deadline (CI 2026-08-12: 90 s collected 0)."""
     t0 = time.time()
+    last_sig, last_progress = None, time.time()
     while time.time() - t0 < timeout_s:
         v = number(pg.locator('[data-testid="distill-volume"]').inner_text())
         if v >= minimum:
             return v
+        sig = (v, number(pg.locator('[data-testid="distill-temp"]').inner_text()))
+        if sig != last_sig:
+            last_sig, last_progress = sig, time.time()
+        elif time.time() - last_progress > 20:
+            break  # sim stalled; caller's checks report precisely
         time.sleep(0.5)
     return number(pg.locator('[data-testid="distill-volume"]').inner_text())
 
@@ -119,8 +128,13 @@ with sync_playwright() as p:
     pg.locator('[data-testid="distill-granules"]').click()
     check("granules marked added", "Anti-bumping granules added" in pg.locator('[data-testid="distill-granules"]').inner_text())
     pg.locator('[data-testid="distill-heat"]').click()
-    time.sleep(1.5)
-    check("temperature starts rising", number(pg.locator('[data-testid="distill-temp"]').inner_text()) > 22)
+    # temp rises per clamped SIM frame — poll instead of one fixed sleep
+    t0 = time.time()
+    temp_now = number(pg.locator('[data-testid="distill-temp"]').inner_text())
+    while temp_now <= 22 and time.time() - t0 < 60:
+        time.sleep(0.5)
+        temp_now = number(pg.locator('[data-testid="distill-temp"]').inner_text())
+    check("temperature starts rising", temp_now > 22, str(temp_now))
     check("cooling controls lock while hot", pg.locator('[data-testid="distill-cooling-upper"]').is_disabled())
     v = wait_volume(pg, 5.0)
     temp = number(pg.locator('[data-testid="distill-temp"]').inner_text())
@@ -150,8 +164,15 @@ with sync_playwright() as p:
     pg.locator('[data-testid="distill-reset"]').click()
     pg.locator('[data-testid="distill-cooling-lower"]').click()
     pg.locator('[data-testid="distill-heat"]').click()
+    # bumping appears near boiling — sim-paced, so guard on temp progress
     t0 = time.time()
-    while time.time() - t0 < 60 and pg.locator('[data-testid="distill-bumping"]').count() == 0:
+    last_temp, last_progress = -1.0, time.time()
+    while time.time() - t0 < 300 and pg.locator('[data-testid="distill-bumping"]').count() == 0:
+        cur = number(pg.locator('[data-testid="distill-temp"]').inner_text())
+        if cur > last_temp:
+            last_temp, last_progress = cur, time.time()
+        elif time.time() - last_progress > 20:
+            break  # sim stalled; check below reports
         time.sleep(0.5)
     check("missing granules produces bumping warning", pg.locator('[data-testid="distill-bumping"]').count() == 1)
     check("cannot add granules while heating", pg.locator('[data-testid="distill-granules"]').is_disabled())
@@ -162,6 +183,7 @@ with sync_playwright() as p:
         viewport={"width": 390, "height": 844},
         user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
     )
+    pg2.set_default_timeout(TIMEOUT_MS)  # secondary page: same CI-aware budget as pg
     pg2.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pg2.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)

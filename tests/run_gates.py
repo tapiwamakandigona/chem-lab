@@ -43,6 +43,13 @@ def validate_shards():
         sys.exit("CI_SHARDS must contain every GATES entry exactly once and in canonical order")
 
 
+# Per-gate wall cap. CI SwiftShader runners are ~2.5x slower than a dev
+# sandbox (mock2: 391s local vs >900s CI on 2026-08-12), so ci.yml raises
+# this via CHEMLAB_GATE_TIMEOUT_S=1800. Not a pass/fail assertion — just a
+# hang killer; the gates' own stall guards fail much earlier on real bugs.
+GATE_TIMEOUT_S = int(os.environ.get("CHEMLAB_GATE_TIMEOUT_S", "900"))
+
+
 def run_gate(gate, env, attempts=1):
     t0 = time.time()
     rc = 1
@@ -52,11 +59,11 @@ def run_gate(gate, env, attempts=1):
         try:
             r = subprocess.run(
                 [sys.executable, os.path.join(HERE, "gates", f"{gate}.py")],
-                env=env, timeout=900,
+                env=env, timeout=GATE_TIMEOUT_S,
             )
             rc = r.returncode
         except subprocess.TimeoutExpired:
-            print(f"gate {gate} exceeded 900s hard timeout", flush=True)
+            print(f"gate {gate} exceeded {GATE_TIMEOUT_S}s hard timeout", flush=True)
             rc = 124
         if rc == 0:
             break

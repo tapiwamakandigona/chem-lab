@@ -94,6 +94,8 @@ jobs:
           CHEMLAB_TIMEOUT_MS: '60000'
           CHEMLAB_SHOT_TIMEOUT_MS: '15000'
           CHEMLAB_QUALITY: 'low'
+          # CI runners are ~2.5x slower than a dev sandbox; mock2 needs ~1000s
+          CHEMLAB_GATE_TIMEOUT_S: '1800'
         run: python tests/run_gates.py --shard "${{ matrix.shard }}"
 
       - name: Upload gate screenshots

@@ -100,7 +100,7 @@ try:
         page.locator('[data-testid="solubility-heat"]').click()
         page.wait_for_function(
             "() => document.querySelector('[data-testid=\"solubility-appearance\"]')?.textContent.includes('clear solution')",
-            timeout=25_000,
+            timeout=300_000,
         )
         temp_clear = page.locator('[data-testid="solubility-temp"]').inner_text()
         check("heating produces clear solution", "clear solution" in page.locator('[data-testid="solubility-appearance"]').inner_text(), temp_clear)
@@ -118,7 +118,7 @@ try:
 
         page.wait_for_function(
             "() => !document.querySelector('[data-testid=\"solubility-record\"]')?.disabled",
-            timeout=25_000,
+            timeout=300_000,
         )
         first_temp = float(page.locator('[data-testid="solubility-temp"]').inner_text().split()[0])
         check("SC2 first crystals near 31.4 C", 29.0 <= first_temp <= 32.0, first_temp)
@@ -141,12 +141,12 @@ try:
         page.locator('[data-testid="solubility-heat"]').click()
         page.wait_for_function(
             "() => document.querySelector('[data-testid=\"solubility-appearance\"]')?.textContent.includes('clear solution')",
-            timeout=25_000,
+            timeout=300_000,
         )
         page.locator('[data-testid="solubility-cool-slow"]').click()
         page.wait_for_function(
             "() => !document.querySelector('[data-testid=\"solubility-record\"]')?.disabled",
-            timeout=25_000,
+            timeout=300_000,
         )
         page.locator('[data-testid="solubility-record"]').click()
         check("second curve point added", page.locator('[data-testid="solubility-point"]').count() == 2)

@@ -137,19 +137,28 @@ try:
 
         # Removal alone does not change phase or stop time.
         page.locator('[data-testid="iodine-start"]').click()
+        # sim-paced waits: simClock.js clamps frame deltas, so wall time per
+        # sim second varies with renderer speed (CI 2026-08-12: 350 ms wall
+        # advanced 0.0 sim s -> 13.5->13.5; and TIMEOUT_MS was not enough to
+        # reach 79 sim s on a slow shard).
         page.wait_for_function(
             "() => parseFloat(document.querySelector('[data-testid=\"iodine-time\"]').textContent) >= 10",
+            timeout=300_000,
         )
         page.locator('[data-testid="iodine-remove-only"]').click()
         removed_text = page.locator('[data-testid="iodine-removal-warning"]').inner_text()
         before = float(page.locator('[data-testid="iodine-time"]').inner_text().split()[0])
-        page.wait_for_timeout(350)
-        after = float(page.locator('[data-testid="iodine-time"]').inner_text().split()[0])
+        # poll until the displayed sim clock ticks past `before` (cap 30 s)
+        after = before
+        _t0 = time.time()
+        while after <= before and time.time() - _t0 < 30:
+            page.wait_for_timeout(250)
+            after = float(page.locator('[data-testid="iodine-time"]').inner_text().split()[0])
         check("sample removal alone does not quench", after > before and "continue" in removed_text, f"{before}->{after}")
 
         page.wait_for_function(
             "() => parseFloat(document.querySelector('[data-testid=\"iodine-time\"]').textContent) >= 79",
-            timeout=TIMEOUT_MS,
+            timeout=300_000,
         )
         page.locator('[data-testid="iodine-quench"]').click()
         quench_text = page.locator('[data-testid="iodine-quench-status"]').inner_text()

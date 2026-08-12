@@ -73,8 +73,10 @@ def check(name, cond, detail=""):
         fails.append(name)
 
 
-def wait_complete(pg, timeout_s=90):
-    """Development is ~14 s of sim animation; SwiftShader may stretch it."""
+def wait_complete(pg, timeout_s=600):
+    """Development is ~14 s of SIM animation. simClock.js clamps frame
+    deltas, so a slow renderer stretches that arbitrarily in wall time
+    (CI 2026-08-12: >90 s). Generous cap; run_gates' hang killer backstops."""
     t0 = time.time()
     while time.time() - t0 < timeout_s:
         if pg.locator('[data-testid="chroma-readings"]').count() > 0:
@@ -167,6 +169,7 @@ with sync_playwright() as p:
     # --- mobile: start button tappable, panel reachable ---
     pg2 = b.new_page(viewport={"width": 390, "height": 844},
                      user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)")
+    pg2.set_default_timeout(TIMEOUT_MS)  # secondary page: same CI-aware budget as pg
     pg2.route("**/*", lambda r: r.continue_() if "127.0.0.1" in r.request.url else r.abort())
     pg2.goto(f"http://127.0.0.1:{PORT}/index.html", wait_until="load")
     time.sleep(2)

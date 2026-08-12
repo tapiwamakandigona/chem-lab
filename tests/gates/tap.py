@@ -82,18 +82,26 @@ with sync_playwright() as p:
 
     check("starts at 0.00", reading() == 0.0, str(reading()))
 
-    # Hold the stopcock open; poll until the reading moves (or 12 s cap).
+    # Hold the stopcock open; poll until the reading passes 1.0 cm3. Flow
+    # accumulates per clamped sim frame (simClock.js), so slow renderers
+    # dispense slowly in wall time — pace on reading progress with a stall
+    # guard, not a fixed wall cap (CI 2026-08-12: 12 s reached only 0.1).
     pg.mouse.move(*TAP)
     pg.mouse.down()
     moved = 0.0
     shot = False
     t0 = time.time()
-    while time.time() - t0 < 12:
+    last_progress = time.time()
+    while time.time() - t0 < 300:
         time.sleep(0.4)
         r = reading()
         if r > 0 and not shot:
             snap(pg, "tap-stream.png")
             shot = True
+        if r > moved:
+            last_progress = time.time()
+        elif time.time() - last_progress > 20:
+            break  # flow stalled while held open — the check below reports
         moved = r
         if r >= 1.0:
             break
@@ -101,19 +109,28 @@ with sync_playwright() as p:
     check("reading lands on 0.05 quanta", abs(moved * 20 - round(moved * 20)) < 1e-6, str(moved))
 
     pg.mouse.up()
-    time.sleep(0.25)
-    # right after release the tip is still draining -> marker briefly ON
+    # right after release the tip is still draining -> marker briefly ON.
+    # Poll: on a slow renderer the very next DOM read may predate the frame
+    # that flips the marker.
     d0 = pg.locator('[data-testid="tip-drip"]').get_attribute("data-active")
+    t0 = time.time()
+    while d0 != "1" and time.time() - t0 < 10:
+        time.sleep(0.2)
+        d0 = pg.locator('[data-testid="tip-drip"]').get_attribute("data-active")
     check("tip drains briefly after release", d0 == "1", str(d0))
-    time.sleep(0.55)
+    # wait for the drain to finish (marker OFF), then the reading must hold
+    t0 = time.time()
+    while time.time() - t0 < 60:
+        if pg.locator('[data-testid="tip-drip"]').get_attribute("data-active") == "0":
+            break
+        time.sleep(0.3)
     r1 = reading()
     time.sleep(1.0)
     r2 = reading()
     check("flow stops on release", r1 == r2, f"{r1} then {r2}")
 
     # closed stopcock must NOT keep dripping: the tip-drain marker goes quiet
-    # within ~1 s of release and STAYS quiet.
-    time.sleep(1.2)
+    # after release and STAYS quiet.
     d1 = pg.locator('[data-testid="tip-drip"]').get_attribute("data-active")
     time.sleep(1.5)
     d2 = pg.locator('[data-testid="tip-drip"]').get_attribute("data-active")

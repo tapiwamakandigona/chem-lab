@@ -356,3 +356,16 @@ doubled as action+screenshot budget.
   purity 86.5% accepted) against the identical frozen dist
   (sha256sum -c /tmp/chemlab-iter40-build.sha256 → 25/25 OK, bundle index-DB4lvl8F.js).
 - Local total: 29/29 gates green. Chemistry constants and assertions untouched.
+
+## iter-42 (2026-08-12)
+Root cause of all 7 CI shard failures (run 31627328808): CI runners ~2.5x slower than sandbox; sim-delta clamp slows sim proportionally, but failing gates still paced on wall clock. VERIFIED per-gate verbatim failures logged in PROJECT.md triage.
+Fixes (gates + CI config only, zero product changes):
+- run_gates.py: per-gate cap env-tunable CHEMLAB_GATE_TIMEOUT_S (default 900); ci.yml sets 1800.
+- clock.py: record-button pacing on displayed clock-time testid, 600s cap, 20s stall guard.
+- tap.py: hold loop 300s cap w/ reading-progress stall guard; drain marker polled up to 10s; waits for drain end before flow-stops assert.
+- chroma.py: wait_complete 90->600s; pg2.set_default_timeout.
+- flame.py: pg2.set_default_timeout (pg2 does NOT inherit default timeout).
+- distill.py: wait_volume 90->600s w/ stall guard; temp-rise polls up to 60s; bumping loop 60->300s; pg2 timeout.
+- solubility.py: 25s waits -> 300s.
+- iodine_rate.py: sim-time waits -> 300s; removal-no-quench check polls until displayed clock ticks past baseline (30s cap).
+Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js): 11/11 PASS (/tmp/chemlab-iter42-fixed11.log; mock2 386s, gas 137s, graph 78s, peroxide 164s). Dist manifest 25/25 OK vs iter-40 sha256. VERIFIED.
