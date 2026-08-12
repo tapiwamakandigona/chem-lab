@@ -157,6 +157,8 @@ with sync_playwright() as p:
     box = pgm.locator('[data-testid="gas-start"]').bounding_box()
     check("mobile: start button on screen",
           box is not None and 0 <= box["x"] and box["x"] + box["width"] <= 390, str(box))
+    check("mobile: guide starts collapsed (no tap interception)",
+          pgm.locator('[data-testid="guide-panel"]').count() == 0)
     pgm.click('[data-testid="gas-start"]')
     time.sleep(0.5)
     check("mobile: reaction starts",

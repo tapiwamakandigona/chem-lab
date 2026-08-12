@@ -7,6 +7,7 @@ import TitrationScene from './TitrationScene.jsx'
 import ClockScene from './ClockScene.jsx'
 import EnthalpyScene from './EnthalpyScene.jsx'
 import QualScene from './QualScene.jsx'
+import OrganicScene from './OrganicScene.jsx'
 import GravScene from './GravScene.jsx'
 import GasScene from './GasScene.jsx'
 
@@ -19,6 +20,7 @@ const CAMERAS = {
   clock: { pos: [-0.19, 0.33, 0.5], target: [0.02, 0.07, 0.03] },
   enthalpy: { pos: [-0.3, 0.3, 0.6], target: [0.1, 0.09, 0.04] },
   qual: { pos: [-0.24, 0.34, 0.55], target: [-0.04, 0.05, -0.05] },
+  organic: { pos: [-0.22, 0.34, 0.58], target: [-0.02, 0.05, -0.05] },
   grav: { pos: [-0.1, 0.3, 0.52], target: [-0.02, 0.1, 0] },
   gas: { pos: [-0.06, 0.3, 0.74], target: [-0.05, 0.11, 0] },
 }
@@ -91,6 +93,7 @@ const SCENES = {
   clock: ClockScene,
   enthalpy: EnthalpyScene,
   qual: QualScene,
+  organic: OrganicScene,
   grav: GravScene,
   gas: GasScene,
 }

@@ -119,6 +119,13 @@ export const COURSE_UNITS = [
     desc: 'Collect CO₂ in the gas syringe until the volume is constant, then calculate the % purity from your final volume.',
     check: (s) => s.gas.result?.ok === true,
   },
+  {
+    id: 'organic-deduce',
+    experiment: 'organic',
+    title: 'Deduce a functional group',
+    desc: 'Run the deduction tests on an unknown organic liquid and conclude its functional group with evidence (2/2).',
+    check: (s) => s.organic.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {

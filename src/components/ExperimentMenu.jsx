@@ -50,6 +50,14 @@ const EXPERIMENTS = [
     papers: ['9701 P3 Q2 style'],
     available: true,
   },
+  {
+    id: 'organic',
+    icon: '🍊',
+    title: 'Organic Analysis',
+    desc: 'Deduce the functional group of an unknown liquid — DNPH, Tollens’, Fehling’s, bromine water',
+    papers: ['9701 P3 Q4 style'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

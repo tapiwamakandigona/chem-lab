@@ -120,8 +120,17 @@ with sync_playwright() as p:
     time.sleep(2)
     pgm.locator("text=/Titration/i").first.click()
     time.sleep(16)
+    # portrait phones start collapsed (open panel intercepted taps on the
+    # bottom-sheet action buttons — caught by the gas gate); pill must be
+    # tappable and expand to a usable, in-viewport panel.
+    check("mobile: guide starts collapsed",
+          pgm.locator('[data-testid="guide-panel"]').count() == 0)
+    pill = pgm.locator('[data-testid="guide-toggle"]')
+    check("mobile: guide pill visible", pill.count() == 1 and pill.is_visible())
+    pill.click()
+    time.sleep(0.3)
     panel = pgm.locator('[data-testid="guide-panel"]')
-    check("mobile: guide visible", panel.count() == 1)
+    check("mobile: pill opens panel", panel.count() == 1)
     box = panel.bounding_box() if panel.count() else None
     check("mobile: guide fits viewport", bool(box) and box["x"] >= 0 and box["x"] + box["width"] <= 390 and box["y"] + box["height"] <= 844, str(box))
     snap(pgm, "guided-mobile.png")

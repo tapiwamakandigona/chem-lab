@@ -180,6 +180,13 @@
       "description": "Impure CaCO3 + excess HCl; CO2 collected in 100 cm3 gas syringe; record until constant volume; % purity marked against learner's own final volume (\u00b12%). Guide steps, course unit, mobile guide-collapse fix.",
       "passes": true,
       "evidence": "probe/gas.py 25/25 PASS + guided/course gates green (/tmp/g26.log, /tmp/g26b.log 2026-08-12); shots gas-running.png gas-marked.png"
+    },
+    {
+      "id": "F26",
+      "name": "Organic functional-group analysis",
+      "description": "9701 P3 Q4-style deduction: 5 unknown organic liquids, 7 tests (2,4-DNPH, Tollens', Fehling's, acidified dichromate, bromine water, Na2CO3, iodoform). Marks class + evidence (deciding tests must be performed). Silver-mirror/ppt/decolourise visuals, water bath with steam, guide steps, 12th course unit.",
+      "passes": true,
+      "evidence": "probe/organic.py 21/21 GATE PASS + course gate 12-unit green (/tmp/g27b.log, /tmp/g27.log 2026-08-12); shots organic-mirror.png organic-marked.png organic-mobile.png"
     }
   ]
 }

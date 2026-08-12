@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
+import { observeOrganic, organicVisual, markOrganic } from './lib/organic.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
@@ -319,6 +320,44 @@ export const useLabStore = create((set) => ({
   }),
   qualReset: () => set((s) => ({
     qual: { ...s.qual, tests: [], lastVisual: null, answer: { cation: '', anion: '' }, result: null },
+  })),
+
+  // --- organic analysis state (9701 P3 Q4 functional-group deduction) ---
+  organic: {
+    unknown: 'fa11',       // key into ORGANIC_UNKNOWNS
+    tests: [],             // [{ test, obs }] in the order performed
+    lastVisual: null,      // organicVisual() of the latest test (drives 3D tube)
+    answer: '',            // class id from ORGANIC_CLASSES
+    result: null,          // markOrganic() output after submit
+  },
+  organicSetUnknown: (unknown) => set((s) => ({
+    organic: { ...s.organic, unknown, tests: [], lastVisual: null, answer: '', result: null },
+  })),
+  organicRunTest: (testId) => set((s) => {
+    const o = s.organic
+    if (o.tests.some((t) => t.test === testId)) return {}
+    const obs = observeOrganic(o.unknown, testId)
+    const visual = organicVisual(o.unknown, testId)
+    return {
+      organic: {
+        ...o,
+        tests: [...o.tests, { test: testId, obs }],
+        lastVisual: { ...visual, test: testId },
+        result: null,
+      },
+    }
+  }),
+  organicSetAnswer: (answer) => set((s) => ({
+    organic: { ...s.organic, answer, result: null },
+  })),
+  organicSubmit: () => set((s) => {
+    const o = s.organic
+    if (!o.answer) return {}
+    const result = markOrganic(o.unknown, o.answer, o.tests.map((t) => t.test))
+    return { organic: { ...o, result } }
+  }),
+  organicReset: () => set((s) => ({
+    organic: { ...s.organic, tests: [], lastVisual: null, answer: '', result: null },
   })),
 
   // Tip-drain indicator (true only ~1 s after titrant actually left the tip;

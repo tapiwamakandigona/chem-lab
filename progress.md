@@ -118,3 +118,8 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - Scene polish after screenshot review: camera pulled back [-0.06,0.3,0.74], apparatus shifted left, black slab stand → cylinders+torus rings, plunger seal lightened. Gate re-run green.
 - GuideCoach: starts collapsed on mobile portrait too (max-width 767px) — fixed tap interception on gas-start at 390x844. guided.py mobile section rewritten to gate collapse both ways; course.py 11 units.
 - CI timeout fix: tools/vendor_gates.py vendors probe/*→tests/gates/* with CHEMLAB_TIMEOUT_MS (ci.yml sets 120000) + best-effort evidence shots; assertions untouched. All 20 gates re-vendored.
+
+## iter-27 (2026-08-12)
+- F26 Organic Analysis (P3 Q4 style): src/lib/organic.js (5 unknowns FA10-14, 7 deduction tests, unique observation rows VERIFIED via node, markOrganic = class mark + evidence mark keyed to deciding tests), OrganicScene (rack, water bath w/ steam during warm tests, Tollens' silver-mirror tube, dropper), OrganicUI, menu card 🍊, organicSteps guide, 12th course unit (course.py gate bumped 11→12, green).
+- probe/organic.py 21/21 GATE PASS (VERIFIED /tmp/g27b.log, /tmp/g27c.log after mirror-material fix — metalness-only mirror rendered black under SwiftShader; use lower metalness + slight emissive).
+- Vendored organic gate into tests/gates + runner GATES list (CI now 21 gates).

@@ -76,6 +76,32 @@ export function clockSteps(c) {
   ]
 }
 
+export function organicSteps(o) {
+  const did = (id) => o.tests.some((t) => t.test === id)
+  return [
+    {
+      text: 'Add 2,4-DNPH to a fresh portion — an orange precipitate means a carbonyl group',
+      done: did('dnph'),
+    },
+    {
+      text: 'Distinguish aldehyde from ketone: warm with Tollens’ or Fehling’s',
+      done: did('tollens') || did('fehling'),
+    },
+    {
+      text: 'Warm with acidified dichromate(VI) — green means something was oxidised',
+      done: did('dichromate'),
+    },
+    {
+      text: 'Shake with bromine water and add Na₂CO₃(aq) to fresh portions',
+      done: did('bromine') && did('na2co3'),
+    },
+    {
+      text: 'Conclude the functional group — your tests must support it (2/2)',
+      done: o.result?.ok === true,
+    },
+  ]
+}
+
 export function qualSteps(q) {
   const did = (id) => q.tests.some((t) => t.reagent === id)
   const cationTests = ['naoh_drop', 'naoh_excess', 'nh3_drop', 'nh3_excess', 'naoh_warm']
@@ -169,6 +195,7 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'clock') return clockSteps(state.clock)
   if (experiment === 'enthalpy') return enthalpySteps(state.enthalpy)
   if (experiment === 'qual') return qualSteps(state.qual)
+  if (experiment === 'organic') return organicSteps(state.organic)
   if (experiment === 'grav') return gravSteps(state.grav)
   if (experiment === 'gas') return gasSteps(state.gas)
   return []
