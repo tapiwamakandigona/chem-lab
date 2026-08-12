@@ -16,12 +16,34 @@ SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] 
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+SHOT_TIMEOUT_MS = int(os.environ.get("CHEMLAB_SHOT_TIMEOUT_MS", str(TIMEOUT_MS)))
+
+# CI probes force the LOW graphics preset (CHEMLAB_QUALITY=low): SwiftShader
+# software rendering is far slower than any student device, and slow frames
+# would delay clicks past timing-sensitive windows. No product assertion
+# changes; gfx.py owns the quality-tier checks and never seeds this.
+_QUALITY_SEED = os.environ.get("CHEMLAB_QUALITY", "")
+if _QUALITY_SEED:
+    from playwright.sync_api import Browser as _Browser, BrowserContext as _Ctx
+
+    def _seeding(new_page):
+        def wrapped(self, **kwargs):
+            _pg = new_page(self, **kwargs)
+            _pg.add_init_script(
+                "try { localStorage.setItem('chemlab-quality', '%s') } catch (e) {}"
+                % _QUALITY_SEED
+            )
+            return _pg
+        return wrapped
+
+    _Browser.new_page = _seeding(_Browser.new_page)
+    _Ctx.new_page = _seeding(_Ctx.new_page)
 
 
 def snap(page, name):
     """Best-effort evidence screenshot — never fails the gate."""
     try:
-        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        page.screenshot(path=SHOTS + "/" + name, timeout=SHOT_TIMEOUT_MS)
         print("shot: " + name, flush=True)
     except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
         print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
@@ -38,11 +60,28 @@ def check(name, ok, detail=""):
         raise AssertionError(f"FAIL {name}: {detail}")
     print(f"PASS {name}{' ' + str(detail) if detail else ''}", flush=True)
 
-def wait_complete(page):
-    page.wait_for_function(
-        "() => document.querySelector('[data-testid=\"peroxide-start\"]')?.textContent.includes('180 s run complete')",
-        timeout=35_000,
-    )
+def wait_complete(page, hard_cap_s=600):
+    """Wait for the 180 sim-s run to finish, pacing on the SIM clock.
+
+    simClock.js clamps per-frame delta, so under a slow software renderer
+    the sim legitimately runs slower than wall time. Fail only on a real
+    stall (20 s wall with no sim progress) or the hard cap.
+    """
+    deadline = time.time() + hard_cap_s
+    last, last_progress = -1.0, time.time()
+    while time.time() < deadline:
+        if "180 s run complete" in page.locator('[data-testid="peroxide-start"]').inner_text():
+            return
+        try:
+            t = float(page.locator('[data-testid="peroxide-time"]').inner_text().split()[0])
+        except Exception:  # noqa: BLE001 - display mid-update
+            t = last
+        if t > last:
+            last, last_progress = t, time.time()
+        elif time.time() - last_progress > 20:
+            raise AssertionError(f"peroxide run stalled: sim clock stuck at {last}s")
+        time.sleep(0.3)
+    raise AssertionError(f"peroxide run did not complete within {hard_cap_s}s wall")
 
 server = subprocess.Popen(
     [sys.executable, "-m", "http.server", str(PORT), "--directory", str(DIST)],
@@ -63,6 +102,7 @@ try:
             ],
         )
         page = browser.new_page(viewport={"width": 1280, "height": 720})
+        page.set_default_timeout(TIMEOUT_MS)
         page.goto(URL, wait_until="networkidle")
         page.get_by_text("Catalytic Decomposition Kinetics", exact=True).click()
         page.wait_for_selector('[data-testid="peroxide-start"]')
@@ -74,7 +114,7 @@ try:
         page.locator('[data-testid="peroxide-start"]').click()
         page.wait_for_function(
             "() => parseInt(document.querySelector('[data-testid=\"peroxide-time\"]')?.textContent) >= 20",
-            timeout=15_000,
+            timeout=TIMEOUT_MS,
         )
         check("first automatic 20 s reading", page.locator('[data-testid="peroxide-reading-count"]').inner_text().startswith("2/"))
         wait_complete(page)

@@ -11,6 +11,7 @@ import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial, LiquidMaterial, FresnelRim } from './scene/glassware.jsx'
 import { BlobShadow, LabNotebook } from './scene/props.jsx'
+import { clampSimDelta } from '../lib/simClock.js'
 
 const FLASK = [-0.22, 0.18, 0]
 const HEAD_Y = 0.37
@@ -352,7 +353,7 @@ export default function DistillScene() {
   const status = distillStatus(distill)
 
   useFrame((_, delta) => {
-    if (distill.heating) distillTick(delta * DISTILL_TIME_SCALE)
+    if (distill.heating) distillTick(clampSimDelta(delta) * DISTILL_TIME_SCALE)
   })
 
   const remaining = Math.max(3, 20 - status.volume)

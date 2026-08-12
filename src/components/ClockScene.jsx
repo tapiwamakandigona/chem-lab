@@ -8,6 +8,7 @@ import LabRoom from './scene/LabRoom.jsx'
 import { BeakerGlass, GlassMaterial, LiquidMaterial } from './scene/glassware.jsx'
 import { BlobShadow } from './scene/props.jsx'
 import DragTipper from './scene/DragTipper.jsx'
+import { clampSimDelta } from '../lib/simClock.js'
 
 function LabeledBeaker({ position, label, liquidColor, fill = 0.55 }) {
   return (
@@ -120,7 +121,7 @@ export default function ClockScene() {
 
   useFrame((_, delta) => {
     if (clock.phase !== 'running') return
-    clockTick(delta * 1000 * CLOCK_TIME_SCALE)
+    clockTick(clampSimDelta(delta) * 1000 * CLOCK_TIME_SCALE)
     if (clock.timerMs >= endpointMs) clockStop(endpointMs)
   })
 

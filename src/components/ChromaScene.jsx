@@ -6,6 +6,7 @@ import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial, LiquidMaterial } from './scene/glassware.jsx'
 import { BlobShadow, LabNotebook } from './scene/props.jsx'
+import { clampSimDelta } from '../lib/simClock.js'
 
 // Development takes ~14 s real — slow enough to watch spots separate,
 // fast enough for the classroom. Front rises with an eased profile
@@ -125,7 +126,7 @@ export default function ChromaScene() {
 
   useFrame((_, delta) => {
     if (chroma.phase !== 'developing') return
-    chromaTick(delta / DEVELOP_SEC)
+    chromaTick(clampSimDelta(delta) / DEVELOP_SEC)
   })
 
   const BENCH_Y = -0.015

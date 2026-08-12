@@ -22,12 +22,34 @@ SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] 
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+SHOT_TIMEOUT_MS = int(os.environ.get("CHEMLAB_SHOT_TIMEOUT_MS", str(TIMEOUT_MS)))
+
+# CI probes force the LOW graphics preset (CHEMLAB_QUALITY=low): SwiftShader
+# software rendering is far slower than any student device, and slow frames
+# would delay clicks past timing-sensitive windows. No product assertion
+# changes; gfx.py owns the quality-tier checks and never seeds this.
+_QUALITY_SEED = os.environ.get("CHEMLAB_QUALITY", "")
+if _QUALITY_SEED:
+    from playwright.sync_api import Browser as _Browser, BrowserContext as _Ctx
+
+    def _seeding(new_page):
+        def wrapped(self, **kwargs):
+            _pg = new_page(self, **kwargs)
+            _pg.add_init_script(
+                "try { localStorage.setItem('chemlab-quality', '%s') } catch (e) {}"
+                % _QUALITY_SEED
+            )
+            return _pg
+        return wrapped
+
+    _Browser.new_page = _seeding(_Browser.new_page)
+    _Ctx.new_page = _seeding(_Ctx.new_page)
 
 
 def snap(page, name):
     """Best-effort evidence screenshot — never fails the gate."""
     try:
-        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        page.screenshot(path=SHOTS + "/" + name, timeout=SHOT_TIMEOUT_MS)
         print("shot: " + name, flush=True)
     except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
         print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
@@ -43,11 +65,20 @@ threading.Thread(target=_httpd.serve_forever, daemon=True).start()
 SHOT = SHOTS + "/graph-calc.png"
 
 
-def run_one(page, conc_label, expect_secs, timeout_s=30):
+def run_one(page, conc_label, expect_secs, hard_cap_s=600):
+    """Wait for the run to auto-stop, pacing on the SIMULATED clock.
+
+    The sim clock clamps per-frame delta (src/lib/simClock.js), so under a
+    slow software renderer the sim legitimately runs slower than wall time.
+    Waiting on a fixed wall deadline would fail a correct product; instead
+    keep waiting while the displayed sim timer advances, and fail only on a
+    genuine stall (20 s wall with no sim progress) or an absurd hard cap.
+    The recorded time itself is still asserted against the chemistry model.
+    """
     page.get_by_role("button", name=conc_label, exact=True).click()
     page.get_by_role("button", name=re.compile("Mix & start")).click()
-    # poll for auto-stop (phase complete -> Record button)
-    deadline = time.time() + timeout_s
+    deadline = time.time() + hard_cap_s
+    last_sim, last_progress = -1.0, time.time()
     while time.time() < deadline:
         btn = page.get_by_role("button", name=re.compile(r"Record [\d.]+ s"))
         if btn.count() > 0:
@@ -55,8 +86,17 @@ def run_one(page, conc_label, expect_secs, timeout_s=30):
             secs = float(re.search(r"([\d.]+)\s*s", label).group(1))
             btn.first.click()
             return secs
+        try:
+            sim = float(page.locator('[data-testid="clock-time"]').inner_text().split("s")[0])
+        except Exception:  # noqa: BLE001 — display mid-update
+            sim = last_sim
+        if sim > last_sim:
+            last_sim, last_progress = sim, time.time()
+        elif time.time() - last_progress > 20:
+            raise AssertionError(
+                f"run at {conc_label} stalled: sim clock stuck at {last_sim}s for 20s wall")
         time.sleep(0.25)
-    raise AssertionError(f"run at {conc_label} did not complete in {timeout_s}s")
+    raise AssertionError(f"run at {conc_label} did not complete in {hard_cap_s}s")
 
 
 def main():
@@ -66,6 +106,7 @@ def main():
             "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader",
         ])
         page = browser.new_page(viewport={"width": 1280, "height": 720})
+        page.set_default_timeout(TIMEOUT_MS)
         page.route(re.compile(r".*"), lambda route, req:
                    route.continue_() if "127.0.0.1" in req.url else route.abort())
         page.goto(URL)

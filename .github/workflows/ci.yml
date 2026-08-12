@@ -35,7 +35,7 @@ jobs:
           offenders = []
           for path in Path("tests/gates").glob("*.py"):
               text = path.read_text()
-              if "def snap(" not in text or "timeout=TIMEOUT_MS" not in text:
+              if "def snap(" not in text or "timeout=SHOT_TIMEOUT_MS" not in text:
                   offenders.append(path.name)
           if offenders:
               raise SystemExit(f"unbounded evidence screenshots: {offenders}")
@@ -85,10 +85,15 @@ jobs:
         env:
           CHEMLAB_DIST: ${{ github.workspace }}/dist
           CHEMLAB_SHOTS: ${{ github.workspace }}/test-results/${{ matrix.shard }}
-          # CI screenshots are evidence, never assertions. A tight screenshot
-          # budget prevents slow SwiftShader captures from advancing a
-          # simulation by minutes and corrupting subsequent interaction checks.
-          CHEMLAB_TIMEOUT_MS: '15000'
+          # Actions/navigation get a generous budget because SwiftShader on a
+          # CI runner renders far slower than any student device. Evidence
+          # screenshots keep a tight separate budget so a slow capture can
+          # never advance a simulation by minutes (run 31589705427 root
+          # cause), and gates seed the LOW graphics preset so click dispatch
+          # stays fast (run 31609023837 root cause). Assertions unchanged.
+          CHEMLAB_TIMEOUT_MS: '60000'
+          CHEMLAB_SHOT_TIMEOUT_MS: '15000'
+          CHEMLAB_QUALITY: 'low'
         run: python tests/run_gates.py --shard "${{ matrix.shard }}"
 
       - name: Upload gate screenshots

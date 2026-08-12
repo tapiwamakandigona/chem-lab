@@ -330,3 +330,29 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - F33 and F34 flipped true with gate evidence. Still false: F5 (AAA look), F22 (flips only after
   Actions run is green, Appwrite deploy succeeds, and live hash/counts/robots/sitemap verify).
 - Committing combined iter-37 landing + iter-38 iodine-rate release next.
+
+## iter-39+40+41 (2026-08-12) — CI pacing fix: sim-delta clamp + sim-paced gates
+Problem: Actions run 31609023837 failed shards core/interaction/library. Two causes:
+(1) sim clocks ticked raw frame delta, so multi-second SwiftShader frames skipped
+sim time (`FAIL 80 +/- 1 s quench freezes timer: 87.7`); (2) CHEMLAB_TIMEOUT_MS
+doubled as action+screenshot budget.
+- iter-39: new src/lib/simClock.js (MAX_SIM_FRAME_SEC=0.1, clampSimDelta) applied in
+  Chroma/Clock/Distill/Gas/Peroxide/Solubility/IodineRate/Titration scenes; 30 gates
+  gained CHEMLAB_SHOT_TIMEOUT_MS + LOW-quality seeding; ci.yml probe env
+  TIMEOUT 60000 / SHOT 15000 / QUALITY low. VERIFIED: lint, py_compile, snap audit,
+  iodine model 10/10, iodine gate smoke PASS.
+- iter-40: clamp means slow renderers slow the sim (correct product), so gates must
+  pace on the displayed sim clock, never wall deadlines. graph/mock2/gas/peroxide
+  rewritten with progress-aware waits + 20 s stall guards; ClockUI gained
+  data-testid="clock-time" (only product change, additive). Full 29-gate run
+  (/tmp/chemlab-iter40-full29.log): 28/29 — graph 80s, mock2 391s, peroxide 163s all
+  fixed; gas FAIL.
+- iter-41: gas FAIL verbatim: `FAIL constant volume reached` + Page.fill timeout on
+  gas-purity-input; 230 readings ending 84.0. Cause: gate clicked Record ~every
+  wall-s (~3 sim-s apart under SwiftShader); isConstantVolume needs last two
+  readings >=20 sim-s apart, so the product CORRECTLY never declared constant.
+  Fix (gate only): space Record clicks >=25 sim-s apart like a real learner.
+  VERIFIED: gas retry GATE PASS (8 readings, constant at ~235 sim-s, own-volume
+  purity 86.5% accepted) against the identical frozen dist
+  (sha256sum -c /tmp/chemlab-iter40-build.sha256 → 25/25 OK, bundle index-DB4lvl8F.js).
+- Local total: 29/29 gates green. Chemistry constants and assertions untouched.

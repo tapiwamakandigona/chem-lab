@@ -16,12 +16,34 @@ SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] 
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+SHOT_TIMEOUT_MS = int(os.environ.get("CHEMLAB_SHOT_TIMEOUT_MS", str(TIMEOUT_MS)))
+
+# CI probes force the LOW graphics preset (CHEMLAB_QUALITY=low): SwiftShader
+# software rendering is far slower than any student device, and slow frames
+# would delay clicks past timing-sensitive windows. No product assertion
+# changes; gfx.py owns the quality-tier checks and never seeds this.
+_QUALITY_SEED = os.environ.get("CHEMLAB_QUALITY", "")
+if _QUALITY_SEED:
+    from playwright.sync_api import Browser as _Browser, BrowserContext as _Ctx
+
+    def _seeding(new_page):
+        def wrapped(self, **kwargs):
+            _pg = new_page(self, **kwargs)
+            _pg.add_init_script(
+                "try { localStorage.setItem('chemlab-quality', '%s') } catch (e) {}"
+                % _QUALITY_SEED
+            )
+            return _pg
+        return wrapped
+
+    _Browser.new_page = _seeding(_Browser.new_page)
+    _Ctx.new_page = _seeding(_Ctx.new_page)
 
 
 def snap(page, name):
     """Best-effort evidence screenshot — never fails the gate."""
     try:
-        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        page.screenshot(path=SHOTS + "/" + name, timeout=SHOT_TIMEOUT_MS)
         print("shot: " + name, flush=True)
     except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
         print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)

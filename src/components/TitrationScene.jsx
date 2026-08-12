@@ -11,6 +11,7 @@ import {
   RetortStand, WhiteTile,
 } from './scene/glassware.jsx'
 import { BlobShadow } from './scene/props.jsx'
+import { clampSimDelta } from '../lib/simClock.js'
 
 /**
  * 50 cm³ Class B burette, origin at TOP of the graduated tube, tube along -y.
@@ -263,7 +264,7 @@ export default function TitrationScene() {
     if (t.endpointReached || t.buretteReading >= 50) return
     // Accumulate smooth flow, commit to the store in 0.05 cm3 quanta so the
     // reading always lands on a real graduation.
-    accRef.current += Math.min(dt, 0.1) * TAP_RATE
+    accRef.current += clampSimDelta(dt) * TAP_RATE
     if (accRef.current >= 0.05) {
       const step = Math.floor(accRef.current / 0.05) * 0.05
       accRef.current -= step

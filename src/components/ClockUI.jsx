@@ -43,7 +43,7 @@ export default function ClockUI({ onBack }) {
         <div className="flex-1 px-4 py-4 space-y-5">
           {/* Timer */}
           <div className="text-center">
-            <div className="text-5xl font-mono font-bold text-lab-ink tracking-tight">
+            <div className="text-5xl font-mono font-bold text-lab-ink tracking-tight" data-testid="clock-time">
               {timeSec.toFixed(1)}<span className="text-xl text-lab-muted ml-1">s</span>
             </div>
             <div className="text-xs text-lab-muted mt-1">

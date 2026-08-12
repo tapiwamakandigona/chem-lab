@@ -12,6 +12,7 @@ import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial, LiquidMaterial } from './scene/glassware.jsx'
 import { BlobShadow, LabNotebook, WashBottle } from './scene/props.jsx'
+import { clampSimDelta } from '../lib/simClock.js'
 
 function HotPlate({ active }) {
   const ring = useRef()
@@ -280,8 +281,8 @@ export default function SolubilityScene() {
   const heating = solubility.phase === 'heating'
   const cooling = solubility.phase === 'cooling'
   useFrame((_, delta) => {
-    if (heating) solubilityTick(delta * SOLUBILITY_HEAT_RATE)
-    if (cooling) solubilityTick(delta * SOLUBILITY_COOL_RATE * (solubility.rushing ? 2.4 : 1))
+    if (heating) solubilityTick(clampSimDelta(delta) * SOLUBILITY_HEAT_RATE)
+    if (cooling) solubilityTick(clampSimDelta(delta) * SOLUBILITY_COOL_RATE * (solubility.rushing ? 2.4 : 1))
   })
   return (
     <group>

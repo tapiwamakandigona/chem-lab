@@ -23,12 +23,13 @@ SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] 
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+SHOT_TIMEOUT_MS = int(os.environ.get("CHEMLAB_SHOT_TIMEOUT_MS", str(TIMEOUT_MS)))
 
 
 def snap(page, name):
     """Best-effort evidence screenshot — never fails the gate."""
     try:
-        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        page.screenshot(path=SHOTS + "/" + name, timeout=SHOT_TIMEOUT_MS)
         print("shot: " + name, flush=True)
     except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
         print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
@@ -80,6 +81,7 @@ def main():
         ctx.route("**/*", lambda route: route.continue_()
                   if "127.0.0.1" in route.request.url else route.abort())
         pg = ctx.new_page()
+        pg.set_default_timeout(TIMEOUT_MS)
         pg.goto(f"http://127.0.0.1:{PORT}/", wait_until="networkidle")
         time.sleep(1.5)
 
@@ -153,6 +155,7 @@ def main():
         lctx.route("**/*", lambda route: route.continue_()
                    if "127.0.0.1" in route.request.url else route.abort())
         lp = lctx.new_page()
+        lp.set_default_timeout(TIMEOUT_MS)
         lp.goto(f"http://127.0.0.1:{PORT}/", wait_until="networkidle")
         time.sleep(1.5)
         lp.click('[data-testid="quality-med"]')

@@ -6,6 +6,7 @@ import { volumeAt, GAS_TIME_SCALE, SYRINGE_MAX } from '../lib/gas.js'
 import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { BlobShadow, WashBottle, LabNotebook } from './scene/props.jsx'
+import { clampSimDelta } from '../lib/simClock.js'
 
 const FLASK_X = -0.17
 const SYR_X = 0.05
@@ -188,7 +189,7 @@ export default function GasScene() {
   const { gas, gasTick } = useLabStore()
   const running = gas.phase === 'running'
   useFrame((_, delta) => {
-    if (running) gasTick(delta * GAS_TIME_SCALE)
+    if (running) gasTick(clampSimDelta(delta) * GAS_TIME_SCALE)
   })
   const vol = gas.phase === 'setup' ? 0 : volumeAt(gas.timeSec)
   // fizz intensity ∝ dV/dt (normalised): fast early, dies away

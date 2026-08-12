@@ -12,6 +12,7 @@ import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial, LiquidMaterial } from './scene/glassware.jsx'
 import { BlobShadow } from './scene/props.jsx'
+import { clampSimDelta } from '../lib/simClock.js'
 
 const FLASK_X = -0.17
 const SYRINGE_X = 0.08
@@ -221,7 +222,7 @@ export default function PeroxideScene() {
   const run = peroxideRun(peroxide.runId)
   const running = peroxide.phase === 'running'
   useFrame((_, delta) => {
-    if (running) peroxideTick(delta * PEROXIDE_TIME_SCALE)
+    if (running) peroxideTick(clampSimDelta(delta) * PEROXIDE_TIME_SCALE)
   })
   const volume = peroxide.phase === 'setup' ? 0 : oxygenVolumeAt(peroxide.runId, peroxide.timeSec)
   return (

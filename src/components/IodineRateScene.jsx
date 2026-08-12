@@ -14,6 +14,7 @@ import {
   WhiteTile,
 } from './scene/glassware.jsx'
 import { BlobShadow, ReagentBottle } from './scene/props.jsx'
+import { clampSimDelta } from '../lib/simClock.js'
 
 const APPEARANCE_COLORS = {
   brown: '#6f3512',
@@ -227,7 +228,7 @@ function TitrationStage({ state }) {
       flowAccumulator.current = 0
       return
     }
-    flowAccumulator.current += Math.min(delta, 0.1) * 1.8
+    flowAccumulator.current += clampSimDelta(delta) * 1.8
     if (flowAccumulator.current >= 0.05) {
       const amount = Math.floor(flowAccumulator.current / 0.05) * 0.05
       flowAccumulator.current -= amount
@@ -275,9 +276,10 @@ export default function IodineRateScene() {
   const { iodineRate, iodineTick } = useLabStore()
   useFrame((_, delta) => {
     if (iodineRate.phase === 'timing') {
-      // Fast-forward the uneventful first 72 s, then slow to 2× so hitting
-      // the 80 s quench is a realistic human action rather than a 62 ms reflex.
-      iodineTick(delta * (iodineRate.timeSec < 72 ? IODINE_TIME_SCALE : 2))
+      // Fast-forward the uneventful first 72 s, then drop to real time so
+      // hitting the 80 s quench is a genuine timing action with a fair,
+      // device-independent reaction window.
+      iodineTick(clampSimDelta(delta) * (iodineRate.timeSec < 72 ? IODINE_TIME_SCALE : 1))
     }
   })
   return (

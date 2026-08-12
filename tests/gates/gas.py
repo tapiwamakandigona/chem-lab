@@ -23,12 +23,34 @@ SHOTS = os.environ.get("CHEMLAB_SHOTS", str(Path(__file__).resolve().parents[2] 
 os.makedirs(SHOTS, exist_ok=True)
 
 TIMEOUT_MS = int(os.environ.get("CHEMLAB_TIMEOUT_MS", "30000"))
+SHOT_TIMEOUT_MS = int(os.environ.get("CHEMLAB_SHOT_TIMEOUT_MS", str(TIMEOUT_MS)))
+
+# CI probes force the LOW graphics preset (CHEMLAB_QUALITY=low): SwiftShader
+# software rendering is far slower than any student device, and slow frames
+# would delay clicks past timing-sensitive windows. No product assertion
+# changes; gfx.py owns the quality-tier checks and never seeds this.
+_QUALITY_SEED = os.environ.get("CHEMLAB_QUALITY", "")
+if _QUALITY_SEED:
+    from playwright.sync_api import Browser as _Browser, BrowserContext as _Ctx
+
+    def _seeding(new_page):
+        def wrapped(self, **kwargs):
+            _pg = new_page(self, **kwargs)
+            _pg.add_init_script(
+                "try { localStorage.setItem('chemlab-quality', '%s') } catch (e) {}"
+                % _QUALITY_SEED
+            )
+            return _pg
+        return wrapped
+
+    _Browser.new_page = _seeding(_Browser.new_page)
+    _Ctx.new_page = _seeding(_Ctx.new_page)
 
 
 def snap(page, name):
     """Best-effort evidence screenshot — never fails the gate."""
     try:
-        page.screenshot(path=SHOTS + "/" + name, timeout=TIMEOUT_MS)
+        page.screenshot(path=SHOTS + "/" + name, timeout=SHOT_TIMEOUT_MS)
         print("shot: " + name, flush=True)
     except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
         print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
@@ -53,6 +75,33 @@ def check(name, cond, detail=""):
 def vol_of(pg):
     txt = pg.locator('[data-testid="gas-volume"]').inner_text()
     return float(txt.replace("cm³", "").strip())
+
+
+def sim_t(pg):
+    """Displayed simulated seconds, e.g. 't = 12 s' -> 12.0."""
+    txt = pg.locator('[data-testid="gas-time"]').inner_text()
+    return float(txt.replace("t =", "").replace("s", "").strip())
+
+
+def wait_sim(pg, target_s, hard_cap_s=600):
+    """Wait until the SIM clock reaches target_s.
+
+    simClock.js clamps per-frame delta, so a slow renderer slows the sim
+    instead of skipping time — wall deadlines would fail a correct product.
+    Fail only on a real stall (20 s wall, no sim progress) or the hard cap.
+    """
+    deadline = time.time() + hard_cap_s
+    last, last_progress = -1.0, time.time()
+    while time.time() < deadline:
+        t = sim_t(pg)
+        if t >= target_s:
+            return t
+        if t > last:
+            last, last_progress = t, time.time()
+        elif time.time() - last_progress > 20:
+            raise AssertionError(f"sim clock stalled at {last}s waiting for {target_s}s")
+        time.sleep(0.2)
+    raise AssertionError(f"sim clock did not reach {target_s}s within {hard_cap_s}s")
 
 
 with sync_playwright() as p:
@@ -82,7 +131,7 @@ with sync_playwright() as p:
           pg.locator('[data-testid="gas-phase"]').get_attribute("data-phase") == "running")
     check("start disabled while running",
           pg.locator('[data-testid="gas-start"]').is_disabled())
-    time.sleep(2.6)  # ~30 sim s
+    wait_sim(pg, 30)  # sim-paced: wall time varies with renderer speed
     v1 = vol_of(pg)
     check("volume rises (~38 at 30s)", 25 <= v1 <= 50, str(v1))
     snap(pg, "gas-running.png")
@@ -95,14 +144,28 @@ with sync_playwright() as p:
     check("record disabled right after a reading (5 s guard)",
           pg.locator('[data-testid="gas-record"]').is_disabled())
 
+    # Record until constant volume, spacing readings >=25 SIM seconds apart
+    # like a real learner: isConstantVolume needs the last two readings
+    # >=20 sim-s apart AND within 0.5 cm3 (~t>=209 sim-s given k=0.02, so
+    # constant lands ~235 sim-s). Clicking every poll would space readings
+    # only ~3 sim-s apart under SwiftShader and constant volume would
+    # (correctly) never trigger. Stall-guard, no wall deadline (simClock.js).
     t0 = time.time()
-    while time.time() - t0 < 60:
+    last_rec_sim = sim_t(pg)  # first reading just recorded above
+    last_sim, last_progress = last_rec_sim, time.time()
+    while time.time() - t0 < 600:
         if pg.locator('[data-testid="gas-constant"]').count():
             break
+        cur = sim_t(pg)
         btn = pg.locator('[data-testid="gas-record"]')
-        if not btn.is_disabled():
+        if cur - last_rec_sim >= 25 and not btn.is_disabled():
             btn.click()
-        time.sleep(2.2)
+            last_rec_sim = cur
+        if cur > last_sim:
+            last_sim, last_progress = cur, time.time()
+        elif time.time() - last_progress > 20:
+            break  # sim stalled; assertions below will report precisely
+        time.sleep(1.0)
     check("constant volume reached", pg.locator('[data-testid="gas-constant"]').count() == 1)
     check("phase done",
           pg.locator('[data-testid="gas-phase"]').get_attribute("data-phase") == "done")
