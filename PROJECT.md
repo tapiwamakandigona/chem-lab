@@ -69,3 +69,40 @@ after first load. Loop runs until Tapiwa stops it.
 
 build — fix render-breaking defects first (offline fonts, lighting), then
 raise apparatus/scene fidelity, then interaction depth, then mobile polish.
+
+## External critique triage (2026-08-12, from Tapiwa's reviewer)
+
+Verdict: the headline is correct — the live domain is weeks stale because CI
+has never gone green, so deploy never fired. Deploy-blocking work stays first.
+Triage of the rest, against the CURRENT (undeployed) build:
+
+Already fixed in the undeployed build (ships with next green CI):
+- designed flask favicon.svg (emoji data-URI gone); og:/twitter/canonical
+  meta prerendered in index.html; independent-Cambridge disclaimer + footer
+  (data-testid=independent-disclaimer, FAQ entry); manifest description says
+  fourteen practicals; robots.txt + sitemap.xml real files; landing page with
+  pitch/proof/screenshots; viewport allows pinch zoom (maximum-scale removed);
+  quality auto-detect by device (store.js detectQuality) with LOW/MED/HIGH/ULTRA.
+
+Accepted, new backlog (do after deploy is green):
+- B1 soft-404: unknown paths should render a real not-found view + meta
+  noindex; keep SPA shell for known routes only.
+- B2 progress export/import: localStorage progress → export code / file and
+  import on another device (shared phones are the norm, not the edge).
+- B3 loading skeleton in the HTML shell: inline critical CSS spinner +
+  "loading ChemLab (~0.5 MB first visit, then offline)" so 2G users see
+  feedback, not a white screen.
+- B4 defer three.js vendor chunk off the launcher (import behind LabViewport)
+  so the menu/guide/mock papers are readable before 3D loads.
+- B5 WebGL-failure fallback message with the text practicals still usable.
+- B6 teacher layer (class code + milestone visibility) — biggest product
+  lever; needs design; likely server or share-code based.
+- B7 exam-timer mode for mock papers (Paper 3 time pressure is a scored skill).
+- B8 contact/report-an-error link in footer.
+- B9 launcher: title visible on 390px first paint; label the guide badge.
+- B10 light theme / high-brightness mode for outdoor low-nit screens.
+- B11 "lite" text-only mode (guide + mocks, no 3D) for data-capped users.
+
+Explicitly out of scope for the build loop (business decisions for Tapiwa):
+naming/brand beyond ZW, pricing/licensing, analytics choice, demand-test
+kill gate, NGO/press outreach. Documented so the loop stops re-deciding them.
