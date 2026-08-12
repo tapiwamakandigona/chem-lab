@@ -1,92 +1,46 @@
 # ChemLab ZW ⚗️
 
-A virtual chemistry lab built for **Cambridge AS/A Level Chemistry (9701)** students — particularly those without access to physical lab equipment. Simulates three Paper 3 practical experiments with interactive 3D apparatus, step-by-step procedures, and live worked calculations.
+**Live: [chemlab.tapiwa.me](https://chemlab.tapiwa.me/)**
+
+A virtual chemistry lab for **Cambridge AS/A Level Chemistry (9701)** students — built for learners without access to physical lab equipment. Seven Paper 3 practicals with interactive 3D apparatus, guided procedures, live worked calculations, and marked past-paper-style questions. Offline-first and phone-friendly, because that's how most of its students will use it.
 
 ## Experiments
 
-| Experiment | Paper | Description |
+| Experiment | Paper 3 style | What you practise |
 |---|---|---|
-| **Acid-Base & Redox Titration** | 9701/31/M/J/22 & /21 | Burette, pipette, conical flask — S22 carboxylic acid/NaOH and S21 FeSO₄/KMnO₄ presets |
-| **Iodine Clock Reaction** | 9701/31/M/J/23 | Rate = 1000/time, turbidity simulation, cross-obscured method |
-| **Enthalpy of Solution** | 9701/31/M/J/20 | Calorimetry with q = mcΔT, Na₂CO₃ dissolution |
+| **Acid-Base & Redox Titration** | Q1 (S22 & S21 presets) | Burette control, meniscus reading, concordant titres, mean titre |
+| **Iodine Clock Reaction** | Q2 (S23) | Timing, rate = 1000/t, rate–concentration graph, gradient |
+| **Enthalpy of Solution** | Q2 (S20) | Cooling correction by extrapolation, q = mcΔT, sign of ΔH |
+| **Qualitative Analysis** | Q3 | Cation/anion tests (NaOH, NH₃, HCl, BaCl₂, AgNO₃), observation recording |
+| **Water of Crystallisation** | Q2 | Heating to constant mass, gravimetric calculation of x |
+| **Molar Gas Volume** | Q2 | Gas syringe collection to constant volume, % purity from your own data |
+| **Organic Analysis** | Q4 | 2,4-DNPH, Tollens', Fehling's, dichromate, bromine water, iodoform deduction |
 
-## Features
+## Learn mode
 
-- 🧪 Interactive 3D lab scenes (React Three Fiber + Three.js)
-- 📊 Live worked calculations (moles, concentrations, ΔH)
-- 📝 Concordant titre detection and mean calculation
-- 📱 Quality presets (Low/Med/High) for mobile & low-end devices
-- 🎨 Dark lab-themed UI with Tailwind CSS
+- 🎓 **12-unit guided course** with progress tracking (stored locally, no account)
+- 🧭 **In-experiment coach** — step-by-step guidance that ticks off as you work
+- 📝 **Marked mock papers** — past-paper-style questions marked with tolerance + error-carried-forward, like a real examiner
+- 📏 **Meniscus reading trainer** with randomised burette sections
 
-## Tech Stack
+## Built for real-world constraints
 
-- **React 19** — UI framework
-- **Three.js / React Three Fiber / Drei** — 3D rendering
-- **Zustand** — state management
-- **Tailwind CSS 3** — styling
-- **Vite 8** — build tool
-- **GSAP** — animation (available, not yet heavily used)
+- 📴 **Offline-first PWA** — loads with no connection after first visit (2G/3G friendly)
+- 📱 **Phone-first** — touch controls, pinch zoom, zoom buttons, portrait & landscape
+- 🎚️ **Quality presets** — LOW to ULTRA; auto-detected, never assumes a GPU
+- 🔬 **Honest physics** — closed stopcocks don't drip, readings quantise like real glassware, marking uses *your* measured values, not the textbook answer
 
-## Getting Started
+## Tech stack
+
+React 19 · Three.js / React Three Fiber / Drei · Zustand · Tailwind CSS 3 · Vite 8
+
+## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Start dev server
-npm run dev
-
-# Build for production
-npm run build
-
-# Lint
-npm run lint
+npm run dev        # local dev server
+npm run build      # production build to dist/
+python tests/run_gates.py   # full 21-gate Playwright regression
 ```
 
-## Project Structure
-
-```
-src/
-├── main.jsx                  # Entry point
-├── App.jsx                   # Root — experiment selection & canvas routing
-├── store.js                  # Zustand store (titration, clock, enthalpy state)
-├── store/
-│   └── labStore.js           # Alternative store (apparatus-level titration logic)
-├── components/
-│   ├── ExperimentMenu.jsx    # Landing screen — experiment picker + quality toggle
-│   ├── TitrationScene.jsx    # 3D titration apparatus (burette, flask, pipette)
-│   ├── TitrationUI.jsx       # Titration controls & readings overlay
-│   ├── ClockScene.jsx        # 3D clock reaction (beakers, cross paper, flask)
-│   ├── ClockUI.jsx           # Clock reaction timer & results panel
-│   ├── EnthalpyScene.jsx     # 3D enthalpy setup (cup, balance, thermometer)
-│   ├── EnthalpyUI.jsx        # Enthalpy inputs & live calculation panel
-│   ├── CalcSheet.jsx         # Worked calculations overlay (all experiments)
-│   ├── LoadingScreen.jsx     # Loading spinner
-│   ├── apparatus/            # Standalone 3D apparatus components
-│   │   ├── Burette.jsx
-│   │   ├── ConicalFlask.jsx
-│   │   └── Pipette.jsx
-│   └── ui/
-│       ├── HUD.jsx           # Top bar, toast, help overlay
-│       └── TitrationPanel.jsx # Step-by-step titration procedure panel
-├── scenes/
-│   └── TitrationScene.jsx    # Alternative full-scene titration layout
-├── lib/
-│   └── chemistry/
-│       └── titration.js      # Pure chemistry calculations (endpoint, mean titre)
-├── index.css                 # Global styles + Tailwind directives
-└── App.css                   # Legacy boilerplate styles (unused)
-```
-
-## License
-
-ISC
-
-## CI / gates
-
-Every push to `main` runs `.github/workflows/ci.yml`: build → all 17
-Playwright probe gates (`python tests/run_gates.py`, screenshots uploaded
-as artifacts) → deploy to https://chemlab.tapiwa.me/ (Appwrite, repo
-secrets) only when every gate is green, then verifies the live bundle
-hash. Run a single gate locally with
-`CHEMLAB_DIST=dist CHEMLAB_SHOTS=shots python tests/run_gates.py meniscus`.
+Every experiment ships with a Playwright **gate** (`tests/gates/`) asserting the full user flow — from menu click to marked answer — plus mobile usability. CI runs all gates on every push and deploys only when green.
