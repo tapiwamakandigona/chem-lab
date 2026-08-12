@@ -74,6 +74,14 @@ const EXPERIMENTS = [
     papers: ['9701 AS technique'],
     available: true,
   },
+  {
+    id: 'flame',
+    icon: '🔥',
+    title: 'Flame Tests',
+    desc: 'Clean a nichrome loop, test five metal ions, diagnose sodium contamination with cobalt glass',
+    papers: ['qualitative enrichment'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

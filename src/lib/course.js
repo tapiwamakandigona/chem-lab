@@ -140,6 +140,13 @@ export const COURSE_UNITS = [
     desc: 'Develop a chromatogram, compute the Rf of every spot, and identify both dyes in the unknown (2/2).',
     check: (s) => s.chroma.result?.ok === true,
   },
+  {
+    id: 'flame-identify',
+    experiment: 'flame',
+    title: 'Identify an ion by flame test',
+    desc: 'Clean the nichrome loop, confirm a colourless blank, record the flame and identify the metal ion with evidence (2/2).',
+    check: (s) => s.flame.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {

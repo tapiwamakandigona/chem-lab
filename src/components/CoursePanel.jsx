@@ -23,9 +23,15 @@ const EXPERIMENT_LABEL = {
   clock: 'Iodine Clock',
   enthalpy: 'Enthalpy',
   qual: 'Qualitative Analysis',
+  grav: 'Water of Crystallisation',
+  gas: 'Molar Gas Volume',
+  organic: 'Organic Analysis',
+  electro: 'Electrochemical Cells',
+  chroma: 'Chromatography',
+  flame: 'Flame Tests',
 }
 
-// Menu-level "learn by doing" path: ordered milestones across all four
+// Menu-level "learn by doing" path: ordered milestones across all
 // experiments, with a Start button that drops the learner into the right
 // experiment with the step coach open.
 export default function CoursePanel({ onClose }) {

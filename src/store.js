@@ -3,6 +3,7 @@ import { observe, precipitateVisual, markIdentification } from './lib/qual.js'
 import { observeOrganic, organicVisual, markOrganic } from './lib/organic.js'
 import { measureCell, markElectro } from './lib/electro.js'
 import { markChroma } from './lib/chroma.js'
+import { flameAppearance, markFlame } from './lib/flame.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
@@ -436,6 +437,166 @@ export const useLabStore = create((set) => ({
   }),
   chromaReset: () => set((s) => ({
     chroma: { ...s.chroma, phase: 'setup', progress: 0, answer: [], rfEntries: {}, result: null },
+  })),
+
+  // --- flame tests (qualitative-observation enrichment practical) ---
+  // The reusable nichrome loop starts sodium-contaminated. A defensible
+  // observation requires acid-cleaning AND a colourless blank in the flame
+  // before loading the unknown — just dipping in acid is not enough.
+  flame: {
+    unknown: 'ft3',          // key into FLAME_UNKNOWNS (K default)
+    loop: 'dirty',           // 'dirty' | 'acid' | 'clean' | 'loaded'
+    blankClean: false,       // learner confirmed no persistent colour
+    sampleClean: false,      // loop cleanliness frozen when sample was loaded
+    cobaltGlass: false,
+    usedCobalt: false,
+    active: false,           // loaded loop currently in the Bunsen flame
+    observations: [],        // [{unknown, clean, filtered, label, note, masked}]
+    answer: '',
+    result: null,
+  },
+  flameSetUnknown: (unknown) => set((s) => ({
+    flame: {
+      ...s.flame,
+      unknown,
+      loop: 'dirty',
+      blankClean: false,
+      sampleClean: false,
+      cobaltGlass: false,
+      usedCobalt: false,
+      active: false,
+      observations: [],
+      answer: '',
+      result: null,
+    },
+  })),
+  flameDipAcid: () => set((s) => ({
+    flame: {
+      ...s.flame,
+      loop: 'acid',
+      blankClean: false,
+      sampleClean: false,
+      active: false,
+      observations: s.flame.observations.filter((o) => o.kind !== 'blank'),
+      result: null,
+    },
+  })),
+  flameHeatBlank: () => set((s) => (
+    s.flame.loop === 'acid'
+      ? {
+          flame: {
+            ...s.flame,
+            loop: 'clean',
+            blankClean: false,
+            active: true,
+            result: null,
+          },
+        }
+      : {}
+  )),
+  flameLoadSample: () => set((s) => (
+    s.flame.loop === 'clean' && s.flame.blankClean
+      ? {
+          flame: {
+            ...s.flame,
+            loop: 'loaded',
+            sampleClean: true,
+            active: false,
+            result: null,
+          },
+        }
+      : s.flame.loop === 'dirty'
+        ? {
+            // Free exploration is allowed, but this records that the loop
+            // was not cleaned; sodium contamination can mask the sample.
+            flame: {
+              ...s.flame,
+              loop: 'loaded',
+              sampleClean: false,
+              active: false,
+              result: null,
+            },
+          }
+        : {}
+  )),
+  flameObserve: () => set((s) => {
+    const f = s.flame
+    if (f.loop !== 'loaded') return {}
+    const clean = f.sampleClean
+    const appearance = flameAppearance(f.unknown, clean, f.cobaltGlass)
+    return {
+      flame: {
+        ...f,
+        active: true,
+        observations: [
+          ...f.observations.filter((o) => o.kind === 'blank'),
+          {
+            unknown: f.unknown,
+            kind: 'sample',
+            clean,
+            filtered: f.cobaltGlass,
+            ...appearance,
+          },
+        ],
+        result: null,
+      },
+    }
+  }),
+  flameRecordBlank: () => set((s) => (
+    s.flame.loop === 'clean'
+      ? {
+          flame: {
+            ...s.flame,
+            blankClean: true,
+            active: false,
+            observations: [
+              ...s.flame.observations.filter((o) => o.kind !== 'blank'),
+              {
+                unknown: s.flame.unknown,
+                kind: 'blank',
+                clean: true,
+                filtered: false,
+                label: 'no persistent flame colour',
+                note: 'loop clean',
+                masked: false,
+              },
+            ],
+            result: null,
+          },
+        }
+      : {}
+  )),
+  flameToggleCobalt: () => set((s) => ({
+    flame: {
+      ...s.flame,
+      cobaltGlass: !s.flame.cobaltGlass,
+      usedCobalt: true,
+      active: false,
+      result: null,
+    },
+  })),
+  flameSetAnswer: (answer) => set((s) => ({
+    flame: { ...s.flame, answer, result: null },
+  })),
+  flameSubmit: () => set((s) => {
+    const f = s.flame
+    if (!f.answer) return {}
+    const result = markFlame(f.unknown, f.answer, f.observations)
+    return { flame: { ...f, result } }
+  }),
+  flameReset: () => set((s) => ({
+    flame: {
+      ...s.flame,
+      loop: 'dirty',
+      blankClean: false,
+      sampleClean: false,
+      cobaltGlass: false,
+      usedCobalt: false,
+      active: false,
+      observations: [],
+      answer: '',
+      result: null,
+    },
   })),
 
   // Tip-drain indicator (true only ~1 s after titrant actually left the tip;

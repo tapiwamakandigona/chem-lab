@@ -129,6 +129,32 @@ export function chromaSteps(c) {
   ]
 }
 
+export function flameSteps(f) {
+  const hasCleanSample = f.observations.some((o) => o.kind === 'sample' && o.clean)
+  return [
+    {
+      text: 'Dip the nichrome loop in dilute HCl to remove the previous sample',
+      done: ['acid', 'clean'].includes(f.loop) || (f.loop === 'loaded' && f.sampleClean),
+    },
+    {
+      text: 'Heat the loop in a non-luminous flame until no persistent colour remains',
+      done: f.blankClean || f.sampleClean,
+    },
+    {
+      text: 'Load the unknown chloride onto the clean loop',
+      done: f.loop === 'loaded' && f.sampleClean,
+    },
+    {
+      text: 'Place the loop in the hottest flame and record the colour',
+      done: hasCleanSample,
+    },
+    {
+      text: 'Identify the ion — use cobalt-blue glass if sodium yellow masks a weaker colour',
+      done: f.result?.ok === true,
+    },
+  ]
+}
+
 export function organicSteps(o) {
   const did = (id) => o.tests.some((t) => t.test === id)
   return [
@@ -251,6 +277,7 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'organic') return organicSteps(state.organic)
   if (experiment === 'electro') return electroSteps(state.electro)
   if (experiment === 'chroma') return chromaSteps(state.chroma)
+  if (experiment === 'flame') return flameSteps(state.flame)
   if (experiment === 'grav') return gravSteps(state.grav)
   if (experiment === 'gas') return gasSteps(state.gas)
   return []

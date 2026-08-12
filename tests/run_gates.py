@@ -19,7 +19,7 @@ GATES = [
     "titrate", "clock", "enthalpy", "offline", "meniscus", "meniscus_mobile",
     "pour", "tip", "tap", "graph", "cooling", "read", "guided", "mock",
     "qual", "mock2", "course", "grav", "gfx", "gas", "organic", "electro",
-    "chroma",
+    "chroma", "flame",
 ]
 
 

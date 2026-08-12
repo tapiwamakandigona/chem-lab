@@ -160,3 +160,18 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
   to nine practicals (incl. electro + chromatography). Offline gate re-PASS after public/ changes.
 - Subagent regression attempt: workspace out of credits for subagent execution
   (spawn_subagent -> status='out_of_credits') — full-sweep verification delegated to CI instead.
+
+## iter-33 (2026-08-12)
+- F29 flame-test enrichment practical: five chloride unknowns (Li/Na/K/Ca/Cu), animated
+  non-luminous Bunsen flame, realistic nichrome loop + acid-clean/blank/load/observe procedure,
+  colour-text observations for accessibility, sodium-contamination masking, and cobalt-blue-glass
+  diagnosis. Explicitly labelled enrichment because the current 9701 P3 QA notes do not tabulate
+  flame colours; Cambridge syllabus and RSC technique checked before implementation.
+- Evidence-based marking: correct ion = 1 mark, clean-loop sample observation = second mark.
+  Direct dirty-loop guessing scores only 1/2. Guide 5 steps; learner course now 15 units.
+- New flame gate covers dirty mask, colourless-blank interlock, K lilac, Na yellow, cobalt filter,
+  marking, guide, unknown reset and 390x844 mobile. `tests/run_gates.py course flame` = 2/2;
+  spot regression offline/electro/chroma/flame = 4/4; lint/build and pure chemistry invariants green.
+- Screenshots inspected: flame-lilac/sodium/mobile and four-angle grid. Multi-angle pass found
+  idle-loop composition too tall and the hot-zone placement implausible; holder was lowered,
+  extended and repositioned across the inner-cone tip before the final gate.

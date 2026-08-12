@@ -201,6 +201,13 @@
       "description": "9701 AS technique: identify a two-dye food colouring (fb20-fb24) by developing a chromatogram, measuring spot distances vs 8.0 cm solvent front, entering Rf values (\u00b10.05) and matching to a 5-dye reference table. Animated solvent front + migrating spots, ruler scaled to front travel, markChroma needs developed run + correct Rf for evidence mark. Guide steps + 14th course unit. Gate probe/chroma.py (17 checks incl. mobile).",
       "passes": true,
       "evidence": "gate run 2026-08-12: 17/17 PASS (/tmp/chroma2.out); course gate PASS with 14 units; multi-angle grid shots/chroma-angles-grid.png coherent"
+    },
+    {
+      "id": "F29",
+      "name": "Flame-test identification practical",
+      "description": "Qualitative-observation enrichment: identify Li+/Na+/K+/Ca2+/Cu2+ from flame colours using a reusable nichrome loop. Procedure requires dilute-HCl cleaning plus a confirmed colourless blank before evidence credit; dirty-loop sodium masking and cobalt-blue-glass diagnosis are modelled. Animated non-luminous Bunsen flame, five unknowns, evidence-based 2-mark conclusion, guide, 15th course unit and mobile controls.",
+      "passes": true,
+      "evidence": "tests/run_gates.py course flame exits 0: course 19 checks at 15 units; flame 18 checks covering dirty-loop mask, blank lock, lilac K, yellow Na, cobalt glass, 2/2 marking, guide 5/5 and 390x844 mobile (/tmp/chemlab-iter33-course-flame.log, 2026-08-12). Chemistry invariants node check green; flame-lilac/sodium/mobile and four-angle grid inspected."
     }
   ]
 }
