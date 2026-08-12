@@ -210,3 +210,24 @@ F13: interactive burette stopcock — press-and-hold the PTFE key to dispense co
 - Verification: all five model cases green; lint/build green; course + solubility gates 2/2,
   including 17 course units, 19 practical assertions, two persistent graph points and mobile.
   Four-angle review found the thermometer bulb initially too high; stem was lowered into solution.
+
+## iter-36 (2026-08-12)
+- F32 catalytic H₂O₂ decomposition kinetics: 5.0 cm³ H₂O₂ in a bunged conical flask,
+  0.20 g MnO₂ and a supported 100 cm³ gas syringe; automatic O₂ readings every 20 s
+  to 180 s, persistent multi-curve SVG graph and initial-gradient comparison. Five fair-test
+  presets vary concentration, catalyst presence, catalyst surface area or temperature one at
+  a time. Guide 5 steps, evidence-based 3-mark conclusion and 18th learner-course unit.
+- Chemistry correction caught during screenshot critique: the first model forced every run to a
+  60 cm³ plateau, so doubling [H₂O₂] changed rate but not stoichiometric gas yield. Corrected to
+  n(O₂)=0.5cV at 24.0 dm³ mol⁻¹: 0.50 M control max=30.0 cm³ and 1.00 M max=60.0 cm³;
+  both reach ~98% at 180 s. A 5.0 cm³ sample keeps every preset inside a 100 cm³ syringe.
+- Scene critique: removed duplicate dressing props, bounded the plunger assembly inside the
+  barrel, added catalyst-on-weighing-paper before start, and cropped mobile canvases above the
+  bottom sheet instead of rendering the scene invisibly behind it. Four revised orbit angles and
+  390×844 composition inspected.
+- Verification: pure-model invariants, lint and build green; peroxide gate 20 checks green after
+  one honest retry (first threshold expected 59 but model gave 57.5, so rate constant was raised
+  to reach the visible three-minute plateau without weakening the assertion). Affected regression
+  offline/guided/gfx/gas/distill/solubility/course/peroxide is 8/8 green. Evidence:
+  /tmp/chemlab-iter36-peroxide-retry.log, /tmp/chemlab-iter36-spot.log,
+  shots/peroxide-marked.png, peroxide-mobile.png and peroxide-angles-grid.png.

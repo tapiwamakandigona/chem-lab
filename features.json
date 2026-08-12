@@ -222,6 +222,13 @@
       "description": "Temperature-measurement enrichment: five assigned KNO3 masses in 20.0 g water; heat and stir until clear, cool to the first crystals, record temperature to 0.5 C, calculate g solute per 100 g water and accumulate plotted points on an offline SVG solubility curve. Models temperature-dependent solubility, nucleation and slow versus crash cooling; evidence-based 3-mark result, guide and 17th course unit.",
       "passes": true,
       "evidence": "tests/run_gates.py course solubility exits 0: course at 17 units and solubility 19 checks covering locked premature record, calculation-only 1/3, clear solution, crash-cooling warning, nucleation, SC2 first crystals near 31.4 C, persistent two-point SVG graph, 3/3 marking, guide 5/5 and 390x844 mobile (/tmp/chemlab-iter35-course-solubility.log, 2026-08-12). All five pure-model invariants green; lint/build green; marked/mobile and four-angle scene grid inspected, with thermometer placement corrected after review."
+    },
+    {
+      "id": "F32",
+      "name": "Catalytic H2O2 decomposition kinetics investigation",
+      "description": "Continuous-monitoring rates practical: collect oxygen from 5.0 cm3 H2O2 in a 100 cm3 gas syringe every 20 seconds, compare full curves and initial gradients while changing concentration, catalyst presence/surface area or temperature one variable at a time. Stoichiometric final volumes depend on H2O2 concentration; rate constants depend on catalyst and temperature. Evidence-based 3-mark conclusion, guide and 18th course unit.",
+      "passes": true,
+      "evidence": "tests/run_gates.py peroxide exits 0: 20 checks covering 5.0 cm3 control conditions, automatic 20 s readings, stoichiometric 29.5/59.0 cm3 endpoints for 0.50/1.00 M, two SVG curves, locked evidence marking, wrong mechanism 2/3, correct collision explanation 3/3, guide 5/5, catalyst/temperature variants and 390x844 mobile (/tmp/chemlab-iter36-peroxide-retry.log, 2026-08-12). Affected regression offline/guided/gfx/gas/distill/solubility/course/peroxide 8/8 green (/tmp/chemlab-iter36-spot.log); pure model invariants, lint/build green; four-angle and mobile scene shots inspected."
     }
   ]
 }

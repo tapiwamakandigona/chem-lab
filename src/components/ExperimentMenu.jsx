@@ -98,6 +98,14 @@ const EXPERIMENTS = [
     papers: ['temperature investigation'],
     available: true,
   },
+  {
+    id: 'peroxide',
+    icon: '🫧',
+    title: 'Catalytic Decomposition Kinetics',
+    desc: 'Collect O₂ every 20 s from H₂O₂ and compare concentration, catalyst surface and temperature',
+    papers: ['9701 P3 / P5 kinetics'],
+    available: true,
+  },
 ]
 
 export default function ExperimentMenu({ onSelect }) {

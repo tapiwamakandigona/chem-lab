@@ -209,6 +209,32 @@ export function solubilitySteps(s) {
   ]
 }
 
+export function peroxideSteps(p) {
+  const complete = (id) => p.readings[id]?.at(-1)?.t >= 180
+  return [
+    {
+      text: 'Run the control: 5.0 cm³ of 0.50 mol dm⁻³ H₂O₂ + 0.20 g powdered MnO₂ at 22 °C',
+      done: complete('control'),
+    },
+    {
+      text: 'Choose a comparison that changes only ONE variable',
+      done: p.runId !== 'control' || Object.keys(p.readings).length > 1,
+    },
+    {
+      text: 'Collect oxygen readings every 20 s to 180 s for the comparison',
+      done: complete(p.selectedComparison),
+    },
+    {
+      text: 'Compare the INITIAL gradients — not just the final gas volumes',
+      done: complete('control') && complete(p.selectedComparison),
+    },
+    {
+      text: 'Link the faster rate to collision frequency, activation energy or surface area',
+      done: p.result?.ok === true,
+    },
+  ]
+}
+
 export function organicSteps(o) {
   const did = (id) => o.tests.some((t) => t.test === id)
   return [
@@ -334,6 +360,7 @@ export function getGuideSteps(experiment, state) {
   if (experiment === 'flame') return flameSteps(state.flame)
   if (experiment === 'distill') return distillSteps(state.distill)
   if (experiment === 'solubility') return solubilitySteps(state.solubility)
+  if (experiment === 'peroxide') return peroxideSteps(state.peroxide)
   if (experiment === 'grav') return gravSteps(state.grav)
   if (experiment === 'gas') return gasSteps(state.gas)
   return []

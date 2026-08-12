@@ -28,3 +28,14 @@
 - [x] Gate desktop, mobile, model invariants and safety/technique interlocks.
 - [x] Inspect the assembled model from at least four camera angles and fix visual defects.
 - [x] Re-run affected/offline regressions, record evidence, commit and push.
+
+## Iteration 36 — catalytic decomposition kinetics practical
+
+- [x] Run the clean-baseline lint/build ritual.
+- [x] Research Cambridge-appropriate gas-rate/catalyst investigation and safety.
+- [x] Define comparable rate curves for concentration, catalyst and temperature variables.
+- [x] Build oxygen-evolution apparatus, animations, timed readings and graph.
+- [x] Add evidence-based conclusion marking, guide and the 18th course unit.
+- [x] Gate controls, one-variable validity, graph, conclusion, desktop and mobile.
+- [x] Inspect the full apparatus from four angles and fix visual defects.
+- [x] Re-run affected/offline regressions, record evidence, commit and push.

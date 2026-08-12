@@ -17,7 +17,7 @@ export default defineConfig({
         name: 'ChemLab ZW — Virtual Chemistry Lab',
         short_name: 'ChemLab ZW',
         description:
-          'Cambridge AS/A Level Chemistry (9701) Paper 3 virtual lab — titration, iodine clock and enthalpy experiments that work fully offline.',
+          'Cambridge AS/A Level Chemistry (9701) virtual lab — thirteen interactive practicals and an 18-unit course that work fully offline.',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',

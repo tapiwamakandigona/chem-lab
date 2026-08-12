@@ -15,6 +15,7 @@ import ChromaScene from './ChromaScene.jsx'
 import FlameScene from './FlameScene.jsx'
 import DistillScene from './DistillScene.jsx'
 import SolubilityScene from './SolubilityScene.jsx'
+import PeroxideScene from './PeroxideScene.jsx'
 
 /**
  * Per-experiment camera composition: [position, target].
@@ -33,6 +34,7 @@ const CAMERAS = {
   flame: { pos: [-0.21, 0.3, 0.67], target: [-0.02, 0.12, 0] },
   distill: { pos: [-0.22, 0.36, 1.18], target: [-0.01, 0.2, 0] },
   solubility: { pos: [-0.2, 0.32, 0.75], target: [-0.01, 0.16, 0] },
+  peroxide: { pos: [-0.18, 0.31, 0.72], target: [-0.01, 0.11, 0] },
 }
 
 function LabCanvas({ children, quality, view, controlsRef }) {
@@ -113,6 +115,7 @@ const SCENES = {
   flame: FlameScene,
   distill: DistillScene,
   solubility: SolubilityScene,
+  peroxide: PeroxideScene,
 }
 
 /** DOM zoom buttons — the touch/mouse-free way to dolly the camera.
@@ -141,8 +144,13 @@ export default function LabViewport({ experiment, quality }) {
   const controlsRef = useRef()
   const Scene = SCENES[experiment]
   if (!Scene) return null
+  const compactPanel = experiment === 'clock' || experiment === 'enthalpy'
   return (
-    <div className="absolute inset-0" data-testid="gfx-root" data-quality={quality}>
+    <div
+      className={`absolute left-0 right-0 top-0 md:bottom-0 ${compactPanel ? 'bottom-[46%]' : 'bottom-[52%]'}`}
+      data-testid="gfx-root"
+      data-quality={quality}
+    >
       <LabCanvas quality={quality} view={experiment} controlsRef={controlsRef}>
         <Scene />
       </LabCanvas>

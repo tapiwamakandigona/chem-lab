@@ -161,6 +161,13 @@ export const COURSE_UNITS = [
     desc: 'Dissolve KNO₃ completely, record the first crystals while cooling, and calculate solubility per 100 g water (3/3).',
     check: (s) => s.solubility.result?.ok === true,
   },
+  {
+    id: 'peroxide-kinetics',
+    experiment: 'peroxide',
+    title: 'Compare initial rates fairly',
+    desc: 'Collect two full O₂–time curves, compare their initial gradients, and explain the one changed variable (3/3).',
+    check: (s) => s.peroxide.result?.ok === true,
+  },
 ]
 
 export function courseProgressCount(done) {

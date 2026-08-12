@@ -31,6 +31,7 @@ const EXPERIMENT_LABEL = {
   flame: 'Flame Tests',
   distill: 'Simple Distillation',
   solubility: 'Solubility Curve',
+  peroxide: 'Catalytic Kinetics',
 }
 
 // Menu-level "learn by doing" path: ordered milestones across all

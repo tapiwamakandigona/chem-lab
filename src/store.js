@@ -12,6 +12,12 @@ import {
   saturationTemperature,
   markSolubility,
 } from './lib/solubility.js'
+import {
+  PEROXIDE_MAX_SEC,
+  PEROXIDE_RECORD_INTERVAL,
+  syringeReading as peroxideReading,
+  compareRuns as comparePeroxideRuns,
+} from './lib/peroxide.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
@@ -827,6 +833,81 @@ export const useLabStore = create((set) => ({
       rushing: false,
       nucleated: false,
       answer: '',
+      result: null,
+    },
+  })),
+
+  // --- H2O2 catalytic decomposition (continuous-monitoring kinetics) ---
+  peroxide: {
+    runId: 'control',
+    phase: 'setup',       // setup | running | complete
+    timeSec: 0,
+    readings: {},         // { [runId]: [{t, v}] } includes t=0
+    selectedComparison: 'high-conc',
+    reason: '',
+    result: null,
+  },
+  peroxideSetRun: (runId) => set((s) => ({
+    peroxide: {
+      ...s.peroxide,
+      runId,
+      phase: 'setup',
+      timeSec: 0,
+      result: null,
+    },
+  })),
+  peroxideStart: () => set((s) => {
+    const p = s.peroxide
+    if (p.phase !== 'setup') return {}
+    return {
+      peroxide: {
+        ...p,
+        phase: 'running',
+        timeSec: 0,
+        readings: { ...p.readings, [p.runId]: [{ t: 0, v: 0 }] },
+        result: null,
+      },
+    }
+  }),
+  peroxideTick: (deltaSec) => set((s) => {
+    const p = s.peroxide
+    if (p.phase !== 'running') return {}
+    const timeSec = Math.min(PEROXIDE_MAX_SEC, p.timeSec + deltaSec)
+    const previous = p.readings[p.runId] ?? [{ t: 0, v: 0 }]
+    const last = previous.at(-1)?.t ?? 0
+    const nextMark = Math.min(PEROXIDE_MAX_SEC, last + PEROXIDE_RECORD_INTERVAL)
+    let readings = previous
+    if (timeSec >= nextMark) {
+      readings = [...previous, { t: nextMark, v: peroxideReading(p.runId, nextMark) }]
+    }
+    return {
+      peroxide: {
+        ...p,
+        timeSec,
+        phase: timeSec >= PEROXIDE_MAX_SEC ? 'complete' : 'running',
+        readings: { ...p.readings, [p.runId]: readings },
+      },
+    }
+  }),
+  peroxideSelectComparison: (runId) => set((s) => ({
+    peroxide: { ...s.peroxide, selectedComparison: runId, result: null },
+  })),
+  peroxideSetReason: (reason) => set((s) => ({
+    peroxide: { ...s.peroxide, reason, result: null },
+  })),
+  peroxideSubmit: () => set((s) => {
+    const p = s.peroxide
+    const result = comparePeroxideRuns(p.readings, p.selectedComparison, p.reason)
+    return { peroxide: { ...p, result } }
+  }),
+  peroxideResetRun: () => set((s) => ({
+    peroxide: {
+      ...s.peroxide,
+      phase: 'setup',
+      timeSec: 0,
+      readings: Object.fromEntries(
+        Object.entries(s.peroxide.readings).filter(([id]) => id !== s.peroxide.runId),
+      ),
       result: null,
     },
   })),
