@@ -16,6 +16,12 @@ dist-ssr
 .env
 .env.*
 !.env.example
+# .env.production carries ONLY public client config (Appwrite endpoint + project
+# id — the same values any visitor can read out of the shipped bundle). It must
+# be committed or CI builds ship with the backend unset and /teach silently
+# falls back to offline mode, which is exactly what happened on 2026-08-13.
+# Secrets stay in /work/.secrets outside the repo, never in any .env here.
+!.env.production
 
 # Editor directories and files
 .vscode/*

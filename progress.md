@@ -645,3 +645,21 @@ Process failures worth recording:
 
 `features.json`: 42 features, 41 passing. F39-F42 flipped true with evidence. Only F5
 (AAA scene look) remains false.
+
+## iter-55 postmortem: CI shipped /teach with no backend configured
+
+Live verification caught the classroom tier running in offline fallback on
+chemlab.tapiwa.me: the live ClassJoin chunk had `void 0` where the Appwrite
+project id belongs. Root cause chain:
+1. `.gitignore` has `.env.*`, so `git add -A` silently skipped `.env.production`.
+2. I wrote "committed" in progress.md and the summary without checking
+   `git ls-files` — a VERIFIED-labelled claim that was actually ASSUMED.
+3. Local builds looked right because the file existed locally; only a
+   byte-level diff of the live bundle against the frozen dist exposed it.
+
+Fix: explicit `!.env.production` negation with a comment stating the public-
+values-only rule. Lesson recorded: after adding any new file, verify it is in
+the tree with `git ls-files <path>` — `git add -A` + ignore rules fail silently.
+Live-bundle diffing (normalise chunk hashes, then compare) is now a standing
+verification step; it found a real production defect the gates could not see,
+because gates run against the local dist.
