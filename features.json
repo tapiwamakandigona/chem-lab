@@ -270,8 +270,8 @@
    "title": "Classroom data model with offline-capable driver",
    "acceptance": "src/lib/classroom.js exposes createClass/joinClass/publishAssignment/submitResults behind a driver interface; a local driver backs it with no network so gates stay deterministic; class codes are 6 chars, unambiguous alphabet, collision-checked.",
    "verify": "python tests/run_gates.py classroom",
-   "passes": false,
-   "evidence": ""
+   "passes": true,
+   "evidence": "iter-53: python tests/gates/classroom.py -> 46/46 PASS. Pure-ESM node harness asserts safe-alphabet 6-char codes (400 samples, no O/0/I/1/L/Z/2/S/5/B/8), typed-code normalisation, alias sanitising with email refused, item validation against real practical/unit/mock catalogues, dedupe + 25-item cap, replace-on-resubmit, CSV quoting, and a stubbed fetch that throws so a network call in the classroom layer fails the gate."
   },
   {
    "id": "F39",
