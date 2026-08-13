@@ -252,7 +252,8 @@ try:
         # Portrait and landscape: core controls are visible/tappable, zoom is
         # retained, and the bottom sheet stays on-screen after orientation.
         page.set_viewport_size({"width": 390, "height": 844})
-        page.reload(wait_until="networkidle")
+        page.goto(URL + "/", wait_until="load")
+        page.wait_for_selector('[data-testid="experiment-library"]', timeout=30_000)
         page.get_by_text("Iodine–Propanone Rate Titration", exact=True).click()
         start = page.locator('[data-testid="iodine-start"]')
         start.scroll_into_view_if_needed()
@@ -264,7 +265,8 @@ try:
         snap(page, "iodine-rate-mobile.png")
 
         page.set_viewport_size({"width": 844, "height": 390})
-        page.reload(wait_until="networkidle")
+        page.goto(URL + "/", wait_until="load")
+        page.wait_for_selector('[data-testid="experiment-library"]', timeout=30_000)
         page.get_by_text("Iodine–Propanone Rate Titration", exact=True).click()
         start = page.locator('[data-testid="iodine-start"]')
         start.scroll_into_view_if_needed()

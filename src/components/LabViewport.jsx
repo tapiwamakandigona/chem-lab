@@ -1,4 +1,4 @@
-import { Suspense, useRef } from 'react'
+import { Suspense, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Environment, Lightformer, ContactShadows } from '@react-three/drei'
@@ -23,7 +23,9 @@ import IodineRateScene from './IodineRateScene.jsx'
  * Framed for a 320px right UI panel — subject sits left-of-center.
  */
 const CAMERAS = {
-  titration: { pos: [-0.68, 0.52, 1.55], target: [0.14, 0.4, 0] },
+  // Slightly elevated three-quarter shot: the full burette, stopcock, flask
+  // and stand read as one apparatus before the learner touches the camera.
+  titration: { pos: [-0.52, 0.68, 1.32], target: [0.05, 0.4, -0.02] },
   clock: { pos: [-0.19, 0.33, 0.5], target: [0.02, 0.07, 0.03] },
   enthalpy: { pos: [-0.3, 0.3, 0.6], target: [0.1, 0.09, 0.04] },
   qual: { pos: [-0.24, 0.34, 0.55], target: [-0.04, 0.05, -0.05] },
@@ -39,7 +41,7 @@ const CAMERAS = {
   'iodine-rate': { pos: [-0.08, 0.31, 1.18], target: [0, 0.29, 0] },
 }
 
-function LabCanvas({ children, quality, view, controlsRef }) {
+function LabCanvas({ children, quality, view, controlsRef, onContextLost }) {
   const ultra = quality === QUALITY.ULTRA
   const dpr =
     quality === QUALITY.LOW ? 1 :
@@ -53,6 +55,12 @@ function LabCanvas({ children, quality, view, controlsRef }) {
       shadows={ultra ? 'soft' : quality === QUALITY.HIGH}
       camera={{ position: cam.pos, fov: 42, near: 0.01, far: 50 }}
       style={{ position: 'absolute', inset: 0 }}
+      onCreated={({ gl }) => {
+        gl.domElement.addEventListener('webglcontextlost', (event) => {
+          event.preventDefault()
+          onContextLost()
+        }, { once: true })
+      }}
     >
       {/* Aerial depth: background softens toward the wall colour */}
       <fog attach="fog" args={['#dfe7ef', 3.2, 9]} />
@@ -145,6 +153,7 @@ function ZoomButtons({ controlsRef }) {
 
 export default function LabViewport({ experiment, quality }) {
   const controlsRef = useRef()
+  const [contextLost, setContextLost] = useState(false)
   const Scene = SCENES[experiment]
   if (!Scene) return null
   const compactPanel = experiment === 'clock' || experiment === 'enthalpy'
@@ -154,9 +163,38 @@ export default function LabViewport({ experiment, quality }) {
       data-testid="gfx-root"
       data-quality={quality}
     >
-      <LabCanvas quality={quality} view={experiment} controlsRef={controlsRef}>
-        <Scene />
-      </LabCanvas>
+      {contextLost ? (
+        <div
+          data-testid="webgl-fallback"
+          className="absolute inset-0 grid place-items-center bg-lab-bg p-6 text-center"
+          role="alert"
+        >
+          <div className="max-w-md rounded-2xl border border-lab-border bg-lab-panel p-6">
+            <p className="font-mono text-[10px] tracking-wider text-lab-accent">3D VIEW PAUSED</p>
+            <h2 className="mt-2 text-xl font-semibold text-lab-ink">This device lost the lab graphics.</h2>
+            <p className="mt-3 text-sm leading-relaxed text-lab-muted">
+              Your progress is safe. Reload this practical, or return to the Learner’s Guide
+              and mock papers—the non-3D study tools still work.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-5 min-h-11 rounded-xl bg-lab-accent px-4 font-semibold text-lab-bg"
+            >
+              Reload practical
+            </button>
+          </div>
+        </div>
+      ) : (
+        <LabCanvas
+          quality={quality}
+          view={experiment}
+          controlsRef={controlsRef}
+          onContextLost={() => setContextLost(true)}
+        >
+          <Scene />
+        </LabCanvas>
+      )}
       <ZoomButtons controlsRef={controlsRef} />
     </div>
   )

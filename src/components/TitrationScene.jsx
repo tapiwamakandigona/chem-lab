@@ -7,7 +7,7 @@ import { setControls } from '../lib/controls.js'
 import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import {
-  GlassMaterial, LiquidMaterial, ConicalFlaskGlass, PipetteLying,
+  GlassMaterial, LiquidMaterial, ConicalFlaskGlass,
   RetortStand, WhiteTile,
 } from './scene/glassware.jsx'
 import { BlobShadow } from './scene/props.jsx'
@@ -24,6 +24,7 @@ const TUBE_R = 0.0065
  *  enough to feel like a real tap; overshoot near the endpoint is possible —
  *  that is the point. The UI buttons remain for dropwise control. */
 const TAP_RATE = 1.4
+const SETUP_PARTS = ['stand', 'clamp', 'burette', 'tile', 'flask']
 
 function Burette({ reading, open, onTapDown, onTapUp }) {
   const liquidRef = useRef()
@@ -38,8 +39,16 @@ function Burette({ reading, open, onTapDown, onTapUp }) {
 
   const marks = useMemo(() => {
     const out = []
-    for (let v = 0; v <= 50; v += 1) {
-      out.push({ v, y: -(v / 50) * TUBE_LEN, major: v % 10 === 0, mid: v % 5 === 0 })
+    // Half-millilitre marks remain legible in the whole-bench view; the
+    // dedicated meniscus close-up renders the actual 0.1 mL subdivisions.
+    for (let v = 0; v <= 50; v += 0.5) {
+      out.push({
+        v,
+        y: -(v / 50) * TUBE_LEN,
+        major: v % 5 === 0,
+        mid: v % 1 === 0,
+        label: v % 10 === 0,
+      })
     }
     return out
   }, [])
@@ -51,6 +60,11 @@ function Burette({ reading, open, onTapDown, onTapUp }) {
         <cylinderGeometry args={[TUBE_R, TUBE_R, TUBE_LEN, 24, 1, true]} />
         <GlassMaterial opacity={0.25} />
       </mesh>
+      {/* ISO-style strengthened bead at the open top. */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[TUBE_R, 0.0015, 8, 28]} />
+        <GlassMaterial opacity={0.36} />
+      </mesh>
       {/* titrant column */}
       <group ref={liquidRef} position={[0, -TUBE_LEN / 2, 0]}>
         <mesh>
@@ -59,13 +73,13 @@ function Burette({ reading, open, onTapDown, onTapUp }) {
         </mesh>
       </group>
       {/* graduations — thin boxes, cheap and crisp */}
-      {marks.map(({ v, y, major, mid }) => (
+      {marks.map(({ v, y, major, mid, label }) => (
         <group key={v} position={[0, y, 0]}>
           <mesh position={[TUBE_R + (major ? 0.004 : mid ? 0.003 : 0.002), 0, 0]}>
             <boxGeometry args={[major ? 0.008 : mid ? 0.006 : 0.004, 0.0007, 0.0007]} />
             <meshBasicMaterial color="#3b4855" />
           </mesh>
-          {major && (
+          {label && (
             <Text
               font={LAB_FONT}
               position={[TUBE_R + 0.012, 0, 0]}
@@ -248,16 +262,24 @@ function useSwirl(groupRef, active) {
 }
 
 export default function TitrationScene() {
-  const { titration, titrationDispense } = useLabStore()
+  const {
+    titration,
+    titrationDispense,
+    titrationSetupMode,
+    titrationSetup,
+    placeTitrationSetupPart,
+    titrationTapOpen,
+    setTitrationTapOpen,
+  } = useLabStore()
+  const setupReady = !titrationSetupMode || SETUP_PARTS.every((part) => titrationSetup[part])
   const isRunning = titration.phase === 'running'
   const flaskRef = useRef()
   useSwirl(flaskRef, isRunning)
 
   // --- stopcock press-and-hold dispensing ---
-  const [tapOpen, setTapOpen] = useState(false)
   const tapRef = useRef(false)
   const accRef = useRef(0)
-  const canDispense = !titration.endpointReached && titration.buretteReading < 50
+  const canDispense = setupReady && !titration.endpointReached && titration.buretteReading < 50
   useFrame((_, dt) => {
     if (!tapRef.current) return
     const t = useLabStore.getState().titration
@@ -271,8 +293,19 @@ export default function TitrationScene() {
       titrationDispense(step)
     }
   })
-  const tapDown = () => { tapRef.current = true; accRef.current = 0; setTapOpen(true) }
-  const tapUp = () => { tapRef.current = false; setTapOpen(false) }
+  useEffect(() => {
+    tapRef.current = titrationTapOpen && canDispense
+    if (!tapRef.current) accRef.current = 0
+  }, [titrationTapOpen, canDispense])
+  const tapDown = () => {
+    tapRef.current = true
+    accRef.current = 0
+    setTitrationTapOpen(true)
+  }
+  const tapUp = () => {
+    tapRef.current = false
+    setTitrationTapOpen(false)
+  }
 
   // A closed stopcock must NOT drip. A drop falls only for ~1 sim-second
   // after titrant actually left the tip (reading changed), as the tip drains.
@@ -303,6 +336,7 @@ export default function TitrationScene() {
     // leak an active drain state when this scene unmounts (Menu or practical
     // switch) before its one simulated second has elapsed.
     useLabStore.getState().setDripping(false)
+    useLabStore.getState().setTitrationTapOpen(false)
   }, [])
 
   const [r, g, b, a] = titration.indicatorColor
@@ -319,49 +353,184 @@ export default function TitrationScene() {
   const BENCH_Y = -0.015
   const FLASK_X = 0
   // burette: tip ~. Frame: flask height .145, tip 0.05 above neck
-  const BUR_TOP = 0.95
+  // ISO/manufacturer proportions: a long 50 mL tube, but its jet still sits
+  // only ~35 mm above the 145 mm flask neck — not a floating half-flask gap.
+  const BUR_TOP = 0.82
   const tipY = BUR_TOP - TUBE_LEN - 0.088
+  const liquidSurfaceY = BENCH_Y + 0.035
 
   return (
     <group>
       <LabRoom />
-      <group position={[FLASK_X, BENCH_Y, 0]}>
-        <WhiteTile size={[0.16, 0.16]} />
-        <group ref={flaskRef} position={[0, 0.007, 0]}>
-          <ConicalFlaskGlass
-            liquidColor={liquidColor}
-            liquidOpacity={liquidOpacity}
-            fill={0.4}
-          />
-          <EndpointSwirl active={titration.endpointReached} />
+      {(!titrationSetupMode || titrationSetup.tile) && (
+        <group position={[FLASK_X, BENCH_Y, 0]}>
+          <WhiteTile size={[0.16, 0.16]} />
+          {(!titrationSetupMode || titrationSetup.flask) && (
+            <>
+              <group ref={flaskRef} position={[0, 0.007, 0]}>
+                <ConicalFlaskGlass
+                  liquidColor={liquidColor}
+                  liquidOpacity={liquidOpacity}
+                  fill={0.22}
+                />
+                <EndpointSwirl active={titration.endpointReached} />
+              </group>
+              <BlobShadow r={0.085} opacity={0.3} y={0.009} />
+            </>
+          )}
+          {/* endpoint glow cue */}
+          {titration.endpointReached && (
+            <pointLight position={[0, 0.1, 0.08]} intensity={0.08} distance={0.22} color="#ff9ecb" />
+          )}
         </group>
-        <BlobShadow r={0.085} opacity={0.3} y={0.009} />
-        {/* endpoint glow cue */}
-        {titration.endpointReached && (
-          <pointLight position={[0, 0.1, 0.08]} intensity={0.08} distance={0.22} color="#ff9ecb" />
-        )}
-      </group>
+      )}
       {/* stand grips the burette directly above the flask */}
-      <group position={[0, BENCH_Y, 0]}>
-        <RetortStand height={1.05} clampY={BUR_TOP - 0.1 - BENCH_Y} rodOffset={[0.16, -0.11]} />
-        <group position={[0.16, 0, -0.11]}>
-          <BlobShadow r={0.16} opacity={0.28} />
+      {(!titrationSetupMode || titrationSetup.stand) && (
+        <group position={[0, BENCH_Y, 0]}>
+          <RetortStand
+            height={0.92}
+            clampY={BUR_TOP - 0.1 - BENCH_Y}
+            rodOffset={[0.16, -0.19]}
+            showClamp={!titrationSetupMode || titrationSetup.clamp}
+            clampOpen={titrationSetupMode && !titrationSetup.burette}
+          />
+          <group position={[0.16, 0, -0.19]}>
+            <BlobShadow r={0.16} opacity={0.28} />
+          </group>
         </group>
-      </group>
-      <group position={[0, BUR_TOP, 0]}>
-        <Burette
-          reading={titration.buretteReading}
-          open={tapOpen && canDispense}
-          onTapDown={tapDown}
-          onTapUp={tapUp}
+      )}
+      {(!titrationSetupMode || titrationSetup.burette) && (
+        <group position={[0, BUR_TOP, 0]}>
+          <Burette
+            reading={titration.buretteReading}
+            open={titrationTapOpen && canDispense}
+            onTapDown={tapDown}
+            onTapUp={tapUp}
+          />
+        </group>
+      )}
+      <TapStream open={titrationTapOpen && canDispense} tipY={tipY} surfaceY={liquidSurfaceY} />
+      <Drop active={setupReady && dropActive} tipY={tipY} surfaceY={liquidSurfaceY} />
+      {titrationSetupMode && !setupReady && (
+        <SetupBench
+          setup={titrationSetup}
+          onPlace={placeTitrationSetupPart}
+          benchY={BENCH_Y}
+          buretteTop={BUR_TOP}
         />
-      </group>
-      <TapStream open={tapOpen && canDispense} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
-      <Drop active={dropActive} tipY={tipY} surfaceY={BENCH_Y + 0.06} />
-      {/* pipette resting on bench front-left */}
-      <group position={[-0.42, BENCH_Y + 0.012, 0.32]} rotation={[0, 0.5, 0]}>
-        <PipetteLying />
-      </group>
+      )}
+    </group>
+  )
+}
+
+function SetupBench({ setup, onPlace, benchY, buretteTop }) {
+  const next = SETUP_PARTS.find((part) => !setup[part])
+  const targets = {
+    stand: [0.30, benchY + 0.08, 0.25],
+    clamp: [0.26, benchY + 0.16, 0.22],
+    burette: [0.34, benchY + 0.34, 0.2],
+    tile: [-0.30, benchY + 0.012, 0.24],
+    flask: [-0.34, benchY + 0.07, 0.24],
+  }
+  return (
+    <group>
+      {next && (
+        <Text
+          font={LAB_FONT}
+          position={[0, 0.15, -0.34]}
+          fontSize={0.026}
+          color="#1e293b"
+          anchorX="center"
+        >
+          {`PLACE ${next.toUpperCase()}`}
+        </Text>
+      )}
+      {next && (
+        <SetupPart
+          part={next}
+          start={targets[next]}
+          destination={next === 'burette' ? [0, buretteTop - 0.28, 0] : [0, benchY + 0.04, 0]}
+          onPlaced={() => onPlace(next)}
+        />
+      )}
+    </group>
+  )
+}
+
+function SetupPart({ part, start, destination, onPlaced }) {
+  const ref = useRef()
+  const [dragging, setDragging] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [snapping, setSnapping] = useState(false)
+  const dragPoint = useRef(new THREE.Vector3(...start))
+  const home = useMemo(() => new THREE.Vector3(...start), [start])
+  const destinationPoint = useMemo(() => new THREE.Vector3(...destination), [destination])
+  const three = useThree((state) => state.get)
+  const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), -start[1]), [start])
+  const reducedMotion = useMemo(
+    () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false,
+    []
+  )
+
+  useFrame((_, dt) => {
+    if (!ref.current) return
+    const target = dragging ? dragPoint.current : snapping ? destinationPoint : home
+    const k = reducedMotion ? 1 : 1 - Math.exp(-dt * 18)
+    ref.current.position.lerp(target, k)
+    ref.current.rotation.y += (hovered ? 0.35 : 0) * dt
+    if (snapping && ref.current.position.distanceTo(destinationPoint) < 0.006) onPlaced()
+  })
+
+  const move = (event) => {
+    if (!dragging) return
+    event.stopPropagation()
+    const hit = new THREE.Vector3()
+    if (event.ray.intersectPlane(plane, hit)) dragPoint.current.copy(hit)
+  }
+  const release = (event) => {
+    event.stopPropagation()
+    setDragging(false)
+    setControls(three, true)
+    const hit = new THREE.Vector3()
+    event.ray.intersectPlane(plane, hit)
+    const horizontal = hit.clone().setY(destination[1]).distanceTo(destinationPoint)
+    if (horizontal < 0.18) setSnapping(true)
+  }
+
+  return (
+    <group
+      ref={ref}
+      position={start}
+      onPointerOver={(event) => { event.stopPropagation(); setHovered(true); document.body.style.cursor = 'grab' }}
+      onPointerOut={() => { if (!dragging) setHovered(false); document.body.style.cursor = 'auto' }}
+      onPointerDown={(event) => {
+        event.stopPropagation()
+        event.target.setPointerCapture?.(event.pointerId)
+        setDragging(true)
+        setControls(three, false)
+        document.body.style.cursor = 'grabbing'
+      }}
+      onPointerMove={move}
+      onPointerUp={release}
+      onPointerCancel={() => { setDragging(false); setControls(three, true) }}
+    >
+      <mesh>
+        {part === 'burette'
+          ? <cylinderGeometry args={[0.008, 0.008, 0.42, 16]} />
+          : part === 'flask'
+            ? <coneGeometry args={[0.05, 0.11, 28]} />
+            : part === 'tile'
+              ? <boxGeometry args={[0.14, 0.012, 0.14]} />
+              : part === 'clamp'
+                ? <boxGeometry args={[0.15, 0.035, 0.035]} />
+                : <boxGeometry args={[0.18, 0.05, 0.12]} />}
+        <meshStandardMaterial
+          color={part === 'tile' ? '#f8fafc' : hovered ? '#38bdf8' : '#64748b'}
+          roughness={0.45}
+          metalness={part === 'stand' || part === 'clamp' ? 0.35 : 0.05}
+          emissive={hovered ? '#0c4a6e' : '#000000'}
+        />
+      </mesh>
     </group>
   )
 }

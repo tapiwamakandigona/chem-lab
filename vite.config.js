@@ -1,6 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import fs from 'node:fs'
+import path from 'node:path'
+
+const generatedInputs = path.resolve('.generated/inputs.json')
+const buildInputs = fs.existsSync(generatedInputs)
+  ? JSON.parse(fs.readFileSync(generatedInputs, 'utf8'))
+  : { main: path.resolve('index.html') }
 
 export default defineConfig({
   plugins: [
@@ -43,17 +50,16 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      input: buildInputs,
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             return 'vendor-react'
           }
-          if (id.includes('node_modules/three')) {
-            return 'vendor-three'
-          }
-          if (id.includes('@react-three/fiber') || id.includes('@react-three/drei')) {
-            return 'vendor-r3f'
-          }
+          // Keep the complete rendering engine in the lazy LabViewport graph.
+          // Splitting Three/R3F into a manual vendor chunk made Rolldown hoist
+          // shared runtime bindings into the launcher entry, so every landing
+          // visit downloaded ~304 kB gzip before a practical was chosen.
         }
       }
     }

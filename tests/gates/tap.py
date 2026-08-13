@@ -1,8 +1,9 @@
-"""F13 gate: press-and-hold burette stopcock dispenses continuously.
+"""F13 gate: visible press-and-hold burette control dispenses continuously.
 
-Flow: open titration, hold pointer on the stopcock key (~572,380).
+Flow: open titration, follow the first-run coach and hold its labelled control.
 Asserts: reading climbs while held (in 0.05 quanta), stops when released,
-phase goes to running, Reset burette restores 0.00 without a false drip.
+phase goes to running, coach clears, and confirmed Reset restores 0.00 without
+a false drip. No camera-dependent coordinate is allowed in this gate.
 Exit 1 on any failure.
 """
 import http.server, socketserver, threading, functools, time, sys, re
@@ -63,8 +64,6 @@ def check(name, cond, detail=""):
         fails.append(name)
 
 
-TAP = (572, 380)
-
 with sync_playwright() as p:
     b = p.chromium.launch(args=["--use-gl=angle", "--use-angle=swiftshader",
                                 "--enable-unsafe-swiftshader"])
@@ -82,12 +81,20 @@ with sync_playwright() as p:
         return float(m.group(1)) if m else -1.0
 
     check("starts at 0.00", reading() == 0.0, str(reading()))
+    coach = pg.locator('[data-testid="titration-first-run"]')
+    hold = pg.locator('[data-testid="titration-hold-control"]')
+    check("first run explains the tap", coach.count() == 1 and coach.is_visible())
+    check("hold control is visible and labelled",
+          hold.is_visible() and "HOLD" in hold.inner_text().upper(), hold.inner_text())
+    hold_box = hold.bounding_box()
+    check("hold control is touch sized",
+          hold_box is not None and hold_box["height"] >= 44, str(hold_box))
 
     # Hold the stopcock open; poll until the reading passes 1.0 cm3. Flow
     # accumulates per clamped sim frame (simClock.js), so slow renderers
     # dispense slowly in wall time — pace on reading progress with a stall
     # guard, not a fixed wall cap (CI 2026-08-12: 12 s reached only 0.1).
-    pg.mouse.move(*TAP)
+    hold.hover()
     pg.mouse.down()
     moved = 0.0
     shot = False
@@ -108,7 +115,6 @@ with sync_playwright() as p:
             break
     check("reading climbs while held", moved >= 1.0, f"reached {moved}")
     check("reading lands on 0.05 quanta", abs(moved * 20 - round(moved * 20)) < 1e-6, str(moved))
-
     pg.mouse.up()
     # right after release the tip is still draining -> marker briefly ON.
     # Poll: on a slow renderer the very next DOM read may predate the frame
@@ -130,6 +136,14 @@ with sync_playwright() as p:
     r2 = reading()
     check("flow stops on release", r1 == r2, f"{r1} then {r2}")
 
+    check("coach advances to a real reading task after dispense",
+          pg.locator('[data-testid="coach-reading-input"]').is_visible())
+    pg.locator('[data-testid="coach-reading-input"]').fill(f"{r2:.2f}")
+    pg.locator('[data-testid="coach-reading-record"]').click()
+    check("first-run coach clears only after reading is recorded", coach.count() == 0)
+    check("first-run completion persists on device",
+          pg.evaluate("localStorage.getItem('chemlab-titration-controls-v2')") == "seen")
+
     # closed stopcock must NOT keep dripping: the tip-drain marker goes quiet
     # after release and STAYS quiet.
     d1 = pg.locator('[data-testid="tip-drip"]').get_attribute("data-active")
@@ -141,7 +155,11 @@ with sync_playwright() as p:
     check("phase left setup (titre panel live)", r2 > 0, str(r2))
 
     # Reset restores 0.00 and a falling reading must not look like new flow.
-    pg.locator("text=Reset burette").click()
+    reset = pg.locator('[data-testid="titration-reset"]')
+    reset.click()
+    check("reset requires explicit confirmation", "Confirm reset" in reset.inner_text())
+    check("first reset click preserves the reading", reading() == r2, str(reading()))
+    reset.click()
     time.sleep(0.2)
     check("reset restores 0.00", reading() == 0.0, str(reading()))
     check(

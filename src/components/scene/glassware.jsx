@@ -87,22 +87,23 @@ function lathe(points, segments = 48) {
   return new THREE.LatheGeometry(points.map(([x, y]) => new THREE.Vector2(x, y)), segments)
 }
 
-/** 250 cm³ Erlenmeyer (conical) flask, origin at base centre. H=0.145. */
+/** 250 cm³ ISO 1773-style Erlenmeyer, origin at base centre.
+ * Reference envelope: H≈0.145 m, base OD≈0.085 m, neck ID≈0.034 m. */
 export function ConicalFlaskGlass({ liquidColor = '#e8f4fb', liquidOpacity = 0.7, fill = 0.35, children }) {
   const glassGeo = useMemo(() => lathe([
-    [0.0, 0.0], [0.030, 0.0], [0.046, 0.004], [0.050, 0.010],
-    [0.048, 0.030], [0.038, 0.060], [0.026, 0.088], [0.0175, 0.106],
-    [0.0155, 0.112], [0.0155, 0.138], [0.0175, 0.141], [0.0185, 0.145],
+    [0.0, 0.0], [0.028, 0.0], [0.0405, 0.003], [0.0425, 0.008],
+    [0.0415, 0.028], [0.034, 0.058], [0.024, 0.088], [0.0175, 0.106],
+    [0.017, 0.112], [0.017, 0.138], [0.0185, 0.141], [0.019, 0.145],
   ]), [])
   // liquid follows the cone: radius at height h
   const liquidGeo = useMemo(() => {
     const h = 0.008 + fill * 0.09
     const rAt = (y) => {
-      if (y <= 0.010) return 0.046
+      if (y <= 0.010) return 0.040
       if (y >= 0.106) return 0.016
       // interpolate the wall slope
       const t = (y - 0.010) / 0.096
-      return 0.046 * (1 - t) + 0.016 * t
+      return 0.040 * (1 - t) + 0.016 * t
     }
     const pts = [[0, 0.004]]
     for (let i = 0; i <= 6; i++) {
@@ -118,6 +119,21 @@ export function ConicalFlaskGlass({ liquidColor = '#e8f4fb', liquidOpacity = 0.7
         <GlassMaterial />
       </mesh>
       <FresnelRim geometry={glassGeo} />
+      {/* Reinforced rolled lip and restrained enamel capacity markings. */}
+      <mesh position={[0, 0.143, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.018, 0.0016, 8, 32]} />
+        <GlassMaterial opacity={0.38} />
+      </mesh>
+      {[0.045, 0.064, 0.083].map((y, index) => {
+        const t = (y - 0.010) / 0.096
+        const wallR = 0.040 * (1 - t) + 0.016 * t
+        return (
+          <mesh key={y} position={[wallR + 0.0008, y, 0]} rotation={[0, 0, -0.1]}>
+            <boxGeometry args={[0.006 + index * 0.001, 0.0008, 0.001]} />
+            <meshStandardMaterial color="#e9eef3" roughness={0.7} />
+          </mesh>
+        )
+      })}
       <mesh geometry={liquidGeo}>
         <LiquidMaterial color={liquidColor} opacity={liquidOpacity} />
       </mesh>
@@ -185,37 +201,61 @@ export function PipetteLying({ len = 0.42 }) {
 }
 
 /** Retort stand: heavy base + rod + clamp jaws gripping at clampY. */
-export function RetortStand({ height = 0.85, clampY = 0.62, rodOffset = [-0.1, -0.09] }) {
+export function RetortStand({
+  height = 0.85,
+  clampY = 0.62,
+  rodOffset = [-0.1, -0.09],
+  clampOpen = false,
+  showClamp = true,
+}) {
   const [rx, rz] = rodOffset
   return (
     <group>
       {/* cast-iron base — centred under the rod */}
       <mesh position={[rx, 0.008, rz]} castShadow>
         <boxGeometry args={[0.24, 0.016, 0.15]} />
-        <meshStandardMaterial color="#3a3f46" roughness={0.55} metalness={0.4} />
+        <meshStandardMaterial color="#333940" roughness={0.7} metalness={0.15} />
       </mesh>
       {/* rod at rear of base */}
       <mesh position={[rx, height / 2 + 0.016, rz]} castShadow>
         <cylinderGeometry args={[0.006, 0.006, height, 16]} />
         <meshStandardMaterial color="#c3cad2" roughness={0.25} metalness={0.85} />
       </mesh>
-      {/* boss head */}
-      <mesh position={[rx, clampY, rz]}>
-        <boxGeometry args={[0.03, 0.035, 0.024]} />
-        <meshStandardMaterial color="#4d5560" roughness={0.4} metalness={0.5} />
-      </mesh>
-      {/* clamp arm toward origin (burette axis at x=0,z=0) */}
-      <mesh position={[rx / 2, clampY, rz / 2]} rotation={[Math.PI / 2, 0, Math.atan2(-rx, rz)]}>
-        <cylinderGeometry args={[0.0045, 0.0045, Math.hypot(rx, rz) + 0.02, 12]} />
-        <meshStandardMaterial color="#aab2bb" roughness={0.3} metalness={0.8} />
-      </mesh>
-      {/* jaws */}
-      {[-0.011, 0.011].map((dx, i) => (
-        <mesh key={i} position={[dx, clampY, 0]}>
-          <boxGeometry args={[0.006, 0.02, 0.018]} />
-          <meshStandardMaterial color="#e8b64c" roughness={0.6} />
-        </mesh>
-      ))}
+      {showClamp && (
+        <>
+          {/* boss head */}
+          <mesh position={[rx, clampY, rz]}>
+            <boxGeometry args={[0.03, 0.035, 0.024]} />
+            <meshStandardMaterial color="#4d5560" roughness={0.4} metalness={0.5} />
+          </mesh>
+          <mesh position={[rx - 0.021, clampY, rz]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.006, 0.006, 0.025, 16]} />
+            <meshStandardMaterial color="#262d35" roughness={0.65} metalness={0.25} />
+          </mesh>
+          {/* clamp arm toward origin (burette axis at x=0,z=0) */}
+          <mesh position={[rx / 2, clampY, rz / 2]} rotation={[Math.PI / 2, 0, Math.atan2(-rx, rz)]}>
+            <cylinderGeometry args={[0.0045, 0.0045, Math.hypot(rx, rz) + 0.02, 12]} />
+            <meshStandardMaterial color="#aab2bb" roughness={0.3} metalness={0.8} />
+          </mesh>
+          {/* jaws with dark protective sleeves, not bare metal on glass */}
+          {[-1, 1].map((side) => (
+            <group
+              key={side}
+              position={[side * (clampOpen ? 0.020 : 0.010), clampY, 0]}
+              rotation={[0, 0, side * (clampOpen ? 0.24 : 0.05)]}
+            >
+              <mesh>
+                <boxGeometry args={[0.008, 0.026, 0.022]} />
+                <meshStandardMaterial color="#aeb7c1" roughness={0.38} metalness={0.55} />
+              </mesh>
+              <mesh position={[-side * 0.0046, 0, 0]}>
+                <boxGeometry args={[0.002, 0.020, 0.017]} />
+                <meshStandardMaterial color="#25303a" roughness={0.9} />
+              </mesh>
+            </group>
+          ))}
+        </>
+      )}
     </group>
   )
 }

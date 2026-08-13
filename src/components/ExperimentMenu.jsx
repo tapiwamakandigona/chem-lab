@@ -222,7 +222,7 @@ function scrollToLibrary() {
   target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' })
 }
 
-export default function ExperimentMenu({ onSelect }) {
+export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
   const { quality, setQuality, courseDone, setCourseOpen } = useLabStore()
   const courseCount = courseProgressCount(courseDone)
   const [navOpen, setNavOpen] = useState(false)
@@ -313,7 +313,7 @@ export default function ExperimentMenu({ onSelect }) {
                   type="button"
                   className="text-cta"
                   data-testid="hero-course-cta"
-                  onClick={() => setCourseOpen(true)}
+                  onClick={onOpenGuide ?? (() => setCourseOpen(true))}
                 >
                   Open Learner’s Guide <span aria-hidden="true">→</span>
                 </button>
@@ -357,8 +357,15 @@ export default function ExperimentMenu({ onSelect }) {
           <div className="landing-shell proof-grid">
             <div><strong>14</strong><span>interactive practicals</span></div>
             <div><strong>19</strong><span>guided milestones</span></div>
-            <div><strong>3</strong><span>marked mock papers</span></div>
-            <div><strong>100%</strong><span>offline lab shell</span></div>
+            <button
+              type="button"
+              className="proof-grid__link"
+              onClick={onOpenMocks}
+              data-testid="mocks-open"
+            >
+              <strong>3</strong><span>marked mock papers · open →</span>
+            </button>
+            <div><strong>1×</strong><span>load once, then practise offline</span></div>
           </div>
         </section>
 
@@ -448,10 +455,10 @@ export default function ExperimentMenu({ onSelect }) {
                 type="button"
                 className="primary-cta primary-cta--compact"
                 data-testid="course-open"
-                onClick={() => setCourseOpen(true)}
+                onClick={onOpenGuide ?? (() => setCourseOpen(true))}
               >
                 <span>Open Learner’s Guide</span>
-                <b>{courseCount}/{COURSE_UNITS.length}</b>
+                {courseCount > 0 && <b>{courseCount}/{COURSE_UNITS.length}</b>}
               </button>
             </div>
 
@@ -643,8 +650,13 @@ export default function ExperimentMenu({ onSelect }) {
           <nav aria-label="Footer navigation">
             <a href="#how-it-works">How it works</a>
             <a href="#practicals">Practicals</a>
-            <a href="#offline">Offline & mobile</a>
-            <a href="#faq">FAQ</a>
+            <button type="button" onClick={onOpenMocks}>Mock papers</button>
+            <a
+              href="mailto:tapiwamakandigoner@gmail.com?subject=ChemLab%20feedback"
+              data-testid="feedback-link"
+            >
+              Feedback
+            </a>
           </nav>
         </div>
         <div className="landing-shell footer-legal">
@@ -652,7 +664,7 @@ export default function ExperimentMenu({ onSelect }) {
             ChemLab ZW is an independent learning tool. Cambridge International
             is not affiliated with or responsible for this site.
           </p>
-          <p>© 2026 ChemLab ZW · Built in Zimbabwe</p>
+          <p>© 2026 ChemLab ZW · Built in Zimbabwe · <a href="mailto:tapiwamakandigoner@gmail.com">Contact</a></p>
         </div>
       </footer>
     </div>

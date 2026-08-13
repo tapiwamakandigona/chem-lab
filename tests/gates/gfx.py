@@ -112,7 +112,10 @@ def main():
         check("ultra changes rendered pixels", d > 0.5, f"mean diff {d:.2f}")
 
         # --- persistence across reload ---
-        pg.reload(wait_until="networkidle")
+        # Since real routes shipped, the practical lives at /practical/{id};
+        # navigate back to the launcher explicitly to read the quality menu.
+        pg.goto(f"http://127.0.0.1:{PORT}/", wait_until="load")
+        pg.wait_for_selector('[data-testid="quality-ultra"]')
         time.sleep(1.5)
         saved = pg.evaluate("localStorage.getItem('chemlab-quality')")
         check("quality persisted to localStorage", saved == "ultra", str(saved))

@@ -28,6 +28,8 @@ jobs:
           npm ci
           npm audit --audit-level=high
           npm run lint
+          node tests/model/progress_backup.mjs
+          node tests/model/iodine_rate.mjs
           python -m py_compile tests/run_gates.py tests/gates/*.py tools/*.py
           python - <<'PY'
           from pathlib import Path
@@ -148,18 +150,23 @@ jobs:
 
       - name: Verify live
         run: |
-          local_hash=$(grep -o 'assets/index-[^"]*\.js' dist/index.html | head -1)
+          local_hash=$(grep -o 'assets/main-[^"]*\.js' dist/index.html | head -1)
           test -n "$local_hash"
           for attempt in $(seq 1 12); do
             live_html=$(curl --fail --silent --show-error https://chemlab.tapiwa.me/) || true
-            live_hash=$(printf '%s' "$live_html" | grep -o 'assets/index-[^"]*\.js' | head -1)
+            live_hash=$(printf '%s' "$live_html" | grep -o 'assets/main-[^"]*\.js' | head -1)
             echo "attempt=$attempt local=$local_hash live=$live_hash"
             if [ "$local_hash" = "$live_hash" ]; then
               printf '%s' "$live_html" | grep -q '14 interactive Cambridge'
+              ! printf '%s' "$live_html" | grep -Eq 'vendor-r3f|vendor-three|LabViewport-'
+              curl --fail --silent --show-error https://chemlab.tapiwa.me/practical/titration |
+                grep -q 'Acid-Base &amp; Redox Titration — ChemLab ZW'
               curl --fail --silent --show-error https://chemlab.tapiwa.me/robots.txt |
                 grep -q 'Sitemap: https://chemlab.tapiwa.me/sitemap.xml'
               curl --fail --silent --show-error https://chemlab.tapiwa.me/sitemap.xml |
                 grep -q '<loc>https://chemlab.tapiwa.me/</loc>'
+              curl --fail --silent --show-error https://chemlab.tapiwa.me/sitemap.xml |
+                grep -q '<loc>https://chemlab.tapiwa.me/practical/iodine-rate</loc>'
               exit 0
             fi
             sleep 10

@@ -43,7 +43,7 @@ if _QUALITY_SEED:
 def snap(page, name):
     """Best-effort evidence screenshot — never fails the gate."""
     try:
-        page.screenshot(path=SHOTS + "/" + name, timeout=SHOT_TIMEOUT_MS)
+        page.screenshot(path=str(SHOTS) + "/" + name, timeout=SHOT_TIMEOUT_MS)
         print("shot: " + name, flush=True)
     except Exception as e:  # noqa: BLE001 — evidence only, assertions gate
         print("shot SKIPPED " + name + ": " + str(e)[:80], flush=True)
@@ -154,7 +154,8 @@ try:
         check("warm condition explicit", "35 °C" in page.locator('[data-testid="peroxide-conditions"]').inner_text())
 
         page.set_viewport_size({"width": 390, "height": 844})
-        page.reload(wait_until="networkidle")
+        page.goto(URL + "/", wait_until="load")
+        page.wait_for_selector('[data-testid="experiment-library"]', timeout=30_000)
         page.get_by_text("Catalytic Decomposition Kinetics", exact=True).click()
         page.locator('[data-testid="peroxide-start"]').scroll_into_view_if_needed()
         page.locator('[data-testid="peroxide-start"]').click()

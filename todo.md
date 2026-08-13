@@ -90,10 +90,34 @@
 
 ## Iteration 45 — portable learner progress (queued behind iter-44 release)
 
-- [ ] Define a versioned, validated progress-backup schema without external services.
-- [ ] Export completed course milestones and best mock-paper scores as a small JSON file.
-- [ ] Import a backup by merging (never erasing) progress and rejecting malformed/unknown data safely.
-- [ ] Add accessible desktop/mobile controls, clear success/error feedback, and local-only privacy copy.
-- [ ] Persist mock-paper best scores so export/import can carry exam progress across devices.
-- [ ] Gate round-trip, merge semantics, invalid files, reload persistence and 390x844 usability.
-- [ ] Verify the affected course/mock/offline regressions against one frozen build before committing.
+- [x] Define a versioned, validated progress-backup schema without external services.
+- [x] Export completed course milestones and best mock-paper scores as a small JSON file.
+- [x] Import a backup by merging (never erasing) progress and rejecting malformed/unknown data safely.
+- [x] Add accessible desktop/mobile controls, clear success/error feedback, and local-only privacy copy.
+- [x] Persist mock-paper best scores so export/import can carry exam progress across devices.
+- [x] Gate round-trip, merge semantics, invalid files, reload persistence and 390x844 usability.
+- [ ] Verify the affected course/mock/offline regressions against one frozen build before committing. (running)
+
+## Iteration 46 — hands-on apparatus setup + reference-led realism
+
+- [x] Audit all 14 practicals for preassembled apparatus and rank the highest-value manual setup interactions.
+- [x] Research real apparatus photos/technical diagrams and maintain a source-and-dimensions log.
+- [x] Design one reusable touch/mouse/keyboard place-and-snap interaction system with reduced-motion support.
+- [x] Implement the first complete hands-on setup in a representative Paper 3 practical.
+- [x] Prevent chemistry from starting until the assembled setup is valid; give precise alignment feedback.
+- [x] Upgrade that practical's models, materials, liquid behaviour and animation against the logged references.
+- [x] Inspect front, side, three-quarter, 390x844 portrait and 844x390 landscape views.
+- [x] Gate pointer/touch-style DOM drag, keyboard fallback, invalid assembly, valid snap, reset and 390x844 behaviour.
+- [ ] Verify reduced-motion and landscape setup behavior in the final frozen-build regression.
+- [x] Define the rollout plan across the remaining practicals from the audited interaction map.
+
+## Iteration 47 — external product critique: operation, structure, retention
+
+- [ ] Replace the invisible 3D-only stopcock path with a visible first-run control coach and a stable hold-to-dispense affordance.
+- [ ] Add real browser routes for the guide, mocks and each practical; preserve Back/Forward and deep links.
+- [ ] Finish portable progress release proof, then add a downloadable/shareable completion card.
+- [ ] Add an explicit feedback/contact surface; analytics stays privacy-first and requires an owner decision before enabling any tracking.
+- [ ] Remove the clipped decorative pipette, recompose the titration camera/whiteboard and label teaching-lab shelf bottles.
+- [ ] Stop loading the Three/R3F vendor on the landing page; prove the launcher boots without requesting it.
+- [ ] Hide the empty 0/19 nav counter, replace “offline lab shell” copy, and expose all three mocks from the launcher.
+- [ ] Gate deep links, browser Back, first-run control discovery, low-end/WebGL failure, no-3D launcher load and mobile headers.

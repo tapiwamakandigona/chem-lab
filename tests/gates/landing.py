@@ -158,8 +158,8 @@ with sync_playwright() as p:
           and page.locator("body").evaluate("el => getComputedStyle(el).touchAction") != "none")
 
     proof = page.locator('[data-testid="proof-strip"]').inner_text()
-    check("verified counts shown", all(value in proof for value in ("14", "19", "3", "100%")),
-          "14 practicals / 19 milestones / 3 mock papers / 100% offline shell")
+    check("verified counts shown", all(value in proof for value in ("14", "19", "3", "1×")),
+          "14 practicals / 19 milestones / 3 mock papers / one-load offline")
     check("complete library has 14 cards",
           page.locator('button[data-testid^="experiment-"]').count() == 14)
     filters = page.locator(".library-filters")
@@ -173,13 +173,17 @@ with sync_playwright() as p:
     check("enrichment filter shows 6 practicals",
           page.locator('button[data-testid^="experiment-"]').count() == 6)
     filters.get_by_role("button", name="All 14", exact=True).click()
-    check("learner guide retained", page.locator('[data-testid="course-open"]').count() == 1
-          and "0/19" in page.locator('[data-testid="course-open"]').inner_text())
+    check("learner guide retained without empty counter",
+          page.locator('[data-testid="course-open"]').count() == 1
+          and "0/19" not in page.locator('[data-testid="course-open"]').inner_text())
     check("all quality controls retained", all(
         page.locator(f'[data-testid="quality-{q}"]').count() == 1
         for q in ("low", "med", "high", "ultra")))
     check("independent disclaimer present",
           "not affiliated" in page.locator('[data-testid="independent-disclaimer"]').inner_text())
+    feedback = page.locator('[data-testid="feedback-link"]')
+    check("feedback channel is visible",
+          feedback.is_visible() and feedback.get_attribute("href").startswith("mailto:"))
     check("no unsupported proof language", not any(term in page.locator("body").inner_text().lower()
           for term in ("students love", "pass rate", "cambridge-approved", "official cambridge product")))
 
@@ -197,11 +201,13 @@ with sync_playwright() as p:
     check("primary CTA reaches practical library", after > before + 300, f"{before}->{after}")
     check("first experiment card remains clickable", page.locator('[data-testid="experiment-titration"]').is_enabled())
 
-    # Open/close course from marketing CTA; established overlay still works.
+    # Open/close guide from marketing CTA; it has a real browser route.
     page.locator('[data-testid="course-open"]').click()
-    check("course overlay opens", page.locator('[data-testid="course-panel"]').count() == 1)
+    check("guide route opens", page.locator('[data-testid="course-panel"]').count() == 1
+          and page.url.endswith("/guide"))
     page.locator('[data-testid="course-close"]').click()
-    check("course overlay closes", page.locator('[data-testid="course-panel"]').count() == 0)
+    check("guide returns home", page.locator('[data-testid="course-panel"]').count() == 0
+          and page.url.rstrip("/").endswith(f":{PORT}"))
 
     # FAQ is a real disclosure, not static decorative copy.
     faq = page.get_by_role("button", name="Does Cambridge International operate or endorse ChemLab?")

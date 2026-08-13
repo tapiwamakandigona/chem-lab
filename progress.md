@@ -450,3 +450,86 @@ Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js
   Playwright reported `Executable doesn't exist at .../chromium_headless_shell-1234`
   because this restarted environment did not inherit the existing Chromium
   cache location. Retried once with `PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright`.
+- Fresh GitHub Actions run 31670636955 completed success: build, all seven
+  unique probe shards and Appwrite deploy green. Independent live checks
+  matched `assets/index-DmeZA8-k.js`, `14 interactive Cambridge`, the canonical
+  robots sitemap declaration, root sitemap URL and runtime independent-product
+  disclaimer. Iter-44 is fully released; later local iterations may now push
+  without cancelling it.
+
+## iter-45 (2026-08-13) — portable learner progress
+- First dedicated progress-gate run failed: `FAIL download carries course
+  milestones`, then `KeyError: 'titration-s22'`. Root cause was the probe's
+  `add_init_script` seed being overwritten by the service worker's navigation
+  lifecycle before store initialisation; this was test setup, not product
+  behaviour. Retry seeds localStorage on a loaded page and reloads once before
+  asserting the exported state.
+- The one allowed progress-gate retry reached the product but still failed two
+  test expectations: mock scores correctly auto-completed their corresponding
+  course milestones, so the backup contained four valid milestones rather
+  than the probe's expected exact two, and reload showed five rather than
+  exact three after import. Product merge/persistence assertions themselves
+  passed. Per the two-iteration no-diff guard, stop retrying this gate; amend
+  the next verification run to assert required milestone subsets and
+  non-decreasing counts, not an invalid exact count.
+
+## iter-46 (2026-08-13) — hands-on setup + reference-led realism
+- First setup-gate run progressed through all five ordered placements and
+  proved the pre-assembly chemistry lock, then timed out reading
+  `[data-testid="setup-step-flask"]` after the final placement. That element
+  correctly unmounts when the ready confirmation replaces the setup panel;
+  this is a probe lifecycle mistake, not a product failure. Retry asserts the
+  ready state after the final click and step attributes only for intermediate
+  placements.
+- The allowed setup-gate retry proved the full valid assembly, unlocked
+  dispensing and captured the assembled desktop view, then exposed a real UX
+  omission: once ready, the setup panel (and its Reset action) unmounted, so
+  there was no way to rebuild without toggling the mode twice. Added a
+  persistent 44 px `Rebuild` action to the ready confirmation. No third retry
+  is claimed; the next frozen-build regression will verify this product fix.
+- Next rebuilt bundle `assets/index-BXfeyyry.js` passed the serial affected
+  regression 9/9: progress, setup, titrate, tap, meniscus, meniscus_mobile,
+  offline, landing and shell. Setup specifically passed default compatibility,
+  ordered five-part placement, chemistry lock/unlock, 44 px rebuild/reset,
+  desktop/390x844 fit; the corrected closed-stopcock drain regression also
+  remained green. A later DOM drag surface and reduced-motion snap were added,
+  so final frozen-build verification is still required before F36/F37 pass.
+- Reference log now covers ISO 385, RSC procedure/video notes and manufacturer
+  dimensions for a 50 mL burette, retort stand/clamp and 250 mL flask, plus a
+  ranked interaction rollout for all 14 practicals. The shared flask now uses
+  the documented 85×145 mm envelope with reinforced rim/markings; the retort
+  stand has a weightier base, boss knob and sleeved articulated jaws. The
+  burette now has half-millilitre whole-bench marks (the meniscus view retains
+  true 0.1 mL subdivisions) and a strengthened top bead. A
+  front/side/three-quarter/portrait/landscape review led to lowering the jet
+  close to the flask neck, reducing the nominal 25 cm³ fill and moving the rod
+  rearward to remove implausible gaps/intersections. These are source-led
+  visual/procedural improvements, not certified CAD replicas.
+- Verification-run failure (no product verdict): a final affected-suite launch
+  collided with the just-finished prior gate server and every gate quoted
+  `OSError: [Errno 98] Address already in use` before opening ChemLab. The
+  runner proceeded through all names, so this is one environmental launch
+  failure rather than nine product attempts. Wait for the port to release and
+  permit one clean retry against a frozen build; never count this run.
+- Shared placement control was extracted and its pointer-critical state moved
+  to synchronous refs so rapid real pointer sequences cannot read a stale
+  React closure. The rebuilt titration setup gate then passed 22 checks,
+  including rejected off-target and accepted aligned DOM drag, all ordered
+  fallbacks, valid-assembly unlock, Rebuild and 390x844 fit.
+- The 12-gate frozen release suite finished 10/12 green and the dist manifest
+  stayed byte-identical. Progress, titration, meniscus desktop/mobile, course,
+  all three mocks, offline, landing and shell passed. Setup and tap failed on
+  brittle screen-coordinate pointer assertions after the source-led camera/
+  apparatus repositioning: setup's DOM drag had already passed separately on
+  the same source, while tap's hard-coded `(572,380)` no longer hit the moved
+  stopcock. This is not release evidence: replace hard-coded 3D coordinates
+  with product-visible DOM affordances/locators, exactly the usability issue
+  raised by the external review, then run a new frozen build.
+
+## Iteration 48 — 2026-08-13
+- Fixed iter47 failures: TitrationUI bottom control container was full-width pointer-events-auto and swallowed the meniscus trainer Check click → container now pointer-events-none, interactive children auto. (VERIFIED: meniscus gate PASS)
+- Gate infra fixes (no check weakening): solubility/peroxide/iodine_rate/gfx replaced reload(networkidle) with goto launcher + wait for experiment-library testid (routes made reload land on practical URLs; SW keeps networkidle from settling); snap() Path/str concat fixed.
+- Five-gate rerun: 5/5 PASS (.harness-evidence/iter48-five.log).
+- Rebuilt dist (main-CR6-CUdt.js), froze manifest (.harness-evidence/iter48-dist.sha256).
+- FULL 34/34 GATE SUITE GREEN on frozen build (.harness-evidence/iter48-full.log); manifest verified unchanged post-suite; screenshots reviewed (landing, mocks, setup desktop/mobile, WebGL fallback, progress card, mock marking).
+- Flipped F36 (portable progress) and F37 (hands-on setup/realism) with evidence. F5 (AAA look) and F22 (CI/deploy/live) remain false — F22 flips only after push + green Actions + live verification.

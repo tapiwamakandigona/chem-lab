@@ -32,6 +32,13 @@ after first load. Loop runs until Tapiwa stops it.
 - Review every new/changed 3D model from multiple camera angles (front,
   side, three-quarter) via probe screenshots before calling it done —
   single-angle review missed a clipped voltmeter. (Tapiwa, 2026-08-12)
+- Add a hands-on apparatus-setup mode: learners place and assemble equipment
+  themselves, with tactile snap/alignment animation and chemistry-valid setup
+  interlocks, rather than every practical beginning preassembled. Build this
+  as a reusable interaction system and roll it across practicals. For every
+  realism pass, log actual apparatus-photo/technical-diagram references,
+  compare proportions and assembly from front/side/three-quarter/mobile, and
+  correct models/animation against those sources. (Tapiwa, 2026-08-13)
 - Public landing copy leads with the practice outcome, uses only current
   product proof (14 practicals, 19 guide units, 3 marked mock papers),
   carries the independent-product disclaimer and never invents learner
@@ -118,6 +125,12 @@ Accepted, new backlog (do after deploy is green):
 - B9 launcher: title visible on 390px first paint; label the guide badge.
 - B10 light theme / high-brightness mode for outdoor low-nit screens.
 - B11 "lite" text-only mode (guide + mocks, no 3D) for data-capped users.
+- B12 hands-on setup mode: reusable drag/place/snap apparatus assembly with
+  valid-setup interlocks and polished animation; begin with a representative
+  Paper 3 practical, then expand across the library.
+- B13 reference-led apparatus realism pass: source log of real lab photographs
+  and technical diagrams; correct dimensions, glass thickness, joints,
+  clamps, liquids, materials, lighting and motion across multiple angles.
 
 Explicitly out of scope for the build loop (business decisions for Tapiwa):
 naming/brand beyond ZW, pricing/licensing, analytics choice, demand-test

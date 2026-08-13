@@ -28,7 +28,7 @@
     {
       "id": "F4",
       "title": "Enthalpy experiment correct + visual",
-      "acceptance": "Adding Na2CO3 animates, temperature curve behaves physically, ΔH sign and magnitude match 9701/31/M/J/20 expectations.",
+      "acceptance": "Adding Na2CO3 animates, temperature curve behaves physically, \u0394H sign and magnitude match 9701/31/M/J/20 expectations.",
       "verify": "probe/enthalpy.py exits 0 and shots inspected",
       "passes": true,
       "evidence": "probe/enthalpy.py exit 0: dT 10.1, q 1060.5, dH -21.2 kJ/mol, T2 32.1 (f4-done.png)."
@@ -71,7 +71,7 @@
       "acceptance": "Service worker precaches entire app shell (js/css/fonts/icons); after first load the app reloads and every experiment renders with the network completely dead; valid manifest + icons.",
       "verify": "probe/offline.py exits 0 (server killed after first load; content-frac AND std-dev checked on 3D render)",
       "passes": true,
-      "evidence": "iter-9: offline.py exit 0 — precache 17/17, menu + titration render after server shutdown (frac 0.998 std 61.5 @10s, offline-titration.png inspected). gstatic <link> removed; Inter+JBMono self-hosted woff2."
+      "evidence": "iter-9: offline.py exit 0 \u2014 precache 17/17, menu + titration render after server shutdown (frac 0.998 std 61.5 @10s, offline-titration.png inspected). gstatic <link> removed; Inter+JBMono self-hosted woff2."
     },
     {
       "id": "F10",
@@ -142,27 +142,27 @@
     },
     {
       "id": "F20",
-      "name": "Clock (S23) + enthalpy (S20) mock papers — all 4 experiments now have exam practice",
+      "name": "Clock (S23) + enthalpy (S20) mock papers \u2014 all 4 experiments now have exam practice",
       "passes": true,
       "evidence": "probe/mock2.py exit 0 (13 checks: unlock gating both papers, clock 6/6 correct + 5/6 ECF chain from wrong rate, enthalpy 5/5 with cooling-corrected Textrap + 4/5 ECF + sign rejection); shots mock-clock.png, mock-enthalpy.png inspected"
     },
     {
       "id": "F21",
-      "name": "Learner's guide course — menu-level learn-by-doing path with persistent progress",
+      "name": "Learner's guide course \u2014 menu-level learn-by-doing path with persistent progress",
       "criteria": "Menu shows a Learner's Guide entry with progress badge; panel lists 9 ordered milestones across all 4 experiments (technique -> analysis -> mock paper); milestones tick automatically from live lab state (CourseTracker) incl. mock-paper scores recorded to the store; Start jumps into the right experiment with the step coach open; progress persists in localStorage across reload; usable at 390x844.",
       "passes": true,
       "evidence": "probe/course.py exit 0 (19 checks: menu badge 0/9, 9 units listed, Start drops into titration with guide open, S22 endpoint + read-check auto-tick 2 units, badge 2/9, done unit loses Start btn, reload persists via localStorage chemlab-course-v1, mobile 390x844 panel fits); shots course-panel/progress/mobile.png inspected. Full 16-gate regression on same bundle: /tmp/reg23-summary.log all =0."
     },
     {
       "id": "F22",
-      "name": "GitHub Actions CI — build + every registered probe gate + auto-deploy on green",
+      "name": "GitHub Actions CI \u2014 build + every registered probe gate + auto-deploy on green",
       "criteria": "Push to main triggers workflow: npm build, Playwright chromium (swiftshader) runs tests/run_gates.py (every gate registered in its GATES list, currently 30, with env-overridable DIST/SHOTS), shots uploaded as artifacts; deploy job runs tools/deploy.py from repo secrets only after gates pass and verifies live bundle hash matches dist. Local sandbox gates keep working unchanged (defaults preserved).",
       "passes": false,
       "evidence": ""
     },
     {
       "id": "F23",
-      "name": "Gravimetric analysis experiment — water of crystallisation to constant mass",
+      "name": "Gravimetric analysis experiment \u2014 water of crystallisation to constant mass",
       "criteria": "5th experiment: weigh crucible/sample, Bunsen heat-cool-weigh cycles with real constant-mass loop (>=3 heats, last two within 0.01 g), weighing locked while hot, one reading per cycle, x marked against the learner's OWN readings, guide steps, mobile 390x844; plus burette closed-tap drip bug fixed and gated both ways.",
       "passes": true,
       "evidence": "probe/grav.py exit 0 (28 checks; masses 23.45/25.91/24.83/24.66/24.65, x=7 accepted, x=3 rejected); shots grav-heating/marked/mobile.png inspected. probe/tap.py exit 0 incl. new 'tip drains briefly after release'=1 and 'no drip when closed'=0/0 checks."
@@ -177,7 +177,7 @@
     {
       "id": "F25",
       "name": "Molar gas volume experiment (gas collection)",
-      "description": "Impure CaCO3 + excess HCl; CO2 collected in 100 cm3 gas syringe; record until constant volume; % purity marked against learner's own final volume (±2%). Guide steps, course unit, mobile guide-collapse fix.",
+      "description": "Impure CaCO3 + excess HCl; CO2 collected in 100 cm3 gas syringe; record until constant volume; % purity marked against learner's own final volume (\u00b12%). Guide steps, course unit, mobile guide-collapse fix.",
       "passes": true,
       "evidence": "probe/gas.py 25/25 PASS + guided/course gates green (/tmp/g26.log, /tmp/g26b.log 2026-08-12); shots gas-running.png gas-marked.png"
     },
@@ -198,7 +198,7 @@
     {
       "id": "F28",
       "name": "Paper chromatography experiment",
-      "description": "9701 AS technique: identify a two-dye food colouring (fb20-fb24) by developing a chromatogram, measuring spot distances vs 8.0 cm solvent front, entering Rf values (±0.05) and matching to a 5-dye reference table. Animated solvent front + migrating spots, ruler scaled to front travel, markChroma needs developed run + correct Rf for evidence mark. Guide steps + 14th course unit. Gate probe/chroma.py (17 checks incl. mobile).",
+      "description": "9701 AS technique: identify a two-dye food colouring (fb20-fb24) by developing a chromatogram, measuring spot distances vs 8.0 cm solvent front, entering Rf values (\u00b10.05) and matching to a 5-dye reference table. Animated solvent front + migrating spots, ruler scaled to front travel, markChroma needs developed run + correct Rf for evidence mark. Guide steps + 14th course unit. Gate probe/chroma.py (17 checks incl. mobile).",
       "passes": true,
       "evidence": "gate run 2026-08-12: 17/17 PASS (/tmp/chroma2.out); course gate PASS with 14 units; multi-angle grid shots/chroma-angles-grid.png coherent"
     },
@@ -235,12 +235,12 @@
       "name": "Professional mobile-first product landing page",
       "criteria": "The entry screen opens with an outcome-led hero and one dominant Start practising free action; uses a real ChemLab product capture; states only verified proof (14 practicals, 19 guide units, offline and phone support); explains guided practice, exposes the complete clickable practical library, includes FAQ and independent-product disclaimer; retains course/quality/test locators; has no horizontal overflow or clipped primary actions at 390x844 and 844x390; keyboard focus is visible.",
       "passes": true,
-      "evidence": "2026-08-12 frozen build assets/index-DCwjovJc.js: landing gate green (/tmp/chemlab-iter38-rerun19.log) — 14 cards, 8/6 filters, verified counts line, CTA 0->3859, mobile 390x844 no overflow (scrollHeight 10750), landscape 844x390 clean, skip link + visible focus, reduced-motion honoured; immutable dist manifest PASS."
+      "evidence": "2026-08-12 frozen build assets/index-DCwjovJc.js: landing gate green (/tmp/chemlab-iter38-rerun19.log) \u2014 14 cards, 8/6 filters, verified counts line, CTA 0->3859, mobile 390x844 no overflow (scrollHeight 10750), landscape 844x390 clean, skip link + visible focus, reduced-motion honoured; immutable dist manifest PASS."
     },
     {
       "id": "F34",
-      "name": "Iodine–propanone timed rate by thiosulfate titration",
-      "description": "9701/34/O/N/24-aligned technique: withdraw a timed iodine–propanone sample, quench the acid catalyst with sodium hydrogencarbonate at 80 s, dilute, obtain rough plus concordant 0.05 cm3 thiosulfate titres, delay 10-drop starch until pale yellow, and calculate remaining iodine plus average rate with ECF. Models continued reaction after removal-only and a 0.60 cm3 persistent-complex endpoint lag after early starch; evidence-based 10-mark result, guide and 19th course unit.",
+      "name": "Iodine\u2013propanone timed rate by thiosulfate titration",
+      "description": "9701/34/O/N/24-aligned technique: withdraw a timed iodine\u2013propanone sample, quench the acid catalyst with sodium hydrogencarbonate at 80 s, dilute, obtain rough plus concordant 0.05 cm3 thiosulfate titres, delay 10-drop starch until pale yellow, and calculate remaining iodine plus average rate with ECF. Models continued reaction after removal-only and a 0.60 cm3 persistent-complex endpoint lag after early starch; evidence-based 10-mark result, guide and 19th course unit.",
       "passes": true,
       "evidence": "2026-08-12 node tests/model/iodine_rate.mjs green (perfect run 10/10, ECF preserved); iodine_rate gate green on frozen build (/tmp/chemlab-iter38-iodine-final.log, 73s): removal-only keeps reacting, quench at 79.6s, early starch -> invalid rough 26.95, accurate 26.40/26.30 concordant, closed stopcock stable, 10/10 marks, guide 5/5, 19th course unit; multi-angle shots inspected (shots/iodine-rate-angles-iter38)."
     },
@@ -249,7 +249,21 @@
       "name": "Resilient first paint and explicit unknown-route handling",
       "criteria": "Before JavaScript loads, the HTML shell shows a branded accessible loading status with an evidence-bound first-visit transfer claim. Unknown paths render an explicit responsive 404 state, add noindex/nofollow metadata, retain the independent-product disclaimer and offer a >=44 px canonical return action. CI enforces the compressed shell budget and registers the shell gate.",
       "passes": true,
-      "evidence": "2026-08-12 tests/run_gates.py shell: 1/1 PASS on assets/index-DmeZA8-k.js — no-JS 390x844 boot card visible and in viewport; 979800-byte independently gzipped dist stays under 1.1 MB budget; unknown-route SPA fallback renders branded 404 with explicit title, noindex/nofollow, 48 px return target, canonical / href, and desktop/390x844 fit. shell-nojs-mobile.png, not-found-desktop.png and not-found-mobile.png inspected."
+      "evidence": "2026-08-12 tests/run_gates.py shell: 1/1 PASS on assets/index-DmeZA8-k.js \u2014 no-JS 390x844 boot card visible and in viewport; 979800-byte independently gzipped dist stays under 1.1 MB budget; unknown-route SPA fallback renders branded 404 with explicit title, noindex/nofollow, 48 px return target, canonical / href, and desktop/390x844 fit. shell-nojs-mobile.png, not-found-desktop.png and not-found-mobile.png inspected."
+    },
+    {
+      "id": "F36",
+      "name": "Portable local learner progress",
+      "criteria": "Best mock-paper scores persist locally. The Learner's Guide can download a small versioned JSON backup and import it on another device without an account or network service. Import validates the schema, rejects unknown/invalid records without changing local state, unions completed milestones, never lowers a best mock score, survives reload, explains that the file is not uploaded and provides >=44 px controls at 390x844.",
+      "passes": true,
+      "evidence": "iter48 full 34/34 gate suite green on frozen dist (main-CR6-CUdt.js), manifest unchanged post-suite; log .harness-evidence/iter48-full.log; shots reviewed"
+    },
+    {
+      "id": "F37",
+      "name": "Hands-on apparatus setup and reference-led titration realism",
+      "criteria": "Titration retains its compatible preassembled default and offers an opt-in hands-on mode. Learners place stand, clamp, burette, white tile and prepared flask in a safe dependency order by pointer/touch or an accessible >=44 px Place control; the 3D item magnetically settles into its target, chemistry remains locked until setup is valid, and Rebuild restores the empty bench. The apparatus is corrected against logged ISO/RSC/manufacturer references and reviewed front, side, three-quarter, 390x844 and 844x390 without intersections or horizontal overflow.",
+      "passes": true,
+      "evidence": "iter48 full 34/34 gate suite green on frozen dist (main-CR6-CUdt.js), manifest unchanged post-suite; log .harness-evidence/iter48-full.log; shots reviewed"
     }
   ]
 }

@@ -1,7 +1,7 @@
 """F21 gate: learner's guide course — menu entry, unit list, learn-by-doing
 milestone ticking, and localStorage persistence across reload.
 
-Flow: menu shows course-open with 0/19 → panel lists 19 units all not-done →
+Flow: menu hides an empty counter → guide route lists 19 units all not-done →
 Start on unit 1 drops into titration with guide open → drive titration to a
 recorded titre (endpoint + read-check) → back to menu → units 1+2 ticked,
 badge 2/19 → reload page → progress persists from localStorage.
@@ -86,11 +86,12 @@ with sync_playwright() as p:
 
     # --- menu entry ---
     check("menu shows course-open", pg.locator('[data-testid="course-open"]').count() == 1)
-    check("badge starts 0/19", "0/19" in pg.locator('[data-testid="course-open"]').inner_text())
+    check("empty counter is hidden", "0/19" not in pg.locator('[data-testid="course-open"]').inner_text())
 
     pg.locator('[data-testid="course-open"]').click()
     time.sleep(0.4)
     check("panel opens", pg.locator('[data-testid="course-panel"]').count() == 1)
+    check("guide has its own route", pg.url.endswith("/guide"), pg.url)
     check("19 units listed", pg.locator('[data-testid^="course-unit-"]').count() == 19)
     all_zero = all(unit_done(pg, u) == "0" for u in UNIT_IDS)
     check("all units not done at start", all_zero)
@@ -136,10 +137,9 @@ with sync_playwright() as p:
     # --- persistence: reload, progress must survive ---
     pg.reload(wait_until="load")
     time.sleep(2)
-    check("after reload badge still 2/19",
-          "2/19" in pg.locator('[data-testid="course-open"]').inner_text())
-    pg.locator('[data-testid="course-open"]').click()
-    time.sleep(0.4)
+    check("after reload guide route persists", pg.url.endswith("/guide"), pg.url)
+    check("after reload progress still 2/19",
+          pg.locator('[data-testid="course-progress"]').get_attribute("data-done") == "2")
     check("after reload endpoint unit still ticked", unit_done(pg, "titration-endpoint") == "1")
     ls = pg.evaluate("() => localStorage.getItem('chemlab-course-v1')")
     check("localStorage has course record", ls is not None and "titration-endpoint" in ls, str(ls))

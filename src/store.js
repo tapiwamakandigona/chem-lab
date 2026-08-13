@@ -26,6 +26,11 @@ import {
   visibleEndpoint as iodineVisibleEndpoint,
 } from './lib/iodineRate.js'
 import { loadCourseProgress, saveCourseProgress } from './lib/course.js'
+import {
+  loadMockResults,
+  mergeProgress,
+  saveMockResults,
+} from './lib/progressBackup.js'
 import { crucibleMass, round2, markX } from './lib/grav.js'
 import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
 
@@ -34,6 +39,15 @@ import { readSyringe, isConstantVolume, markPurity } from './lib/gas.js'
 // richer environment — for laptops/desktops with a real GPU.
 export const QUALITY = { LOW: 'low', MED: 'med', HIGH: 'high', ULTRA: 'ultra' }
 const QUALITY_KEY = 'chemlab-quality'
+const TITRATION_COACH_KEY = 'chemlab-titration-controls-v2'
+const TITRATION_SETUP_PARTS = ['stand', 'clamp', 'burette', 'tile', 'flask']
+const emptyTitrationSetup = () => Object.fromEntries(
+  TITRATION_SETUP_PARTS.map((part) => [part, false])
+)
+
+function loadTitrationCoachSeen() {
+  try { return localStorage.getItem(TITRATION_COACH_KEY) === 'seen' } catch { return false }
+}
 
 // Detect device capability on first load
 function detectQuality() {
@@ -64,7 +78,42 @@ export const useLabStore = create((set) => ({
   guideOpen: true,
   setGuideOpen: (guideOpen) => set({ guideOpen }),
 
+  // --- first-run titration control coach ---
+  // Kept separate from course progress: it teaches the product interface,
+  // then gets out of the way permanently on this device.
+  titrationCoachSeen: loadTitrationCoachSeen(),
+  titrationCoachStep: 0,
+  advanceTitrationCoach: (step) => set((s) => ({
+    titrationCoachStep: Math.max(s.titrationCoachStep, step),
+  })),
+  dismissTitrationCoach: () => {
+    try { localStorage.setItem(TITRATION_COACH_KEY, 'seen') } catch { /* private mode */ }
+    set({ titrationCoachSeen: true, titrationCoachStep: 3 })
+  },
+
+  // --- hands-on apparatus setup (reusable pattern, titration first) ---
+  titrationSetupMode: false,
+  titrationSetup: emptyTitrationSetup(),
+  setTitrationSetupMode: (titrationSetupMode) => set((s) => ({
+    titrationSetupMode,
+    titrationSetup: titrationSetupMode && !s.titrationSetupMode
+      ? emptyTitrationSetup()
+      : s.titrationSetup,
+  })),
+  placeTitrationSetupPart: (part) => set((s) => {
+    if (!s.titrationSetupMode || !TITRATION_SETUP_PARTS.includes(part)) return {}
+    const index = TITRATION_SETUP_PARTS.indexOf(part)
+    const prerequisites = TITRATION_SETUP_PARTS.slice(0, index)
+    if (prerequisites.some((required) => !s.titrationSetup[required])) return {}
+    return { titrationSetup: { ...s.titrationSetup, [part]: true } }
+  }),
+  resetTitrationSetup: () => set({ titrationSetup: emptyTitrationSetup() }),
+
   // --- titration state ---
+  titrationTapOpen: false,
+  setTitrationTapOpen: (titrationTapOpen) => set((s) => (
+    s.titrationTapOpen === titrationTapOpen ? {} : { titrationTapOpen }
+  )),
   titration: {
     preset: 's22', // 's22' = carboxylic acid/NaOH | 's21' = FeSO4/KMnO4
     buretteVolume: 50.00,   // cm3 total capacity
@@ -113,6 +162,7 @@ export const useLabStore = create((set) => ({
     }
   }),
   titrationReset: () => set((s) => ({
+    titrationTapOpen: false,
     titration: {
       ...s.titration,
       buretteReading: 0.00,
@@ -1276,11 +1326,19 @@ export const useLabStore = create((set) => ({
   }),
 
   // --- mock paper results (feeds course milestones) ---
-  mockResults: {}, // { paperId: { score, total } }
+  mockResults: loadMockResults(), // { paperId: { score, total } }
   recordMockResult: (paperId, score, total) => set((s) => {
     const prev = s.mockResults[paperId]
     if (prev && prev.score >= score) return {}
-    return { mockResults: { ...s.mockResults, [paperId]: { score, total } } }
+    const mockResults = { ...s.mockResults, [paperId]: { score, total } }
+    saveMockResults(mockResults)
+    return { mockResults }
+  }),
+  mergeLearnerProgress: (incoming) => set((s) => {
+    const merged = mergeProgress(s.courseDone, s.mockResults, incoming)
+    saveCourseProgress(merged.courseDone)
+    saveMockResults(merged.mockResults)
+    return merged
   }),
 }))
 

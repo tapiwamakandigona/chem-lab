@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { useLabStore } from './store.js'
 import ExperimentMenu from './components/ExperimentMenu.jsx'
 import TitrationUI from './components/TitrationUI.jsx'
@@ -19,29 +19,89 @@ import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
 import CoursePanel, { CourseTracker } from './components/CoursePanel.jsx'
+import MockLibrary from './components/MockLibrary.jsx'
 import NotFound from './components/NotFound.jsx'
+import { navigate, parseRoute, PRACTICAL_META, routeForExperiment } from './lib/routes.js'
 
 // three.js + scenes load only when an experiment opens — the menu paints
 // with the small react chunk even on a 2G connection.
 const LabViewport = lazy(() => import('./components/LabViewport.jsx'))
 
 export default function App() {
-  const knownPath = window.location.pathname === '/' || window.location.pathname === '/index.html'
-  const { experiment, setExperiment, quality, courseOpen, setCourseOpen } = useLabStore()
+  const { experiment, setExperiment, quality, setCourseOpen } = useLabStore()
   const [showTitrationCalc, setShowTitrationCalc] = useState(false)
+  const [route, setRoute] = useState(() => parseRoute())
 
-  if (!knownPath) return <NotFound />
+  useEffect(() => {
+    const syncRoute = () => {
+      const next = parseRoute()
+      setRoute(next)
+      setExperiment(next.kind === 'practical' ? next.experiment : null)
+      setCourseOpen(next.kind === 'guide')
+    }
+    window.addEventListener('popstate', syncRoute)
+    syncRoute()
+    return () => window.removeEventListener('popstate', syncRoute)
+  }, [setCourseOpen, setExperiment])
+
+  const openExperiment = (id) => navigate(routeForExperiment(id))
+  const openGuide = () => navigate('/guide')
+  const openMocks = () => navigate('/mocks')
+  const goHome = () => navigate('/')
+
+  useEffect(() => {
+    const practical = PRACTICAL_META.find(({ id }) => id === route.experiment)
+    const title = route.kind === 'practical'
+      ? `${practical?.title ?? 'Chemistry Practical'} — ChemLab ZW`
+      : route.kind === 'guide'
+        ? 'Learner’s Guide — ChemLab ZW'
+        : route.kind === 'mocks'
+          ? 'Marked Mock Papers — ChemLab ZW'
+          : route.kind === 'landing'
+            ? 'ChemLab ZW — Practise Cambridge Chemistry Practicals'
+            : 'Page not found — ChemLab ZW'
+    document.title = title
+    const description = route.kind === 'practical'
+      ? practical?.description
+      : route.kind === 'guide'
+        ? 'Follow a 19-milestone learn-by-doing route through Cambridge 9701 practical chemistry skills.'
+        : route.kind === 'mocks'
+          ? 'Open three marked chemistry mock-paper workflows based on results you collect in ChemLab practicals.'
+          : 'Run 14 interactive Cambridge AS & A Level Chemistry practicals, follow a 19-unit guide and practise marked exam-style work.'
+    const descriptionMeta = document.querySelector('meta[name="description"]')
+    if (descriptionMeta && description) descriptionMeta.content = description
+    let robots = document.querySelector('meta[name="robots"]')
+    if (!robots) {
+      robots = document.createElement('meta')
+      robots.name = 'robots'
+      document.head.appendChild(robots)
+    }
+    robots.content = route.kind === 'not-found' ? 'noindex, nofollow' : 'index, follow'
+    const canonical = document.querySelector('link[rel="canonical"]')
+    if (canonical && route.kind !== 'not-found') {
+      canonical.href = `https://chemlab.tapiwa.me${window.location.pathname}`
+    }
+  }, [route])
+
+  if (route.kind === 'not-found') return <NotFound />
 
   return (
     <div className="relative w-full h-full bg-lab-bg overflow-hidden">
       {/* Ticks learner's-guide milestones from live state, everywhere */}
       <CourseTracker />
 
-      {experiment === null && (
-        <ExperimentMenu onSelect={setExperiment} />
+      {route.kind === 'landing' && (
+        <ExperimentMenu
+          onSelect={openExperiment}
+          onOpenGuide={openGuide}
+          onOpenMocks={openMocks}
+        />
       )}
-      {experiment === null && courseOpen && (
-        <CoursePanel onClose={() => setCourseOpen(false)} />
+      {route.kind === 'guide' && (
+        <CoursePanel onClose={goHome} onNavigateExperiment={openExperiment} />
+      )}
+      {route.kind === 'mocks' && (
+        <MockLibrary onBack={goHome} onOpenExperiment={openExperiment} />
       )}
 
       {experiment === 'titration' && (
@@ -49,7 +109,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="titration" quality={quality} />
           </Suspense>
-          <TitrationUI onBack={() => setExperiment(null)} />
+          <TitrationUI onBack={goHome} />
           <GuideCoach experiment="titration" />
           {showTitrationCalc && <CalcSheet experiment="titration" onClose={() => setShowTitrationCalc(false)} />}
         </>
@@ -60,7 +120,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="clock" quality={quality} />
           </Suspense>
-          <ClockUI onBack={() => setExperiment(null)} />
+          <ClockUI onBack={goHome} />
           <GuideCoach experiment="clock" />
         </>
       )}
@@ -70,7 +130,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="qual" quality={quality} />
           </Suspense>
-          <QualUI onBack={() => setExperiment(null)} />
+          <QualUI onBack={goHome} />
           <GuideCoach experiment="qual" />
         </>
       )}
@@ -79,7 +139,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="organic" quality={quality} />
           </Suspense>
-          <OrganicUI onBack={() => setExperiment(null)} />
+          <OrganicUI onBack={goHome} />
           <GuideCoach experiment="organic" />
         </>
       )}
@@ -88,7 +148,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="electro" quality={quality} />
           </Suspense>
-          <ElectroUI onBack={() => setExperiment(null)} />
+          <ElectroUI onBack={goHome} />
           <GuideCoach experiment="electro" />
         </>
       )}
@@ -97,7 +157,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="chroma" quality={quality} />
           </Suspense>
-          <ChromaUI onBack={() => setExperiment(null)} />
+          <ChromaUI onBack={goHome} />
           <GuideCoach experiment="chroma" />
         </>
       )}
@@ -106,7 +166,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="flame" quality={quality} />
           </Suspense>
-          <FlameUI onBack={() => setExperiment(null)} />
+          <FlameUI onBack={goHome} />
           <GuideCoach experiment="flame" />
         </>
       )}
@@ -115,7 +175,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="distill" quality={quality} />
           </Suspense>
-          <DistillUI onBack={() => setExperiment(null)} />
+          <DistillUI onBack={goHome} />
           <GuideCoach experiment="distill" />
         </>
       )}
@@ -124,7 +184,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="solubility" quality={quality} />
           </Suspense>
-          <SolubilityUI onBack={() => setExperiment(null)} />
+          <SolubilityUI onBack={goHome} />
           <GuideCoach experiment="solubility" />
         </>
       )}
@@ -133,7 +193,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="peroxide" quality={quality} />
           </Suspense>
-          <PeroxideUI onBack={() => setExperiment(null)} />
+          <PeroxideUI onBack={goHome} />
           <GuideCoach experiment="peroxide" />
         </>
       )}
@@ -143,7 +203,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="iodine-rate" quality={quality} />
           </Suspense>
-          <IodineRateUI onBack={() => setExperiment(null)} />
+          <IodineRateUI onBack={goHome} />
           <GuideCoach experiment="iodine-rate" />
         </>
       )}
@@ -153,7 +213,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="grav" quality={quality} />
           </Suspense>
-          <GravUI onBack={() => setExperiment(null)} />
+          <GravUI onBack={goHome} />
           <GuideCoach experiment="grav" />
         </>
       )}
@@ -163,7 +223,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="gas" quality={quality} />
           </Suspense>
-          <GasUI onBack={() => setExperiment(null)} />
+          <GasUI onBack={goHome} />
           <GuideCoach experiment="gas" />
         </>
       )}
@@ -173,7 +233,7 @@ export default function App() {
           <Suspense fallback={<LoadingScreen />}>
             <LabViewport experiment="enthalpy" quality={quality} />
           </Suspense>
-          <EnthalpyUI onBack={() => setExperiment(null)} />
+          <EnthalpyUI onBack={goHome} />
           <GuideCoach experiment="enthalpy" />
         </>
       )}

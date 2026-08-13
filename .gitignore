@@ -32,3 +32,10 @@ dist-ssr
 shots/
 test-results/
 __pycache__/
+.harness-evidence/
+.generated/
+/.static-routes/
+/static-routes/
+/guide/
+/mocks/
+/practical/

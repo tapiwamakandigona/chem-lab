@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
+import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { GlassMaterial, LiquidMaterial } from './glassware.jsx'
+import { LAB_FONT } from '../../lib/labFont.js'
 
 /**
  * Set-dressing props + grounding helpers (F5 look pass).
@@ -33,7 +35,15 @@ export function BlobShadow({ r = 0.09, opacity = 0.32, y = 0.0008 }) {
 }
 
 /** Reagent bottle: body + shoulder + cap + paper label. */
-export function ReagentBottle({ h = 0.16, r = 0.035, body = '#8a5a1f', cap = '#111418', label = true, opacity = 1 }) {
+export function ReagentBottle({
+  h = 0.16,
+  r = 0.035,
+  body = '#8a5a1f',
+  cap = '#111418',
+  label = true,
+  labelText = '',
+  opacity = 1,
+}) {
   return (
     <group>
       <mesh position={[0, h * 0.42, 0]} castShadow>
@@ -49,21 +59,40 @@ export function ReagentBottle({ h = 0.16, r = 0.035, body = '#8a5a1f', cap = '#1
         <meshStandardMaterial color={cap} roughness={0.5} />
       </mesh>
       {label && (
-        <mesh position={[0, h * 0.42, r * 0.99]} rotation={[0, 0, 0]}>
-          <planeGeometry args={[r * 1.35, h * 0.4]} />
-          <meshStandardMaterial color="#f2f0e8" roughness={0.9} />
-        </mesh>
+        <group position={[0, h * 0.42, r * 0.99]}>
+          <mesh>
+            <planeGeometry args={[r * 1.55, h * 0.44]} />
+            <meshStandardMaterial color="#f2f0e8" roughness={0.9} />
+          </mesh>
+          {labelText && (
+            <Text
+              font={LAB_FONT}
+              position={[0, 0, 0.001]}
+              fontSize={Math.min(r * 0.34, h * 0.07)}
+              color="#27313a"
+              anchorX="center"
+              anchorY="middle"
+            >
+              {labelText}
+            </Text>
+          )}
+        </group>
       )}
     </group>
   )
 }
 
 const SHELF_BOTTLES = [
-  { body: '#7a4d15', h: 0.17 }, { body: '#cfe3ee', h: 0.13, opacity: 0.55 },
-  { body: '#274a68', h: 0.19 }, { body: '#7a4d15', h: 0.14 },
-  { body: '#4d6e3a', h: 0.16 }, { body: '#cfe3ee', h: 0.18, opacity: 0.55 },
-  { body: '#7a4d15', h: 0.2 }, { body: '#8b3a3a', h: 0.13 },
-  { body: '#cfe3ee', h: 0.15, opacity: 0.55 }, { body: '#274a68', h: 0.14 },
+  { body: '#7a4d15', h: 0.17, labelText: 'HCl' },
+  { body: '#cfe3ee', h: 0.13, opacity: 0.55, labelText: 'NaOH' },
+  { body: '#274a68', h: 0.19, labelText: 'CuSO₄' },
+  { body: '#7a4d15', h: 0.14, labelText: 'HNO₃' },
+  { body: '#4d6e3a', h: 0.16, labelText: 'Fe²⁺' },
+  { body: '#cfe3ee', h: 0.18, opacity: 0.55, labelText: 'NH₃' },
+  { body: '#7a4d15', h: 0.2, labelText: 'I₂' },
+  { body: '#8b3a3a', h: 0.13, labelText: 'KMnO₄' },
+  { body: '#cfe3ee', h: 0.15, opacity: 0.55, labelText: 'AgNO₃' },
+  { body: '#274a68', h: 0.14, labelText: 'CoCl₂' },
 ]
 
 /** Wall shelf with a row of reagent bottles. width along x. */

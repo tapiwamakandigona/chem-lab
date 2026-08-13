@@ -16,8 +16,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 
 GATES = [
-    "landing",
-    "shell",
+    "landing", "routes", "webgl",
+    "shell", "progress", "setup",
     "titrate", "clock", "enthalpy", "offline", "meniscus", "meniscus_mobile",
     "pour", "tip", "tap", "graph", "cooling", "read", "guided", "mock",
     "qual", "mock2", "course", "grav", "gfx", "gas", "organic", "electro",
@@ -28,7 +28,7 @@ GATES = [
 # canonical serial list. CI gives each shard its own runner, cutting the
 # SwiftShader wall-clock without changing any chemistry/product assertion.
 CI_SHARDS = {
-    "core": ["landing", "shell", "titrate", "clock", "enthalpy", "offline", "meniscus", "meniscus_mobile"],
+    "core": ["landing", "routes", "webgl", "shell", "progress", "setup", "titrate", "clock", "enthalpy", "offline", "meniscus", "meniscus_mobile"],
     "interaction": ["pour", "tip", "tap", "graph", "cooling", "read", "guided"],
     # Slow SwiftShader simulations are split so no healthy shard approaches
     # the Actions 75-minute job cap. The canonical flattened order remains
