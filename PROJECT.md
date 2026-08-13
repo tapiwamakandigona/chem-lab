@@ -135,3 +135,23 @@ Accepted, new backlog (do after deploy is green):
 Explicitly out of scope for the build loop (business decisions for Tapiwa):
 naming/brand beyond ZW, pricing/licensing, analytics choice, demand-test
 kill gate, NGO/press outreach. Documented so the loop stops re-deciding them.
+
+## Standing decision (2026-08-13): classroom / teacher tier
+Owner approved building a teacher-class tier. Architecture decisions, made to protect the
+two properties that make the product work (offline-first, no learner account):
+
+1. **Driver interface, not a hard Appwrite dependency.** `src/lib/classroom.js` defines the
+   operations (createClass, listClasses, publishAssignment, joinClass, fetchAssignment,
+   submitResults, listSubmissions) and takes a driver. `localDriver` persists to
+   localStorage with zero network — this is what the probe gates run against, so classroom
+   gates stay deterministic and offline. `appwriteDriver` talks to Appwrite for real use.
+2. **Learners stay accountless and pseudonymous.** Joining a class needs a 6-character code
+   and a learner-chosen alias — never an email, never a real name. Schools deal with minors;
+   collecting identity would be a liability and would break the offline-first promise.
+   Submission payload is the existing `chemlab-progress` export format (already versioned).
+3. **Assignments are cacheable data, not live sessions.** Fetch the assignment once, complete
+   it offline, submit when a connection exists. Nothing about doing a practical requires
+   the network.
+4. **Teacher accounts are the only real accounts** (Appwrite Auth, email + password, verified).
+   Blocked pending an Appwrite API key with `databases.*` + `users.read` scopes; the current
+   key is deploy-scoped only.
