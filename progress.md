@@ -558,3 +558,11 @@ Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js
 - Fix (no check weakening): webgl.py re-dispatches contextlost every 5 s until
   the fallback mounts (cap 3× gate timeout). Same assertion. VERIFIED locally:
   4/4 PASS, GATE PASS against frozen iter48 dist; manifest MANIFEST-OK.
+
+## iter-51 (2026-08-13) — CI green on gates; deploy smoke-check curl bug; F22 flipped
+- CI run 31698222725 (dc552e4): build + ALL 7 gate shards SUCCESS — pour (iter-49) and webgl (iter-50) flake fixes VERIFIED effective on GitHub runners. [VERIFIED: jobs API]
+- deploy job: Appwrite push SUCCEEDED (attempt=1 live=local=main-CR6-CUdt.js) but job marked failure: post-deploy smoke grep on /practical/titration used curl without -L; Appwrite 301-redirects extensionless routes to trailing-slash, so grep saw an empty redirect body. Product + deploy fine; check bug only. [VERIFIED: job logs + curl -I shows 301 -> /practical/titration/ -> 200 with correct title]
+- Fix: ci.yml Verify-live step now uses curl --location for the route check (comment explains why). No assertion weakened. actionlint OK.
+- Independent live verification: live main-CR6-CUdt.js sha256 == frozen iter48 manifest (52fc3417…44be3); live root byte-identical to dist/index.html; no 3D preload on root; /guide, /mocks, /practical/titration, /practical/iodine-rate correct after redirect; sitemap 17 URLs; robots OK. Disclaimer + soft-404 noindex are client-rendered — present in live bundle, DOM-asserted by the 34/34 gates. [VERIFIED: command output]
+- F22 flipped true with evidence. features.json now 36/37; only F5 (AAA scene look) remains false.
+- PRODUCTION IS NOW ITER-48 (previous live baseline was 2964486/iter-44).

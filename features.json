@@ -157,8 +157,8 @@
       "id": "F22",
       "name": "GitHub Actions CI \u2014 build + every registered probe gate + auto-deploy on green",
       "criteria": "Push to main triggers workflow: npm build, Playwright chromium (swiftshader) runs tests/run_gates.py (every gate registered in its GATES list, currently 30, with env-overridable DIST/SHOTS), shots uploaded as artifacts; deploy job runs tools/deploy.py from repo secrets only after gates pass and verifies live bundle hash matches dist. Local sandbox gates keep working unchanged (defaults preserved).",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "CI run 31698222725 (commit dc552e4): build + all 7 gate shards success; deploy job's Appwrite push succeeded (attempt=1 live=local=main-CR6-CUdt.js); post-deploy smoke grep failed only because curl lacked -L for Appwrite's 301 trailing-slash redirect (fixed in ci.yml). Independent live verification 2026-08-13: live main-CR6-CUdt.js sha256 52fc3417...44be3 matches frozen iter48 manifest; live root HTML byte-identical to frozen dist/index.html; no 3D preload on root; /guide, /mocks, /practical/titration, /practical/iodine-rate serve correct route HTML after redirect; sitemap 17 URLs incl. iodine-rate; robots declares sitemap; disclaimer + noindex confirmed present in live bundle (client-rendered, DOM-asserted by gates 34/34)."
     },
     {
       "id": "F23",

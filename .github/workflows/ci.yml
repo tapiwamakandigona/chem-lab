@@ -159,7 +159,9 @@ jobs:
             if [ "$local_hash" = "$live_hash" ]; then
               printf '%s' "$live_html" | grep -q '14 interactive Cambridge'
               ! printf '%s' "$live_html" | grep -Eq 'vendor-r3f|vendor-three|LabViewport-'
-              curl --fail --silent --show-error https://chemlab.tapiwa.me/practical/titration |
+              # --location: Appwrite 301-redirects extensionless routes to the
+              # trailing-slash directory URL; follow it to reach the route HTML.
+              curl --fail --silent --show-error --location https://chemlab.tapiwa.me/practical/titration |
                 grep -q 'Acid-Base &amp; Redox Titration — ChemLab ZW'
               curl --fail --silent --show-error https://chemlab.tapiwa.me/robots.txt |
                 grep -q 'Sitemap: https://chemlab.tapiwa.me/sitemap.xml'
