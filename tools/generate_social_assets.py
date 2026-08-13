@@ -44,8 +44,10 @@ draw.ellipse((670, -185, 1270, 415), outline="#10334b", width=2)
 draw.ellipse((735, -120, 1205, 350), outline="#0d2b42", width=1)
 
 flask(draw, 57, 48, 0.65)
-draw.text((102, 46), "ChemLab", font=font(FONT, 27), fill=INK)
-draw.text((228, 46), "ZW", font=font(FONT, 27), fill=CYAN)
+# Two-tone wordmark: "Chem" in ink, "Lab" in cyan (the ZW suffix was dropped
+# when the product was renamed, so the accent moved onto "Lab").
+draw.text((102, 46), "Chem", font=font(FONT, 27), fill=INK)
+draw.text((172, 46), "Lab", font=font(FONT, 27), fill=CYAN)
 
 draw.ellipse((61, 140, 71, 150), fill=GREEN)
 draw.text((83, 134), "FREE  ·  NO ACCOUNT NEEDED", font=font(MONO, 13), fill="#7dd3fc")

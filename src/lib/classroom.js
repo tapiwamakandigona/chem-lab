@@ -75,9 +75,14 @@ export function joinCodeError(raw) {
  */
 export function sanitiseAlias(raw) {
   const alias = String(raw ?? '')
+    // Tab and newline are control characters too, so collapse whitespace FIRST;
+    // stripping controls first turned 'Rue\tKuda' into 'RueKuda' (gate caught it).
+    .replace(/\s+/g, ' ')
+    // Then strip the whole C0 range plus DEL — an alias lands in a CSV export.
+    // This must be a RANGE: [-...] is a set containing a literal hyphen, which
+    // silently deleted hyphens from names like Ana-Maria.
     // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f]/g, '')
-    .replace(/\s+/g, ' ')
     .trim()
     .slice(0, ALIAS_MAX)
   return alias
@@ -150,7 +155,7 @@ export function summariseSubmission(payload, assignmentItems = []) {
   const mocks = backup.mockResults ?? {}
   let marks = 0
   let available = 0
-  for (const [paperId, result] of Object.entries(mocks)) {
+  for (const result of Object.values(mocks)) {
     marks += result.score
     available += result.total
   }

@@ -64,6 +64,12 @@ out.errValid = joinCodeError(codes[0].toLowerCase())
 out.aliasTrim = sanitiseAlias('   Tapiwa    M   ')
 out.aliasLong = sanitiseAlias('x'.repeat(80)).length
 out.aliasControl = sanitiseAlias('Ta\u0000pi\u001fwa')
+// Names legitimately contain hyphens and apostrophes; the control-char strip
+// must not eat them, and tabs must collapse like any other whitespace.
+out.aliasHyphen = sanitiseAlias('Ana-Maria')
+out.aliasApostrophe = sanitiseAlias("N'anga")
+out.aliasTab = sanitiseAlias('Rue\tKuda')
+out.aliasNul = sanitiseAlias('A\u0000B')
 out.aliasEmail = aliasError('kid@school.com')
 out.aliasShort = aliasError('a')
 out.aliasOk = aliasError('Rue')
@@ -199,6 +205,10 @@ def main():
     check("alias whitespace collapses", r["aliasTrim"] == "Tapiwa M", r["aliasTrim"])
     check("alias length capped", r["aliasLong"] == 24, r["aliasLong"])
     check("alias strips control characters", r["aliasControl"] == "Tapiwa", r["aliasControl"])
+    check("alias keeps hyphens", r["aliasHyphen"] == "Ana-Maria", r["aliasHyphen"])
+    check("alias keeps apostrophes", r["aliasApostrophe"] == "N'anga", r["aliasApostrophe"])
+    check("alias collapses tabs to a space", r["aliasTab"] == "Rue Kuda", r["aliasTab"])
+    check("alias strips NUL", r["aliasNul"] == "AB", repr(r["aliasNul"]))
     check("email address refused as alias", isinstance(r["aliasEmail"], str), r["aliasEmail"])
     check("one-character alias refused", isinstance(r["aliasShort"], str))
     check("normal alias accepted", r["aliasOk"] is None, r["aliasOk"])

@@ -37,10 +37,10 @@ PRACTICALS = [
 ]
 
 ROUTES = [
-    ("/guide", "Learner’s Guide — ChemLab ZW", "Follow a 19-milestone learn-by-doing route through Cambridge 9701 practical chemistry skills."),
-    ("/mocks", "Marked Mock Papers — ChemLab ZW", "Open three marked chemistry mock-paper workflows based on results you collect in ChemLab practicals."),
+    ("/guide", "Learner’s Guide — ChemLab", "Follow a 19-milestone learn-by-doing route through Cambridge 9701 practical chemistry skills."),
+    ("/mocks", "Marked Mock Papers — ChemLab", "Open three marked chemistry mock-paper workflows based on results you collect in ChemLab practicals."),
     *[
-        (f"/practical/{slug}", f"{title} — ChemLab ZW", description)
+        (f"/practical/{slug}", f"{title} — ChemLab", description)
         for slug, title, description in PRACTICALS
     ],
 ]
@@ -84,13 +84,13 @@ def route_html(base: str, route: str, title: str, description: str) -> str:
     schema = {
         "@context": "https://schema.org",
         "@type": "LearningResource",
-        "name": title.replace(" — ChemLab ZW", ""),
+        "name": title.replace(" — ChemLab", ""),
         "url": canonical,
         "description": description,
         "educationalLevel": "Cambridge International AS & A Level",
         "learningResourceType": "Interactive simulation" if route.startswith("/practical/") else "Study guide",
         "isAccessibleForFree": True,
-        "provider": {"@type": "Organization", "name": "ChemLab ZW"},
+        "provider": {"@type": "Organization", "name": "ChemLab"},
     }
     schema_tag = f'<script type="application/ld+json">{json.dumps(schema, ensure_ascii=False)}</script>'
     return page.replace("</head>", f"    {schema_tag}\n  </head>", 1)

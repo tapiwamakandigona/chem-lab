@@ -183,5 +183,3 @@ export default function PracticalIcon({ id, className }) {
     </svg>
   )
 }
-
-export const PRACTICAL_ICON_IDS = Object.keys(ICONS)

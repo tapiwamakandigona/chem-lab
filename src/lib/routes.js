@@ -20,12 +20,12 @@ export const EXPERIMENT_IDS = PRACTICAL_META.map(({ id }) => id)
 export const STATIC_ROUTE_META = [
   {
     path: '/guide',
-    title: 'Learner’s Guide — ChemLab ZW',
+    title: 'Learner’s Guide — ChemLab',
     description: 'Follow a 19-milestone learn-by-doing route through Cambridge 9701 practical chemistry skills.',
   },
   {
     path: '/mocks',
-    title: 'Marked Mock Papers — ChemLab ZW',
+    title: 'Marked Mock Papers — ChemLab',
     description: 'Open three marked chemistry mock-paper workflows based on results you collect in ChemLab practicals.',
   },
 ]

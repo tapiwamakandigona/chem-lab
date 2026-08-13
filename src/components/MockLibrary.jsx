@@ -5,7 +5,7 @@ export default function MockLibrary({ onBack, onOpenExperiment }) {
     <main className="route-page" data-testid="mocks-page">
       <header className="route-page__bar">
         <button type="button" onClick={onBack}>← Lab home</button>
-        <span className="route-page__brand">ChemLab ZW</span>
+        <span className="route-page__brand">ChemLab</span>
         <span className="route-page__code">9701 · MOCKS</span>
       </header>
       <div className="route-page__shell">

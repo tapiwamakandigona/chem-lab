@@ -164,7 +164,7 @@ const HOW_IT_WORKS = [
 
 const FAQS = [
   {
-    q: 'Is ChemLab ZW free?',
+    q: 'Is ChemLab free?',
     a: 'Yes. You can start every practical and the full Learner’s Guide without payment or an account.',
   },
   {
@@ -177,7 +177,7 @@ const FAQS = [
   },
   {
     q: 'Does Cambridge International operate or endorse ChemLab?',
-    a: 'No. ChemLab ZW is an independent learning tool. “Cambridge 9701” describes the syllabus context; Cambridge International does not endorse or operate this site.',
+    a: 'No. ChemLab is an independent learning tool. “Cambridge 9701” describes the syllabus context; Cambridge International does not endorse or operate this site.',
   },
   {
     q: 'Does a simulation replace the real laboratory?',
@@ -237,9 +237,9 @@ export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
       <a className="skip-link" href="#main-content">Skip to content</a>
 
       <header className="site-header" data-testid="site-header">
-        <a className="wordmark" href="#top" aria-label="ChemLab ZW home">
+        <a className="wordmark" href="#top" aria-label="ChemLab home">
           <FlaskMark small />
-          <span>ChemLab <b>ZW</b></span>
+          <span>Chem<b>Lab</b></span>
         </a>
 
         <button
@@ -630,7 +630,7 @@ export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
           <div>
             <a className="wordmark" href="#top">
               <FlaskMark small />
-              <span>ChemLab <b>ZW</b></span>
+              <span>Chem<b>Lab</b></span>
             </a>
             <p>Cambridge 9701 practicals—in your browser.</p>
           </div>
@@ -648,10 +648,10 @@ export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
         </div>
         <div className="landing-shell footer-legal">
           <p>
-            ChemLab ZW is an independent learning tool. Cambridge International
+            ChemLab is an independent learning tool. Cambridge International
             is not affiliated with or responsible for this site.
           </p>
-          <p>© 2026 ChemLab ZW · Built in Zimbabwe · <a href="mailto:tapiwamakandigoner@gmail.com">Contact</a></p>
+          <p>© 2026 ChemLab · Built in Zimbabwe · <a href="mailto:tapiwamakandigoner@gmail.com">Contact</a></p>
         </div>
       </footer>
     </div>

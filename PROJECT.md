@@ -1,8 +1,8 @@
-# PROJECT.md — ChemLab ZW gauntlet
+# PROJECT.md — ChemLab gauntlet
 
 ## Goal
 
-ChemLab ZW at the level of PhET (interaction clarity) and Labster (3D
+ChemLab at the level of PhET (interaction clarity) and Labster (3D
 fidelity): a virtual Cambridge AS/A-Level (9701) Paper 3 practical lab that a
 Zimbabwean student on a cheap phone with bad connectivity can open in a
 browser and actually *do* the practicals in — apparatus that looks real,
@@ -133,7 +133,7 @@ Accepted, new backlog (do after deploy is green):
   clamps, liquids, materials, lighting and motion across multiple angles.
 
 Explicitly out of scope for the build loop (business decisions for Tapiwa):
-naming/brand beyond ZW, pricing/licensing, analytics choice, demand-test
+pricing/licensing, analytics choice, demand-test
 kill gate, NGO/press outreach. Documented so the loop stops re-deciding them.
 
 ## Standing decision (2026-08-13): classroom / teacher tier
@@ -155,3 +155,10 @@ two properties that make the product work (offline-first, no learner account):
 4. **Teacher accounts are the only real accounts** (Appwrite Auth, email + password, verified).
    Blocked pending an Appwrite API key with `databases.*` + `users.read` scopes; the current
    key is deploy-scoped only.
+
+## Standing decision (2026-08-13): product name is "ChemLab"
+Owner directive: "just name it Chemlab". The `ZW` suffix is dropped everywhere — titles, meta,
+PWA manifest, disclaimer, social cards, boot screen, README. The wordmark keeps its two-tone
+identity by moving the cyan accent from `ZW` onto `Lab`: Chem**Lab**. Gate assertions on the old
+copy were updated in the same commit (an owner-directed spec change, not a weakened check).
+Domain stays chemlab.tapiwa.me, which now matches the name exactly.

@@ -148,7 +148,7 @@ with sync_playwright() as p:
           meta["canonical"] == "https://chemlab.tapiwa.me/"
           and meta["ogImage"] == "https://chemlab.tapiwa.me/og.png"
           and meta["ogWidth"] == "1200" and meta["ogHeight"] == "630"
-          and "ChemLab ZW" in meta["ogAlt"], str(meta))
+          and "ChemLab" in meta["ogAlt"], str(meta))
     check("browser zoom is not disabled",
           "user-scalable=no" not in meta["viewport"]
           and "maximum-scale=1" not in meta["viewport"], meta["viewport"])

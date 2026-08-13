@@ -1,4 +1,4 @@
-# ChemLab ZW ⚗️
+# ChemLab ⚗️
 
 **Live: [chemlab.tapiwa.me](https://chemlab.tapiwa.me/)**
 

@@ -93,7 +93,7 @@ with sync_playwright() as p:
     check("static host serves SPA fallback", response is not None and response.status == 200)
     page.wait_for_selector('[data-testid="not-found"]')
     check("unknown path renders 404 state", "This bench is empty." in page.locator("body").inner_text())
-    check("unknown path title is explicit", page.title() == "Page not found — ChemLab ZW", page.title())
+    check("unknown path title is explicit", page.title() == "Page not found — ChemLab", page.title())
     robots = page.locator('meta[name="robots"]').get_attribute("content")
     check("unknown path is noindex", robots == "noindex, nofollow", str(robots))
     check(

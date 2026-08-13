@@ -141,7 +141,7 @@ check("sitemap has root, guide, mocks and 14 practicals", sitemap.count("<loc>")
 check("sitemap lists every practical",
       all(f"<loc>https://chemlab.tapiwa.me/practical/{p}</loc>" in sitemap for p in practicals))
 check("static route HTML carries specific metadata",
-      "Acid-Base &amp; Redox Titration — ChemLab ZW"
+      "Acid-Base &amp; Redox Titration — ChemLab"
       in Path(DIST, "practical", "titration", "index.html").read_text())
 
 httpd.shutdown()

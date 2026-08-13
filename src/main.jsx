@@ -5,7 +5,7 @@ import { parseRoute } from './lib/routes.js'
 import './index.css'
 
 if (parseRoute().kind === 'not-found') {
-  document.title = 'Page not found — ChemLab ZW'
+  document.title = 'Page not found — ChemLab'
   let robots = document.querySelector('meta[name="robots"]')
   if (!robots) {
     robots = document.createElement('meta')

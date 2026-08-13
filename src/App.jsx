@@ -52,14 +52,14 @@ export default function App() {
   useEffect(() => {
     const practical = PRACTICAL_META.find(({ id }) => id === route.experiment)
     const title = route.kind === 'practical'
-      ? `${practical?.title ?? 'Chemistry Practical'} — ChemLab ZW`
+      ? `${practical?.title ?? 'Chemistry Practical'} — ChemLab`
       : route.kind === 'guide'
-        ? 'Learner’s Guide — ChemLab ZW'
+        ? 'Learner’s Guide — ChemLab'
         : route.kind === 'mocks'
-          ? 'Marked Mock Papers — ChemLab ZW'
+          ? 'Marked Mock Papers — ChemLab'
           : route.kind === 'landing'
-            ? 'ChemLab ZW — Practise Cambridge Chemistry Practicals'
-            : 'Page not found — ChemLab ZW'
+            ? 'ChemLab — Practise Cambridge Chemistry Practicals'
+            : 'Page not found — ChemLab'
     document.title = title
     const description = route.kind === 'practical'
       ? practical?.description

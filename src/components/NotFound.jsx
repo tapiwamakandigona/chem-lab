@@ -20,7 +20,7 @@ export default function NotFound() {
         </p>
         <a data-testid="not-found-home" href="/">Return to ChemLab</a>
         <small>
-          ChemLab ZW is an independent learning tool. Cambridge International
+          ChemLab is an independent learning tool. Cambridge International
           is not affiliated with or responsible for this site.
         </small>
       </section>

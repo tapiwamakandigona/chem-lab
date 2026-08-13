@@ -23,8 +23,8 @@ export default defineConfig({
         navigateFallback: '/index.html',
       },
       manifest: {
-        name: 'ChemLab ZW — Virtual Chemistry Lab',
-        short_name: 'ChemLab ZW',
+        name: 'ChemLab — Virtual Chemistry Lab',
+        short_name: 'ChemLab',
         description:
           'Cambridge AS/A Level Chemistry (9701) virtual lab — fourteen interactive practicals and a 19-unit course that work fully offline.',
         theme_color: '#0f172a',
