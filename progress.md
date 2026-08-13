@@ -663,3 +663,35 @@ the tree with `git ls-files <path>` — `git add -A` + ignore rules fail silentl
 Live-bundle diffing (normalise chunk hashes, then compare) is now a standing
 verification step; it found a real production defect the gates could not see,
 because gates run against the local dist.
+
+## Harness switch (owner instruction, 2026-08-13 23:50)
+
+Owner: "can you use this as your harness forget everything else —
+github.com/ukanwat/aaabench". Repo cloned and read (HARNESS-RULES.md, PROMPT.md,
+README). It is an Unreal open-world benchmark, but its operating method transfers
+whole: the relentless build → test → LOOK → fix-the-rule loop, the stranger's
+three-second tells, the sacred append-only progress log whose known-problems list
+only shrinks when something is actually fixed, and "never stop and wait — nobody
+is coming".
+
+Adopted as: HARNESS.md (method) + DEMAND.md (the standard and definition of
+failure) in the repo root. Execution constraints that are the owner's own standing
+rules (single agent/no subagents, credentials outside the repo, halt after 2
+no-diff iterations, escalate only for destructive/spend/credentials/ambiguity)
+are kept — the switch replaces the method docs, not his rules. One open question
+flagged to him: aaabench itself prescribes fresh-eyes subagent reviewers, which
+his standing setup forbids; keeping single-agent until he says otherwise.
+
+## Known problems (append-only ledger; shrink only by fixing)
+
+- OPEN F5: lab scene does not survive a stranger's three-second look (AAA bar).
+  Next: tell-hunt with fresh screenshots — wide, close-up, phone-size, all quality
+  tiers.
+- OPEN: analytics decision (owner's call; never silently enable).
+- OPEN: pricing/licensing for teacher tier; demand testing; NGO outreach; press.
+- OPEN (accepted tradeoff): classes/assignments collections are any-readable so
+  accountless learners can resolve codes → enumerable. Fix when it matters: an
+  Appwrite Function mediating code lookup.
+- FIXED 2026-08-13: .env.production missing from tree (.gitignore .env.*), CI
+  shipped /teach with no backend. Live re-verified after 31743744870: live main
+  bundle byte-identical to frozen dist, ClassJoin chunk carries the project id.
