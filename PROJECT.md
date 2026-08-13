@@ -162,3 +162,21 @@ PWA manifest, disclaimer, social cards, boot screen, README. The wordmark keeps 
 identity by moving the cyan accent from `ZW` onto `Lab`: Chem**Lab**. Gate assertions on the old
 copy were updated in the same commit (an owner-directed spec change, not a weakened check).
 Domain stays chemlab.tapiwa.me, which now matches the name exactly.
+
+## Standing decision (2026-08-13): classroom tier is live on Appwrite
+Backend provisioned and verified: database `chemlab`, collections `classes`, `assignments`,
+`submissions`, unique index on join codes. Provision with `tools/provision_appwrite.py`
+(idempotent). Two keys exist on purpose — the original deploy key and a separate 12-scope data
+key — so a data-key mistake cannot break deploys. Web platforms registered for
+`chemlab.tapiwa.me` and `localhost`.
+
+Client config in `.env.production` (endpoint + project id) is public by design; the server key
+never reaches the browser. Driver selection is a runtime decision so the shipped bundle is the
+bundle the gates exercise: `localStorage['chemlab-driver'] = 'local'` forces the offline driver.
+
+Owner's teacher/admin account exists and is email-verified (Appwrite user
+`6a7e0b740a04269e8642`, `tapiwamakandigoner@gmail.com`); the password is in the sandbox secrets
+file, not in this repo.
+
+Open owner decisions unchanged: analytics (never silently enabled), pricing/licensing for the
+teacher tier, demand testing, NGO outreach, press.
