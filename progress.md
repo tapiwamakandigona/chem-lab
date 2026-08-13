@@ -408,3 +408,45 @@ Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js
   The final 25-file build manifest remained byte-identical across the gate.
 - Ready to commit/push. F22 remains false until the fresh 7-shard workflow,
   Appwrite deploy and live bundle/count/robots/sitemap/disclaimer checks pass.
+
+## iter-44 (2026-08-12) — resilient first paint + explicit soft 404
+- Added a zero-JavaScript HTML first paint using only ChemLab brand tokens:
+  accessible live status, flask mark, progress treatment and truthful copy
+  ("About 1 MB compressed"). CI independently gzips every dist file and fails
+  above 1.1 MB; current rebuilt dist is 979800 bytes.
+- Added a deliberate unknown-route surface with `noindex, nofollow`, explicit
+  page title, canonical-root return action and independent-Cambridge
+  disclaimer. It stays inside 390x844 and uses a 48 px primary target.
+- Registered the new `shell` gate (canonical total 30): JavaScript-disabled
+  phone first paint, static-host SPA fallback, title/meta, desktop + phone fit,
+  disclaimer/return behavior. VERIFIED 1/1 PASS on
+  `assets/index-DmeZA8-k.js`; screenshots inspected from all three states.
+- F35 added and passing with this evidence. This work remains uncommitted until
+  iter-43 CI/deploy/live verification finishes, so a new push cannot cancel it.
+- Verification-command failure (no product defect): the first immutable-build
+  retry quoted `dist/index.html: FAILED open or read` because the generated
+  manifest incorrectly retained `dist/` prefixes while being checked from
+  inside that directory. Regenerated relative to `dist/` and reran once.
+- Verification-command failure (no product defect): attempted an undocumented
+  `tests/run_gates.py --validate-shards` CLI; runner correctly rejected it as
+  an unknown gate. The shard validator is importable rather than a CLI flag;
+  reran through its actual API.
+- Final iter-44 pre-commit evidence is green on one frozen build: ESLint,
+  Python compilation, actionlint, `git diff --check`, 30/30 unique canonical
+  shard coverage, 979800-byte compressed dist, immutable manifest, shell 1/1
+  twice and serial landing/offline/shell 3/3. Bundle remains
+  `assets/index-DmeZA8-k.js`.
+- Iter-43 release gate resolved independently before this release: GitHub
+  Actions run 31641582393 completed success at 2026-08-12T21:46:45Z (build,
+  all seven probe shards and deploy green). Hard live checks then matched
+  `assets/index-YfwhpEog.js`, the 14-practical/19-unit landing claim, robots
+  sitemap declaration, canonical sitemap URL and runtime independent-product
+  disclaimer. Iter-44 is therefore cleared to commit and push.
+- Release-command failure (no product defect): the frozen-build manifest had
+  expired from temporary storage before commit, so `sha256sum` could not open
+  it. Regenerated the manifest from the unchanged build, reran the focused
+  shell/landing/offline gates once, and required that new sentinel to pass.
+- Focused-gate rerun failed before opening the product (no product defect):
+  Playwright reported `Executable doesn't exist at .../chromium_headless_shell-1234`
+  because this restarted environment did not inherit the existing Chromium
+  cache location. Retried once with `PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright`.

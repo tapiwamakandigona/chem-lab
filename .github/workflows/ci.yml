@@ -41,6 +41,21 @@ jobs:
               raise SystemExit(f"unbounded evidence screenshots: {offenders}")
           PY
           npm run build
+          python - <<'PY'
+          import gzip
+          from pathlib import Path
+
+          total = sum(
+              len(gzip.compress(path.read_bytes(), compresslevel=9))
+              for path in Path("dist").rglob("*")
+              if path.is_file()
+          )
+          if total > 1_100_000:
+              raise SystemExit(
+                  f"first-visit shell exceeds honest ~1 MB claim: {total} compressed bytes"
+              )
+          print(f"compressed app shell: {total} bytes")
+          PY
 
       - name: Upload dist
         uses: actions/upload-artifact@v7

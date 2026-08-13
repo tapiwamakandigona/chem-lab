@@ -156,7 +156,7 @@
     {
       "id": "F22",
       "name": "GitHub Actions CI — build + every registered probe gate + auto-deploy on green",
-      "criteria": "Push to main triggers workflow: npm build, Playwright chromium (swiftshader) runs tests/run_gates.py (every gate registered in its GATES list, currently 29, with env-overridable DIST/SHOTS), shots uploaded as artifacts; deploy job runs tools/deploy.py from repo secrets only after gates pass and verifies live bundle hash matches dist. Local sandbox gates keep working unchanged (defaults preserved).",
+      "criteria": "Push to main triggers workflow: npm build, Playwright chromium (swiftshader) runs tests/run_gates.py (every gate registered in its GATES list, currently 30, with env-overridable DIST/SHOTS), shots uploaded as artifacts; deploy job runs tools/deploy.py from repo secrets only after gates pass and verifies live bundle hash matches dist. Local sandbox gates keep working unchanged (defaults preserved).",
       "passes": false,
       "evidence": ""
     },
@@ -243,6 +243,13 @@
       "description": "9701/34/O/N/24-aligned technique: withdraw a timed iodine–propanone sample, quench the acid catalyst with sodium hydrogencarbonate at 80 s, dilute, obtain rough plus concordant 0.05 cm3 thiosulfate titres, delay 10-drop starch until pale yellow, and calculate remaining iodine plus average rate with ECF. Models continued reaction after removal-only and a 0.60 cm3 persistent-complex endpoint lag after early starch; evidence-based 10-mark result, guide and 19th course unit.",
       "passes": true,
       "evidence": "2026-08-12 node tests/model/iodine_rate.mjs green (perfect run 10/10, ECF preserved); iodine_rate gate green on frozen build (/tmp/chemlab-iter38-iodine-final.log, 73s): removal-only keeps reacting, quench at 79.6s, early starch -> invalid rough 26.95, accurate 26.40/26.30 concordant, closed stopcock stable, 10/10 marks, guide 5/5, 19th course unit; multi-angle shots inspected (shots/iodine-rate-angles-iter38)."
+    },
+    {
+      "id": "F35",
+      "name": "Resilient first paint and explicit unknown-route handling",
+      "criteria": "Before JavaScript loads, the HTML shell shows a branded accessible loading status with an evidence-bound first-visit transfer claim. Unknown paths render an explicit responsive 404 state, add noindex/nofollow metadata, retain the independent-product disclaimer and offer a >=44 px canonical return action. CI enforces the compressed shell budget and registers the shell gate.",
+      "passes": true,
+      "evidence": "2026-08-12 tests/run_gates.py shell: 1/1 PASS on assets/index-DmeZA8-k.js — no-JS 390x844 boot card visible and in viewport; 979800-byte independently gzipped dist stays under 1.1 MB budget; unknown-route SPA fallback renders branded 404 with explicit title, noindex/nofollow, 48 px return target, canonical / href, and desktop/390x844 fit. shell-nojs-mobile.png, not-found-desktop.png and not-found-mobile.png inspected."
     }
   ]
 }

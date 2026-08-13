@@ -77,4 +77,23 @@
 - [x] Re-run every affected multi-page gate against one frozen production build.
 - [x] Run lint, Python compile, test-harness audits, model checks, and immutable-build checks.
 - [x] Commit and push only after the old CI run has yielded all remaining shard evidence.
-- [ ] Require all seven fresh CI shards, deployment, and hard live-domain verification before F22.
+- [x] Require all seven fresh CI shards, deployment, and hard live-domain verification before F22.
+
+## Iteration 44 — first-visit resilience and real unknown-route handling
+
+- [x] Add a branded, useful HTML first paint that works before JavaScript.
+- [x] Keep the transfer-size copy evidence-bound with a compressed-build budget.
+- [x] Render an explicit unknown-route view with noindex metadata and canonical return action.
+- [x] Add a dedicated no-JavaScript/soft-404 desktop+mobile gate and register it in CI.
+- [x] Verify lint/build/actionlint, shell gate, landing/offline regressions and frozen build.
+- [x] Commit and push only after the current iter-43 deployment has completed and been live-verified.
+
+## Iteration 45 — portable learner progress (queued behind iter-44 release)
+
+- [ ] Define a versioned, validated progress-backup schema without external services.
+- [ ] Export completed course milestones and best mock-paper scores as a small JSON file.
+- [ ] Import a backup by merging (never erasing) progress and rejecting malformed/unknown data safely.
+- [ ] Add accessible desktop/mobile controls, clear success/error feedback, and local-only privacy copy.
+- [ ] Persist mock-paper best scores so export/import can carry exam progress across devices.
+- [ ] Gate round-trip, merge semantics, invalid files, reload persistence and 390x844 usability.
+- [ ] Verify the affected course/mock/offline regressions against one frozen build before committing.

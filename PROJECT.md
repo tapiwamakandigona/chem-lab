@@ -98,14 +98,16 @@ Already fixed in the undeployed build (ships with next green CI):
   pitch/proof/screenshots; viewport allows pinch zoom (maximum-scale removed);
   quality auto-detect by device (store.js detectQuality) with LOW/MED/HIGH/ULTRA.
 
+Implemented in iter-44, queued behind the current release verification:
+- B1 soft-404 view: explicit branded not-found state, noindex metadata and a
+  canonical return action on unknown paths.
+- B3 HTML-shell first paint: useful branded status works before JavaScript and
+  states an evidence-bound ~1 MB compressed first visit; CI enforces the size
+  budget.
+
 Accepted, new backlog (do after deploy is green):
-- B1 soft-404: unknown paths should render a real not-found view + meta
-  noindex; keep SPA shell for known routes only.
 - B2 progress export/import: localStorage progress → export code / file and
   import on another device (shared phones are the norm, not the edge).
-- B3 loading skeleton in the HTML shell: inline critical CSS spinner +
-  "loading ChemLab (~0.5 MB first visit, then offline)" so 2G users see
-  feedback, not a white screen.
 - B4 defer three.js vendor chunk off the launcher (import behind LabViewport)
   so the menu/guide/mock papers are readable before 3D loads.
 - B5 WebGL-failure fallback message with the text practicals still usable.

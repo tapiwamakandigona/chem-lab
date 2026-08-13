@@ -19,14 +19,18 @@ import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
 import CoursePanel, { CourseTracker } from './components/CoursePanel.jsx'
+import NotFound from './components/NotFound.jsx'
 
 // three.js + scenes load only when an experiment opens — the menu paints
 // with the small react chunk even on a 2G connection.
 const LabViewport = lazy(() => import('./components/LabViewport.jsx'))
 
 export default function App() {
+  const knownPath = window.location.pathname === '/' || window.location.pathname === '/index.html'
   const { experiment, setExperiment, quality, courseOpen, setCourseOpen } = useLabStore()
   const [showTitrationCalc, setShowTitrationCalc] = useState(false)
+
+  if (!knownPath) return <NotFound />
 
   return (
     <div className="relative w-full h-full bg-lab-bg overflow-hidden">
