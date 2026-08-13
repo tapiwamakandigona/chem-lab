@@ -2536,3 +2536,16 @@ canvas { display: block; touch-action: none; }
     width: 100%;
   }
 }
+
+/* Drawn apparatus icons (PracticalIcon): sized in em so the existing
+   font-size rules on each container keep controlling scale. */
+.experiment-card__icon svg,
+.featured-icon svg,
+.outcome-icon svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+}
+
+.experiment-card__icon svg { width: 1.5em; height: 1.5em; }
+.outcome-icon svg { width: 1.36em; height: 1.36em; }

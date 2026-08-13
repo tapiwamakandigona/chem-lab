@@ -566,3 +566,27 @@ Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js
 - Independent live verification: live main-CR6-CUdt.js sha256 == frozen iter48 manifest (52fc3417…44be3); live root byte-identical to dist/index.html; no 3D preload on root; /guide, /mocks, /practical/titration, /practical/iodine-rate correct after redirect; sitemap 17 URLs; robots OK. Disclaimer + soft-404 noindex are client-rendered — present in live bundle, DOM-asserted by the 34/34 gates. [VERIFIED: command output]
 - F22 flipped true with evidence. features.json now 36/37; only F5 (AAA scene look) remains false.
 - PRODUCTION IS NOW ITER-48 (previous live baseline was 2964486/iter-44).
+
+## iter-52 (2026-08-13) — drawn apparatus icon set replaces unicode text glyphs
+- Review item "text-glyph library icons" closed. New src/components/PracticalIcon.jsx: 17 hand-drawn
+  inline-SVG line icons (14 practicals + 3 landing outcome icons), viewBox 24, stroke 1.5, sized in em
+  so the existing font-size cascade (19px card, 30px featured, 120px watermark, mobile overrides) keeps
+  working untouched. ExperimentMenu.jsx no longer carries the `icon:` glyph field.
+- Three design passes, each verified by my own screenshot review at real render size — not assumed:
+  - v1 (24px, 1.35 stroke, dense detail): FAILED review. organic read as a magnifying glass, electro as
+    a padlock, gas syringe as a video camera, solubility as a calendar; titration/qual unresolvable.
+  - v2 (simpler, open-top vessels, 1.5 stroke, 1.5em): most icons read as glassware, but enthalpy vs qual
+    were near-identical, gas read as a battery, electro still padlock-like, chroma like a document.
+  - v3 (final): qual -> two tubes in a rack; gas -> graduated collecting tube with rising-volume arrow;
+    electro -> open cell, electrodes labelled +, no closed loop over the top; chroma -> narrow strip
+    standing in solvent; solubility -> spouted beaker + thermometer; titration -> burette with an explicit
+    stopcock circle. Set is now internally distinguishable. [VERIFIED: screenshots reviewed at 1440x1000
+    desktop grid, single-card crops, featured section, 390x844 phone]
+- DESIGN LESSON: at 25-30px, closed rounded rectangles read as UI chrome (padlock/calendar/battery);
+  open-top silhouettes read as glassware. Fewer, bolder strokes beat accurate detail.
+- Probe-harness fix: /work/temp/icon_shot.py now polls for port 8797 instead of sleeping 1.5s (a killed
+  previous run had left the port unavailable and the screenshot pass died on ERR_CONNECTION_REFUSED).
+  Same lesson as the iter-49/50 CI flakes.
+- Build OK (BUILD_EXIT=0), bundle assets/main-dQOeZbCg.js. dist frozen; manifest .harness-evidence/
+  iter52-dist.sha256 (40 files), hash 3c12cbf72aeae0e47eebdfa04a5f19a4c74b7754c16be9e3b7a72cf5e74105f8.
+- Full 34-gate suite running on the frozen build; release gated on 34/34 + manifest unchanged.

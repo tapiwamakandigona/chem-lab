@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { QUALITY, useLabStore } from '../store.js'
 import { COURSE_UNITS, courseProgressCount } from '../lib/course.js'
+import PracticalIcon from './PracticalIcon.jsx'
 
 const EXPERIMENTS = [
   {
     id: 'titration',
-    icon: '⚗',
     title: 'Acid-Base & Redox Titration',
     short: 'Titration',
     skill: 'Measure an endpoint and calculate from concordant titres.',
@@ -17,7 +17,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'clock',
-    icon: '⏱',
     title: 'Iodine Clock Reaction',
     short: 'Rates',
     skill: 'Turn reaction times into rates and read a gradient.',
@@ -29,7 +28,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'enthalpy',
-    icon: '⌁',
     title: 'Enthalpy of Solution',
     short: 'Energetics',
     skill: 'Correct a cooling curve and calculate ΔH.',
@@ -41,7 +39,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'qual',
-    icon: '⌬',
     title: 'Qualitative Analysis',
     short: 'Ion tests',
     skill: 'Identify unknown ions from your own observations.',
@@ -53,7 +50,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'grav',
-    icon: '△',
     title: 'Water of Crystallisation',
     short: 'Gravimetry',
     skill: 'Heat to constant mass and determine x.',
@@ -63,7 +59,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'gas',
-    icon: '◌',
     title: 'Molar Gas Volume',
     short: 'Gas collection',
     skill: 'Read a gas syringe and calculate percentage purity.',
@@ -73,7 +68,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'organic',
-    icon: '⬡',
     title: 'Organic Analysis',
     short: 'Organic tests',
     skill: 'Deduce a functional group with deciding tests.',
@@ -83,7 +77,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'electro',
-    icon: '±',
     title: 'Electrochemical Cells',
     short: 'E° cells',
     skill: 'Wire half-cells and identify an unknown metal.',
@@ -93,7 +86,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'chroma',
-    icon: '⋮',
     title: 'Paper Chromatography',
     short: 'Chromatography',
     skill: 'Measure Rf values and identify a dye mixture.',
@@ -103,7 +95,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'flame',
-    icon: '♨',
     title: 'Flame Tests',
     short: 'Flame tests',
     skill: 'Control contamination and identify metal ions.',
@@ -113,7 +104,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'distill',
-    icon: '⌇',
     title: 'Simple Distillation',
     short: 'Distillation',
     skill: 'Set up cooling flow and collect pure distillate.',
@@ -123,7 +113,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'solubility',
-    icon: '✣',
     title: 'Solubility & Crystallisation',
     short: 'Solubility',
     skill: 'Detect saturation and build a solubility curve.',
@@ -133,7 +122,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'peroxide',
-    icon: '◉',
     title: 'Catalytic Decomposition Kinetics',
     short: 'Kinetics',
     skill: 'Compare complete O₂ curves and initial gradients.',
@@ -145,7 +133,6 @@ const EXPERIMENTS = [
   },
   {
     id: 'iodine-rate',
-    icon: '◒',
     title: 'Iodine–Propanone Rate Titration',
     short: 'Timed titration',
     skill: 'Quench a timed sample and calculate rate from residual iodine.',
@@ -389,17 +376,17 @@ export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
 
           <div className="landing-shell outcome-grid">
             <article>
-              <span className="outcome-icon" aria-hidden="true">⌖</span>
+              <span className="outcome-icon"><PracticalIcon id="outcome-technique" /></span>
               <h3>Technique you control</h3>
               <p>Dispense, pour, heat, cool, wire and measure. The procedure responds to what you actually do.</p>
             </article>
             <article>
-              <span className="outcome-icon" aria-hidden="true">ƒ</span>
+              <span className="outcome-icon"><PracticalIcon id="outcome-results" /></span>
               <h3>Results you calculate</h3>
               <p>Your readings feed graphs, gradients, percentage purity, Rf values, ΔH and marked conclusions.</p>
             </article>
             <article>
-              <span className="outcome-icon" aria-hidden="true">✓</span>
+              <span className="outcome-icon"><PracticalIcon id="outcome-feedback" /></span>
               <h3>Feedback that uses evidence</h3>
               <p>Correct names alone are not enough. The lab checks whether your run supports the answer.</p>
             </article>
@@ -428,7 +415,7 @@ export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
                   aria-label={`Open ${exp.title}`}
                 >
                   <span className="featured-number">0{index + 1}</span>
-                  <span className="featured-icon" aria-hidden="true">{exp.icon}</span>
+                  <span className="featured-icon"><PracticalIcon id={exp.id} /></span>
                   <span className="featured-copy">
                     <small>{exp.short}</small>
                     <strong>{exp.featuredTitle}</strong>
@@ -553,7 +540,7 @@ export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
                   <span className="experiment-card__index">
                     {String(EXPERIMENTS.indexOf(exp) + 1).padStart(2, '0')}
                   </span>
-                  <span className="experiment-card__icon" aria-hidden="true">{exp.icon}</span>
+                  <span className="experiment-card__icon"><PracticalIcon id={exp.id} /></span>
                   <span className="experiment-card__body">
                     <strong>{exp.title}</strong>
                     <span>{exp.desc}</span>

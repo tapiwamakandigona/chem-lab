@@ -227,13 +227,22 @@ with sync_playwright() as p:
     }""")
     page.locator("body").evaluate("el => { el.tabIndex = -1; el.focus(); el.removeAttribute('tabindex') }")
     page.locator("body").press("Tab")
-    page.wait_for_timeout(220)
     skip = page.locator(".skip-link")
-    focus_style = skip.evaluate("""el => ({
+    # The skip link slides in with a 160ms transform transition. Poll until it
+    # has settled instead of sampling once after a fixed sleep: on a starved
+    # renderer a single 220ms sample caught it mid-flight (top -6.6px) and
+    # failed a healthy build. Same lesson as the pour/webgl CI flakes.
+    probe = """el => ({
         active: document.activeElement === el,
         outline: getComputedStyle(el).outlineStyle,
         top: el.getBoundingClientRect().top,
-    })""")
+    })"""
+    deadline = time.time() + 15
+    focus_style = skip.evaluate(probe)
+    while time.time() < deadline and not (
+            focus_style["active"] and focus_style["top"] >= 0):
+        page.wait_for_timeout(150)
+        focus_style = skip.evaluate(probe)
     check("skip link is first visible keyboard target",
           focus_style["active"] and focus_style["outline"] != "none" and focus_style["top"] >= 0,
           str(focus_style))
