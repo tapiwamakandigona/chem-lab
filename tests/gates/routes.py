@@ -137,7 +137,14 @@ with sync_playwright() as p:
     browser.close()
 
 sitemap = Path(DIST, "sitemap.xml").read_text()
-check("sitemap has root, guide, mocks and 14 practicals", sitemap.count("<loc>") == 17)
+# root + guide + mocks + teach + join + 14 practicals. Asserting the exact
+# count (not >=) is deliberate: it catches a route added to the app but forgotten
+# in the generator, which is how a deep link silently becomes a 404 for crawlers.
+check("sitemap has root, guide, mocks, teach, join and 14 practicals",
+      sitemap.count("<loc>") == 19, str(sitemap.count("<loc>")))
+check("classroom routes are indexable",
+      all(f"<loc>https://chemlab.tapiwa.me{route}</loc>" in sitemap
+          for route in ("/teach", "/join")))
 check("sitemap lists every practical",
       all(f"<loc>https://chemlab.tapiwa.me/practical/{p}</loc>" in sitemap for p in practicals))
 check("static route HTML carries specific metadata",
