@@ -533,3 +533,15 @@ Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js
 - Rebuilt dist (main-CR6-CUdt.js), froze manifest (.harness-evidence/iter48-dist.sha256).
 - FULL 34/34 GATE SUITE GREEN on frozen build (.harness-evidence/iter48-full.log); manifest verified unchanged post-suite; screenshots reviewed (landing, mocks, setup desktop/mobile, WebGL fallback, progress card, mock marking).
 - Flipped F36 (portable progress) and F37 (hands-on setup/realism) with evidence. F5 (AAA look) and F22 (CI/deploy/live) remain false — F22 flips only after push + green Actions + live verification.
+
+## iter-49 (2026-08-13)
+- CI run 31693978708 (1c49792): 6/7 shards green; interaction shard FAILED on
+  pour "timer advancing". VERIFIED from job logs: both evidence screenshots
+  timed out at 15 s (starved SwiftShader runner), then the single fixed-1.0 s
+  body-text comparison saw no repaint. Same build passed pour locally (34/34).
+- Fix (no check weakening): pour.py now polls [data-testid="clock-time"] for
+  an increase over a 20 s window instead of one fixed-sleep body snapshot.
+  Same product assertion; stall-tolerant probe. VERIFIED locally: 4/4 PASS
+  against frozen iter48 dist; dist manifest re-verified unchanged (MANIFEST-OK).
+- Commit 5b6db52 pushed; new CI run 31695756758 pending. F22 stays false until
+  a fully green Actions run + Appwrite deploy + independent live verification.
