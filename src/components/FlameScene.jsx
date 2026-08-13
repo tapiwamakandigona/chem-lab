@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react'
+import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import { useLabStore } from '../store.js'
@@ -11,11 +12,48 @@ import { BlobShadow, LabNotebook } from './scene/props.jsx'
 const BLUE_OUTER = '#2588ff'
 const BLUE_INNER = '#b8e5ff'
 
+
+/** Curved teardrop flame shell. A straight-sided cone silhouette reads as a
+ *  diagram of a flame (iter-56 screenshot tell); a lathe profile with a bulge
+ *  and a rounded tip, faded out vertically by an alphaMap, reads as combustion.
+ */
+function flameGeometry(rBase, rBulge, h) {
+  const pts = []
+  const N = 24
+  for (let i = 0; i <= N; i += 1) {
+    const t = i / N
+    // bulge at ~28% height, smooth taper to a rounded tip
+    const bulge = Math.sin(Math.min(t / 0.28, 1) * Math.PI * 0.5)
+    const taper = Math.pow(1 - Math.max(0, (t - 0.28) / 0.72), 1.6)
+    const r = t < 0.28 ? rBase + (rBulge - rBase) * bulge : rBulge * taper
+    pts.push(new THREE.Vector2(Math.max(r, 0.0004), t * h))
+  }
+  return new THREE.LatheGeometry(pts, 28)
+}
+
+function flameAlphaMap() {
+  const c = document.createElement('canvas')
+  c.width = 1
+  c.height = 64
+  const g = c.getContext('2d')
+  const grad = g.createLinearGradient(0, 64, 0, 0)
+  grad.addColorStop(0, 'rgb(140,140,140)')
+  grad.addColorStop(0.35, 'rgb(255,255,255)')
+  grad.addColorStop(0.85, 'rgb(200,200,200)')
+  grad.addColorStop(1, 'rgb(0,0,0)')
+  g.fillStyle = grad
+  g.fillRect(0, 0, 1, 64)
+  return new THREE.CanvasTexture(c)
+}
+
 function Burner({ active, appearance }) {
   const outer = useRef()
   const inner = useRef()
   const glow = useRef()
   const seeds = useMemo(() => ({ a: 1.8, b: 3.4, c: 6.1 }), [])
+  const outerGeo = useMemo(() => flameGeometry(0.011, 0.026, 0.108), [])
+  const innerGeo = useMemo(() => flameGeometry(0.009, 0.0145, 0.058), [])
+  const alphaTex = useMemo(() => flameAlphaMap(), [])
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
@@ -63,23 +101,23 @@ function Burner({ active, appearance }) {
         <meshStandardMaterial color="#343d45" metalness={0.7} roughness={0.28} />
       </mesh>
 
-      {/* non-luminous blue flame; sample emission overlays both cones */}
-      <mesh ref={outer} position={[0, 0.242, 0]}>
-        <coneGeometry args={[0.025, 0.1, 22, 1, true]} />
+      {/* non-luminous blue flame; sample emission overlays both shells */}
+      <mesh ref={outer} geometry={outerGeo} position={[0, 0.192, 0]}>
         <meshBasicMaterial
           color={flameColor}
           transparent
-          opacity={active ? 0.9 : 0.68}
+          opacity={active ? 0.85 : 0.62}
+          alphaMap={alphaTex}
           side={2}
           depthWrite={false}
         />
       </mesh>
-      <mesh ref={inner} position={[0, 0.213, 0]}>
-        <coneGeometry args={[0.013, 0.054, 20, 1, true]} />
+      <mesh ref={inner} geometry={innerGeo} position={[0, 0.192, 0]}>
         <meshBasicMaterial
           color={innerColor}
           transparent
-          opacity={0.86}
+          opacity={0.8}
+          alphaMap={alphaTex}
           side={2}
           depthWrite={false}
         />

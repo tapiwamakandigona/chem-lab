@@ -95,25 +95,44 @@ const SHELF_BOTTLES = [
   { body: '#274a68', h: 0.14, labelText: 'CoCl₂' },
 ]
 
+/** Real shelves are lumpy: bottles cluster in pairs, gaps vary, nothing lines
+ *  up in depth. Deterministic offsets (not Math.random) keep renders stable
+ *  for screenshot comparison. Units: fraction of the even-spacing slot (dx)
+ *  and metres (dz). */
+const SHELF_JITTER = [
+  { dx: 0.0, dz: 0.012 }, { dx: 0.22, dz: -0.018 }, { dx: -0.1, dz: 0.02 },
+  { dx: 0.3, dz: 0.004 }, { dx: -0.26, dz: -0.012 }, { dx: 0.08, dz: 0.022 },
+  { dx: -0.18, dz: -0.02 }, { dx: 0.26, dz: 0.014 }, { dx: -0.06, dz: -0.006 },
+  { dx: 0.12, dz: 0.018 },
+]
+
 /** Wall shelf with a row of reagent bottles. width along x. */
 export function ReagentShelf({ width = 2.6, y = 0, z = -2.45 }) {
+  const slot = (width - 0.36) / (SHELF_BOTTLES.length - 1)
   return (
     <group position={[0, y, z]}>
       <mesh>
         <boxGeometry args={[width, 0.035, 0.24]} />
         <meshStandardMaterial color="#a8896b" roughness={0.6} />
       </mesh>
-      {/* brackets */}
-      {[-width / 2 + 0.15, width / 2 - 0.15].map((x, i) => (
+      {/* brackets — kept between bottle slots so a dark bracket never sits
+          directly beneath a dark bottle and reads as one object through the
+          board (screenshot tell, iter-56) */}
+      {[-width / 2 + 0.42, width / 2 - 0.58].map((x, i) => (
         <mesh key={i} position={[x, -0.07, -0.06]}>
           <boxGeometry args={[0.025, 0.11, 0.1]} />
-          <meshStandardMaterial color="#5b6570" roughness={0.4} metalness={0.5} />
+          <meshStandardMaterial color="#8b949e" roughness={0.4} metalness={0.5} />
         </mesh>
       ))}
       {SHELF_BOTTLES.map((b, i) => {
-        const x = -width / 2 + 0.18 + i * ((width - 0.36) / (SHELF_BOTTLES.length - 1))
+        const j = SHELF_JITTER[i % SHELF_JITTER.length]
+        const x = -width / 2 + 0.18 + (i + j.dx * 0.45) * slot
         return (
-          <group key={i} position={[x, 0.018, 0.02]} rotation={[0, (i * 37) % 7 * 0.12 - 0.4, 0]}>
+          <group
+            key={i}
+            position={[x, 0.018, 0.02 + j.dz]}
+            rotation={[0, ((i * 37) % 7) * 0.22 - 0.55, 0]}
+          >
             <ReagentBottle {...b} r={0.032 + ((i * 13) % 3) * 0.004} />
           </group>
         )

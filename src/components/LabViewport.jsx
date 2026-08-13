@@ -62,7 +62,8 @@ function LabCanvas({ children, quality, view, controlsRef, onContextLost }) {
         }, { once: true })
       }}
     >
-      {/* Aerial depth: background softens toward the wall colour */}
+      {/* Aerial depth: background matches fog, so no reachable angle shows void */}
+      <color attach="background" args={['#dfe7ef']} />
       <fog attach="fog" args={['#dfe7ef', 3.2, 9]} />
       {/* Bright teaching-lab grade: warm key, cool sky fill, wall bounce */}
       <ambientLight intensity={0.55} color="#eef2f8" />
@@ -97,7 +98,7 @@ function LabCanvas({ children, quality, view, controlsRef, onContextLost }) {
         makeDefault
         target={cam.target}
         minDistance={0.5}
-        maxDistance={4.5}
+        maxDistance={3.4}
         maxPolarAngle={Math.PI / 1.9}
         minAzimuthAngle={-Math.PI / 2.15}
         maxAzimuthAngle={Math.PI / 2.15}

@@ -1,5 +1,5 @@
 import { RoundedBox } from '@react-three/drei'
-import { ReagentShelf, WallCabinets, BackCounter, CeilingLights, WashBottle, LabNotebook, AccentBeaker } from './props.jsx'
+import { ReagentShelf, WallCabinets, BackCounter, CeilingLights, WashBottle, LabNotebook, AccentBeaker, BlobShadow } from './props.jsx'
 
 /**
  * Shared lab room: epoxy-top bench, steel frame, floor, back wall.
@@ -39,11 +39,41 @@ export default function LabRoom() {
         <planeGeometry args={[14, 6]} />
         <meshStandardMaterial color="#e3e9f0" roughness={1} />
       </mesh>
+      {/* Room envelope — side/front walls + ceiling. The orbit envelope
+          (maxDistance 3.4) stays inside these, so no reachable camera angle
+          can see past the room. fog + matching scene background catch the rest. */}
+      <mesh position={[-5.2, 1.55, 1.5]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[10, 5.2]} />
+        <meshStandardMaterial color="#dde4ec" roughness={1} />
+      </mesh>
+      <mesh position={[5.2, 1.55, 1.5]} rotation={[0, -Math.PI / 2, 0]}>
+        <planeGeometry args={[10, 5.2]} />
+        <meshStandardMaterial color="#dde4ec" roughness={1} />
+      </mesh>
+      <mesh position={[0, 1.6, 5.4]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[14, 6]} />
+        <meshStandardMaterial color="#e0e6ee" roughness={1} />
+      </mesh>
+      <mesh position={[0, 4.1, 1.2]} rotation={[Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[14, 12]} />
+        <meshStandardMaterial color="#eef1f5" roughness={1} />
+      </mesh>
       {/* Skirting stripe, kept below bench line so it never crosses apparatus */}
       <mesh position={[0, -0.55, -2.59]}>
         <planeGeometry args={[14, 0.35]} />
         <meshStandardMaterial color="#3d7a99" roughness={1} />
       </mesh>
+
+      {/* Ground the furniture: soft floor shadows under bench + back counter,
+          so neither reads as a slab floating over the floor from high angles. */}
+      <group position={[0, -0.848, 0]}>
+        <group scale={[2.6, 1, 1.15]}>
+          <BlobShadow r={0.8} opacity={0.3} />
+        </group>
+        <group position={[0, 0, -2.3]} scale={[3.1, 1, 0.5]}>
+          <BlobShadow r={0.8} opacity={0.32} />
+        </group>
+      </group>
 
       {/* Depth layers: back counter -> reagent shelf -> wall cabinets */}
       <group position={[0, -0.85, 0]}>

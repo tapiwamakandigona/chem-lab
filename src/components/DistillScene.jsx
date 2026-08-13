@@ -114,6 +114,13 @@ function ElectricHeater({ active }) {
         <circleGeometry args={[0.078, 30]} />
         <meshStandardMaterial color="#606971" roughness={0.6} metalness={0.38} />
       </mesh>
+      {/* Support ring: a round-bottom flask cannot rest on a flat plate —
+          without this cradle the flask visibly floats (iter-56 tell). Torus
+          top (y 0.106) overlaps the sphere bottom (y 0.098) so they nest. */}
+      <mesh position={[0, 0.07, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.045, 0.016, 14, 32]} />
+        <meshStandardMaterial color="#b99a6f" roughness={0.85} />
+      </mesh>
       <BlobShadow r={0.12} />
     </group>
   )

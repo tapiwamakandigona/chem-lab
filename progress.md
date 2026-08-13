@@ -695,3 +695,28 @@ his standing setup forbids; keeping single-agent until he says otherwise.
 - FIXED 2026-08-13: .env.production missing from tree (.gitignore .env.*), CI
   shipped /teach with no backend. Live re-verified after 31743744870: live main
   bundle byte-identical to frozen dist, ClassJoin chunk carries the project id.
+
+## iter-56 — first pass under the AAABench loop (F5 tell-hunt)
+
+Method: capture wide/orbit/close-up/phone screenshots at HIGH quality, read them
+as a stranger. Tells found and fixed at rule level (evidence:
+/work/temp/tellhunt/ d* = before, e* = after):
+1. Off-axis void — orbiting showed page background + floating slabs. Fix: scene
+   background = fog colour, room enclosed (side/front walls + ceiling),
+   maxDistance 4.5→3.4 so the camera stays inside the envelope. (LabViewport,
+   LabRoom)
+2. Furniture floating — bench + back counter had no floor contact shadow. Fix:
+   scaled BlobShadows on the floor. (LabRoom)
+3. Shelf uniformity + bracket-through-bottle illusion — even spacing, dead
+   forward bottles, dark bracket directly under the navy end bottle. Fix:
+   deterministic SHELF_JITTER (lumpy dx/dz/rotation), brackets moved between
+   slots and lightened. (props.jsx)
+4. Faceted cone flame — read as a diagram. Fix: LatheGeometry teardrop profile
+   (bulge + rounded tip) with vertical alphaMap fade, both shells. (FlameScene)
+5. Distillation flask hovering over flat hotplate. Fix: cork support ring; torus
+   top overlaps sphere bottom so they visibly nest. (DistillScene)
+Verified in after-shots: VERIFIED (images read side by side).
+Still OPEN (known problems): mobile portrait dead band between viewport and
+controls (R5, next); F5 stays false until a full-suite green + live check.
+Harness artifact noted: plain http.server has no SPA fallback — wrong local
+practical URL returns a raw 404 page, not the branded soft-404 (live is fine).
