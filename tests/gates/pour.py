@@ -100,9 +100,29 @@ with sync_playwright() as p:
     running = "Reacting" in body or "cross gone" in body
     check("drag-to-pour started reaction", running, "" if running else body[:200].replace("\n", " "))
 
-    time.sleep(1.0)
-    body2 = pg.locator("body").inner_text()
-    check("timer advancing", running and body2 != body)
+    # Timer must advance. Poll the displayed clock instead of one fixed-sleep
+    # snapshot: on starved CI runners SwiftShader frames can stall for whole
+    # seconds, so a single 1.0 s window flakes even though sim time advances.
+    # Same product assertion (displayed time increases), stall-tolerant probe.
+    def clock_val():
+        try:
+            return float(pg.locator('[data-testid="clock-time"]').inner_text().split("s")[0])
+        except Exception:  # noqa: BLE001 — treat unreadable as no-change
+            return None
+
+    t0 = clock_val()
+    advanced = False
+    deadline = time.time() + 20
+    while time.time() < deadline:
+        time.sleep(0.5)
+        t1 = clock_val()
+        if t0 is not None and t1 is not None and t1 > t0:
+            advanced = True
+            break
+        if t0 is None:
+            t0 = t1
+    check("timer advancing", running and advanced,
+          "" if advanced else f"clock stuck at {t0}")
 
     # reset -> setup again, button path intact
     pg.locator("button", has_text="Reset").click()
