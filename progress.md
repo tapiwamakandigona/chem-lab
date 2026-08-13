@@ -545,3 +545,16 @@ Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js
   against frozen iter48 dist; dist manifest re-verified unchanged (MANIFEST-OK).
 - Commit 5b6db52 pushed; new CI run 31695756758 pending. F22 stays false until
   a fully green Actions run + Appwrite deploy + independent live verification.
+
+## iter-50 (2026-08-13)
+- CI run 31695792043 (2567bda): pour fix VERIFIED effective (interaction shard
+  green). New flake: core shard webgl gate — Locator.wait_for timeout on
+  [data-testid="webgl-fallback"]. Root cause VERIFIED from logs + source: probe
+  dispatched webglcontextlost as soon as <canvas> existed, but the app attaches
+  its listener in R3F onCreated (after WebGL context init), which lags canvas
+  insertion on starved SwiftShader runners — event fired before any listener.
+  Product correct (real context loss requires an existing context); passed on
+  prior run + locally on identical build.
+- Fix (no check weakening): webgl.py re-dispatches contextlost every 5 s until
+  the fallback mounts (cap 3× gate timeout). Same assertion. VERIFIED locally:
+  4/4 PASS, GATE PASS against frozen iter48 dist; manifest MANIFEST-OK.

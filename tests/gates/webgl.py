@@ -50,9 +50,22 @@ with sync_playwright() as p:
     )
     page.goto(f"http://127.0.0.1:{PORT}/practical/titration", wait_until="load")
     page.wait_for_selector("canvas")
-    page.locator("canvas").dispatch_event("webglcontextlost")
+    # The app attaches its contextlost listener in R3F onCreated — after the
+    # WebGL context initialises, which on starved SwiftShader runners can lag
+    # well behind canvas insertion. A real context loss can only happen after
+    # a context exists, so re-dispatching until the listener is live races
+    # nothing in the product; same assertion (context loss -> fallback UI).
     fallback = page.locator('[data-testid="webgl-fallback"]')
-    fallback.wait_for()
+    deadline_ms = TIMEOUT_MS * 3
+    waited = 0
+    while waited < deadline_ms:
+        page.locator("canvas").first.dispatch_event("webglcontextlost")
+        try:
+            fallback.wait_for(timeout=5000)
+            break
+        except Exception:  # noqa: BLE001 — listener not attached yet; retry
+            waited += 5000
+    fallback.wait_for(timeout=TIMEOUT_MS)
     check("context loss produces an explicit fallback", fallback.is_visible())
     check("fallback protects progress and points to non-3D tools",
           "progress is safe" in fallback.inner_text().lower()
