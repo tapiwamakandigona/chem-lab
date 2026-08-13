@@ -26,6 +26,8 @@ import { navigate, parseRoute, PRACTICAL_META, routeForExperiment } from './lib/
 // three.js + scenes load only when an experiment opens — the menu paints
 // with the small react chunk even on a 2G connection.
 const LabViewport = lazy(() => import('./components/LabViewport.jsx'))
+const TeacherConsole = lazy(() => import('./components/TeacherConsole.jsx'))
+const ClassJoin = lazy(() => import('./components/ClassJoin.jsx'))
 
 export default function App() {
   const { experiment, setExperiment, quality, setCourseOpen } = useLabStore()
@@ -51,23 +53,32 @@ export default function App() {
 
   useEffect(() => {
     const practical = PRACTICAL_META.find(({ id }) => id === route.experiment)
-    const title = route.kind === 'practical'
-      ? `${practical?.title ?? 'Chemistry Practical'} — ChemLab`
-      : route.kind === 'guide'
-        ? 'Learner’s Guide — ChemLab'
-        : route.kind === 'mocks'
-          ? 'Marked Mock Papers — ChemLab'
-          : route.kind === 'landing'
-            ? 'ChemLab — Practise Cambridge Chemistry Practicals'
-            : 'Page not found — ChemLab'
+    const LANDING_DESCRIPTION =
+      'Run 14 interactive Cambridge AS & A Level Chemistry practicals, follow a 19-unit guide and practise marked exam-style work.'
+    const META = {
+      guide: [
+        'Learner’s Guide — ChemLab',
+        'Follow a 19-milestone learn-by-doing route through Cambridge 9701 practical chemistry skills.',
+      ],
+      mocks: [
+        'Marked Mock Papers — ChemLab',
+        'Open three marked chemistry mock-paper workflows based on results you collect in ChemLab practicals.',
+      ],
+      teach: [
+        'Teacher Dashboard — ChemLab',
+        'Create a class, set practicals and marked mocks as an assignment, and see what your learners actually completed.',
+      ],
+      join: [
+        'Join a Class — ChemLab',
+        'Enter the six-character code from your teacher to load this week’s practicals. No account and no email needed.',
+      ],
+      landing: ['ChemLab — Practise Cambridge Chemistry Practicals', LANDING_DESCRIPTION],
+      'not-found': ['Page not found — ChemLab', LANDING_DESCRIPTION],
+    }
+    const [title, description] = route.kind === 'practical'
+      ? [`${practical?.title ?? 'Chemistry Practical'} — ChemLab`, practical?.description]
+      : META[route.kind] ?? META['not-found']
     document.title = title
-    const description = route.kind === 'practical'
-      ? practical?.description
-      : route.kind === 'guide'
-        ? 'Follow a 19-milestone learn-by-doing route through Cambridge 9701 practical chemistry skills.'
-        : route.kind === 'mocks'
-          ? 'Open three marked chemistry mock-paper workflows based on results you collect in ChemLab practicals.'
-          : 'Run 14 interactive Cambridge AS & A Level Chemistry practicals, follow a 19-unit guide and practise marked exam-style work.'
     const descriptionMeta = document.querySelector('meta[name="description"]')
     if (descriptionMeta && description) descriptionMeta.content = description
     let robots = document.querySelector('meta[name="robots"]')
@@ -102,6 +113,16 @@ export default function App() {
       )}
       {route.kind === 'mocks' && (
         <MockLibrary onBack={goHome} onOpenExperiment={openExperiment} />
+      )}
+      {route.kind === 'teach' && (
+        <Suspense fallback={<LoadingScreen />}>
+          <TeacherConsole onBack={goHome} />
+        </Suspense>
+      )}
+      {route.kind === 'join' && (
+        <Suspense fallback={<LoadingScreen />}>
+          <ClassJoin onBack={goHome} onOpenExperiment={openExperiment} />
+        </Suspense>
       )}
 
       {experiment === 'titration' && (

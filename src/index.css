@@ -2549,3 +2549,538 @@ canvas { display: block; touch-action: none; }
 
 .experiment-card__icon svg { width: 1.5em; height: 1.5em; }
 .outcome-icon svg { width: 1.36em; height: 1.36em; }
+
+/* ---------------------------------------------------------------------------
+   Classroom tier: teacher console (/teach) and learner join (/join).
+
+   Mobile-first: a teacher sets these up on a phone as often as on a laptop,
+   and learners are almost always on a phone. Every control is at least 44 px
+   tall, the join-code field is oversized and monospaced because it is typed
+   from a whiteboard, and nothing depends on hover.
+   --------------------------------------------------------------------------- */
+
+.teach,
+.join {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: clamp(1rem, 4vw, 2.75rem);
+  background:
+    radial-gradient(circle at 15% -10%, rgba(56, 189, 248, 0.13), transparent 55%),
+    var(--landing-bg, #07101e);
+  color: var(--landing-ink, #f1f5f9);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.teach > h1,
+.join > h1 {
+  margin: 0.35em 0 0.5em;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  letter-spacing: -0.02em;
+}
+
+.teach h2 {
+  margin: 2rem 0 0.75rem;
+  font-size: clamp(1.05rem, 3.4vw, 1.35rem);
+  color: var(--landing-cyan-soft, #7dd3fc);
+}
+
+.teach-head,
+.join-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.teach-head__who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--landing-muted, #94a3b8);
+}
+
+.teach-badge {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--landing-line, #223654);
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.08);
+  font-size: 0.8rem;
+  color: var(--landing-cyan-soft, #7dd3fc);
+}
+
+.teach-lede,
+.join-lede {
+  max-width: 58ch;
+  margin: 0 0 1.5rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.teach-muted {
+  max-width: 58ch;
+  color: var(--landing-muted, #94a3b8);
+  line-height: 1.6;
+}
+
+.teach-error {
+  max-width: 58ch;
+  margin: 0.75rem 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: rgba(248, 113, 113, 0.1);
+  color: #fecaca;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* Forms ------------------------------------------------------------------- */
+
+.teach-auth,
+.teach-newclass,
+.teach-builder,
+.join-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 34rem;
+  margin: 0 0 1.5rem;
+  padding: clamp(1rem, 3.5vw, 1.6rem);
+  border: 1px solid var(--landing-line, #223654);
+  border-radius: 14px;
+  background: var(--landing-surface, #101d31);
+}
+
+.teach-auth h2 {
+  margin: 0;
+  color: var(--landing-ink, #f1f5f9);
+}
+
+.teach-auth__note,
+.join-hint,
+.teach-optional {
+  margin: 0;
+  color: var(--landing-muted, #94a3b8);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.teach label,
+.join label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #dbeafe;
+}
+
+.teach input,
+.join input {
+  min-height: 46px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--landing-line, #223654);
+  border-radius: 10px;
+  background: #0b1524;
+  color: var(--landing-ink, #f1f5f9);
+  font: inherit;
+  font-weight: 400;
+}
+
+.teach input:focus-visible,
+.join input:focus-visible {
+  outline: 2px solid var(--landing-cyan, #38bdf8);
+  outline-offset: 1px;
+}
+
+.join-code-input {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: clamp(1.4rem, 7vw, 2rem);
+  letter-spacing: 0.28em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Buttons ----------------------------------------------------------------- */
+
+.teach-primary,
+.teach-secondary {
+  min-height: 46px;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.teach-primary {
+  background: var(--landing-cyan, #38bdf8);
+  color: #06121f;
+}
+
+.teach-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.teach-secondary {
+  border-color: var(--landing-line, #223654);
+  background: transparent;
+  color: var(--landing-ink, #f1f5f9);
+}
+
+.teach-link {
+  min-height: 44px;
+  padding: 0.4rem 0.55rem;
+  border: 0;
+  background: none;
+  color: var(--landing-cyan-soft, #7dd3fc);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.teach-primary:focus-visible,
+.teach-secondary:focus-visible,
+.teach-link:focus-visible,
+.teach-chip:focus-visible {
+  outline: 2px solid var(--landing-cyan, #38bdf8);
+  outline-offset: 2px;
+}
+
+/* Item pickers ------------------------------------------------------------ */
+
+.teach-picker {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.teach-picker legend {
+  padding: 0 0 0.55rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #dbeafe;
+}
+
+.teach-picker__grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .teach-picker__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.teach-chip {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  min-height: 48px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--landing-line, #223654);
+  border-radius: 10px;
+  background: #0b1524;
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.teach-chip.is-on {
+  border-color: var(--landing-cyan, #38bdf8);
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--landing-ink, #f1f5f9);
+}
+
+.teach-chip svg {
+  flex: none;
+  width: 1.35em;
+  height: 1.35em;
+  color: var(--landing-cyan-soft, #7dd3fc);
+}
+
+.teach-chip span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.teach-chip small {
+  color: var(--landing-muted, #94a3b8);
+  font-size: 0.76rem;
+}
+
+.teach-count {
+  margin: 0;
+  color: var(--landing-muted, #94a3b8);
+  font-size: 0.85rem;
+}
+
+/* Class list and join code ------------------------------------------------ */
+
+.teach-classes {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.teach-classes li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  border: 1px solid var(--landing-line, #223654);
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  background: var(--landing-surface, #101d31);
+}
+
+.teach-classes li.is-active {
+  border-left-color: var(--landing-cyan, #38bdf8);
+  background: var(--landing-surface-high, #15243a);
+}
+
+.teach-classes li > button:first-child {
+  display: flex;
+  flex: 1 1 12rem;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.teach-classes code,
+.teach-codecard code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.2em;
+  color: var(--landing-cyan-soft, #7dd3fc);
+}
+
+.teach-codecard {
+  max-width: 34rem;
+  margin: 0 0 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px dashed rgba(56, 189, 248, 0.5);
+  border-radius: 14px;
+  background: rgba(56, 189, 248, 0.06);
+  text-align: center;
+}
+
+.teach-codecard p {
+  margin: 0 0 0.4rem;
+  font-size: 0.92rem;
+}
+
+.teach-codecard code {
+  display: block;
+  margin: 0.2rem 0 0.5rem;
+  font-size: clamp(1.9rem, 9vw, 2.7rem);
+  font-weight: 700;
+}
+
+.teach-codecard .teach-muted {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+/* Assignments and results ------------------------------------------------- */
+
+.teach-assignments,
+.join-assignments {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.teach-assignments > li,
+.join-assignments > li {
+  border: 1px solid var(--landing-line, #223654);
+  border-radius: 12px;
+  background: var(--landing-surface, #101d31);
+  overflow: hidden;
+}
+
+.join-assignments > li {
+  padding: clamp(0.9rem, 3.5vw, 1.35rem);
+}
+
+.join-assignments h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  color: var(--landing-ink, #f1f5f9);
+}
+
+.join-due {
+  margin: 0 0 0.75rem;
+  color: var(--landing-cyan-soft, #7dd3fc);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.teach-assignment {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.85rem 1rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.teach-assignment span {
+  color: var(--landing-muted, #94a3b8);
+  font-size: 0.84rem;
+}
+
+.teach-assignment__body {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--landing-line, #223654);
+}
+
+.teach-items {
+  margin: 0.85rem 0;
+  padding-left: 1.2rem;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.teach-results__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.teach-results__head h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.teach-results__head div {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.teach-table {
+  width: 100%;
+  margin-top: 0.75rem;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.teach-table th,
+.teach-table td {
+  padding: 0.55rem 0.5rem;
+  border-bottom: 1px solid var(--landing-line, #223654);
+  text-align: left;
+}
+
+.teach-table th {
+  color: var(--landing-muted, #94a3b8);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.teach-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Landscape phones: the console must stay usable at 390 px tall. */
+@media (max-height: 480px) {
+  .teach,
+  .join {
+    padding: 0.75rem 1rem 1.5rem;
+  }
+
+  .teach > h1,
+  .join > h1 {
+    margin-top: 0;
+    font-size: 1.3rem;
+  }
+
+  .teach-codecard code {
+    font-size: 1.6rem;
+  }
+}
+
+/* Desktop: a single 34rem column stranded on a 1280 px screen read as an
+   unfinished page. Two columns — class management left, assignment work right —
+   fill the space without stretching form fields to unusable widths. */
+.teach-grid {
+  display: grid;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  align-items: start;
+  max-width: 78rem;
+}
+
+@media (min-width: 1024px) {
+  .teach-grid {
+    grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr);
+  }
+
+  .teach-col > h2:first-child {
+    margin-top: 0;
+  }
+}
+
+.teach-col {
+  min-width: 0;
+}
+
+/* Item kind reads as a quiet badge, never as part of the title. Shipping
+   "Practical: titration" put a raw slug in front of a teacher. */
+.teach-kind {
+  display: inline-block;
+  margin-right: 0.55rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--landing-line, #223654);
+  border-radius: 5px;
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--landing-muted, #94a3b8);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  vertical-align: 0.08em;
+}
+
+.teach-items {
+  list-style: none;
+  padding-left: 0;
+}
+
+.teach-items li {
+  padding: 0.3rem 0;
+}

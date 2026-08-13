@@ -590,3 +590,58 @@ Evidence: local rerun of all 11 affected gates vs frozen dist (index-DB4lvl8F.js
 - Build OK (BUILD_EXIT=0), bundle assets/main-dQOeZbCg.js. dist frozen; manifest .harness-evidence/
   iter52-dist.sha256 (40 files), hash 3c12cbf72aeae0e47eebdfa04a5f19a4c74b7754c16be9e3b7a72cf5e74105f8.
 - Full 34-gate suite running on the frozen build; release gated on 34/34 + manifest unchanged.
+
+## iter-55 — classroom tier ships (teacher console, learner join, Appwrite backend)
+
+Appwrite unblocked without waiting: the owner supplied console credentials, so the
+scoped data key and the two web platforms were minted through the console API
+(`/work/temp/appwrite_key.py`, kept out of the repo — it reads credentials from the
+locked secrets file). The existing deploy key was left untouched so a bad new key
+could not break deploys.
+
+- `tools/provision_appwrite.py` (committed): idempotent schema provisioning. Database
+  `chemlab`; collections `classes`, `assignments`, `submissions`; unique index on
+  `code`; class/assignment indexes. VERIFIED: first run created everything, second run
+  reported 24 "exists" and created nothing.
+- Live REST round trip VERIFIED before any UI depended on it: create class -> find by
+  code (index used) -> duplicate code rejected by the unique index -> publish
+  assignment -> submit -> list -> 99 KB payload accepted; all 4 probe documents deleted.
+- `src/lib/appwriteDriver.js`: same seven operations as the local driver, same row
+  shapes. Written against REST rather than the Appwrite SDK (~40 kB) because of the
+  1 MB first-load budget. Submissions are written with document-level read for the
+  owning teacher only.
+- `src/components/TeacherConsole.jsx`, `src/components/ClassJoin.jsx`, `/teach` and
+  `/join` routes, sitemap now 19 URLs. Both panels are lazy chunks
+  (TeacherConsole 12.9 kB, ClassJoin 5.5 kB, appwriteDriver 4.4 kB) so learners never
+  download teacher code.
+- `tests/gates/teach.py` (36th gate, first in the `core` shard): the whole loop through
+  the real UI with the offline driver forced on — create class, read the code off the
+  card, build and publish, join as a learner, hand in, see the row, export CSV and
+  assert the documented header. 26 checks, all PASS.
+
+Three problems the gates could not see, found by looking at the screenshots:
+1. `Practical: titration` — a raw slug shown to a teacher. `labelForItem` now returns
+   human titles and a separate `kindLabelForItem` drives a quiet badge.
+2. A 34 rem column stranded on a 1280 px screen looked unfinished. Desktop is now a
+   two-column grid (class management left, assignment work right).
+3. A learner who had done the practical showed as `0/1` done, because practicals
+   counted for nothing. A practical now counts once any of its guide milestones is
+   ticked, and the classroom gate asserts the new rule (the old assertions were
+   updated deliberately, with the reason in a comment — not weakened).
+
+Process failures worth recording:
+- I started `npm run build` while a frozen-dist suite was still running, which
+  invalidated 30 gates of evidence. Re-run from a clean freeze. Rule stands: never
+  build during a frozen run.
+- `pkill -f run_gates.py` matched the killing shell's own command line and killed it.
+  Select PIDs explicitly (`pgrep`, then `kill`) instead.
+- A leftover 8797 listener from the killed suite made the next gate die with
+  `Address already in use`. Always clear the port before a run.
+- CI failed twice on things `npm run build` does not check: an ESLint
+  `react-refresh/only-export-components` error and the gate-hygiene guard, whose
+  premise ("every gate screenshots") the browserless classroom gate broke. The guard
+  is now `tools/check_gate_hygiene.py`, exempting browserless gates by inspecting the
+  file rather than by allowlist, and `tools/prepush.sh` runs exactly what CI runs.
+
+`features.json`: 42 features, 41 passing. F39-F42 flipped true with evidence. Only F5
+(AAA scene look) remains false.

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Teacher Dashboard — ChemLab</title>
+    <meta name="description" content="Create a class, set practicals and marked mocks as an assignment, and see what your learners actually completed." />
+    <meta name="theme-color" content="#0f172a" />
+    <meta property="og:title" content="Teacher Dashboard — ChemLab" />
+    <meta property="og:description" content="Create a class, set practicals and marked mocks as an assignment, and see what your learners actually completed." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://chemlab.tapiwa.me/teach" />
+    <meta property="og:image" content="https://chemlab.tapiwa.me/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ChemLab landing card showing a catalytic kinetics practical and verified product counts" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ChemLab — Practise chemistry practicals anywhere" />
+    <meta name="twitter:description" content="14 interactive chemistry practicals, 19 guided milestones and marked exam-style work. Free, phone-ready and offline after first load." />
+    <meta name="twitter:image" content="https://chemlab.tapiwa.me/og.png" />
+    <meta name="twitter:image:alt" content="ChemLab landing card showing a catalytic kinetics practical and verified product counts" />
+    <link rel="canonical" href="https://chemlab.tapiwa.me/teach" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <script type="application/ld+json" data-root-schema hidden>
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "ChemLab",
+      "url": "https://chemlab.tapiwa.me/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any (web, offline-capable)",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "description": "Independent virtual chemistry lab for Cambridge AS & A Level (9701): fourteen interactive practicals, a 19-unit guided course and marked exam-style work. Free, phone-ready and offline after first load.",
+      "educationalUse": "practice",
+      "audience": { "@type": "EducationalAudience", "educationalRole": "student" }
+    }
+    </script>
+    <style>
+      #boot-status {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 68% 22%, rgba(56, 189, 248, 0.12), transparent 30rem),
+          #0f172a;
+        color: #f1f5f9;
+        font-family: Inter, system-ui, sans-serif;
+      }
+      #boot-status::before {
+        content: "";
+        position: absolute;
+        width: min(62vw, 480px);
+        aspect-ratio: 1;
+        border: 1px solid rgba(56, 189, 248, 0.12);
+        border-radius: 50%;
+        box-shadow: inset 0 0 80px rgba(56, 189, 248, 0.035);
+      }
+      .boot-card {
+        position: relative;
+        width: min(100%, 390px);
+        padding: 28px;
+        border: 1px solid #334155;
+        border-radius: 20px;
+        background: #1e293b;
+        box-shadow: 0 24px 70px rgba(2, 8, 23, 0.38);
+      }
+      .boot-lockup {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .boot-mark {
+        width: 44px;
+        height: 44px;
+        color: #38bdf8;
+      }
+      .boot-mark svg {
+        width: 100%;
+        height: 100%;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .boot-name {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 760;
+        letter-spacing: -0.03em;
+      }
+      .boot-name b { color: #38bdf8; }
+      .boot-label {
+        margin: 4px 0 0;
+        color: #94a3b8;
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .boot-progress {
+        height: 3px;
+        margin-top: 26px;
+        overflow: hidden;
+        border-radius: 6px;
+        background: #334155;
+      }
+      .boot-progress::after {
+        content: "";
+        display: block;
+        width: 42%;
+        height: 100%;
+        border-radius: inherit;
+        background: #38bdf8;
+        animation: boot-scan 1.35s ease-in-out infinite;
+      }
+      .boot-copy {
+        margin: 14px 0 0;
+        color: #94a3b8;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .boot-copy strong { color: #f1f5f9; font-weight: 650; }
+      @keyframes boot-scan {
+        from { transform: translateX(-110%); }
+        to { transform: translateX(340%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-progress::after { width: 64%; animation: none; }
+      }
+    </style>
+      <script type="application/ld+json">{"@context": "https://schema.org", "@type": "LearningResource", "name": "Teacher Dashboard", "url": "https://chemlab.tapiwa.me/teach", "description": "Create a class, set practicals and marked mocks as an assignment, and see what your learners actually completed.", "educationalLevel": "Cambridge International AS & A Level", "learningResourceType": "Study guide", "isAccessibleForFree": true, "provider": {"@type": "Organization", "name": "ChemLab"}}</script>
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot-status" role="status" aria-live="polite">
+        <div class="boot-card">
+          <div class="boot-lockup">
+            <span class="boot-mark" aria-hidden="true">
+              <svg viewBox="0 0 64 64">
+                <path d="M24 7h16M28 7v18L14 49a5 5 0 0 0 4 8h28a5 5 0 0 0 4-8L36 25V7" />
+                <path d="M20 43h24M22 38c7 3 13-3 20 0" />
+              </svg>
+            </span>
+            <div>
+              <p class="boot-name">Chem<b>Lab</b></p>
+              <p class="boot-label">Preparing your practical bench</p>
+            </div>
+          </div>
+          <div class="boot-progress" aria-hidden="true"></div>
+          <p class="boot-copy">
+            <strong>Loading the offline-ready lab.</strong>
+            About 1 MB compressed on your first visit; future visits work from this device.
+          </p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

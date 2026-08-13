@@ -24,6 +24,16 @@ export const STATIC_ROUTE_META = [
     description: 'Follow a 19-milestone learn-by-doing route through Cambridge 9701 practical chemistry skills.',
   },
   {
+    path: '/teach',
+    title: 'Teacher Dashboard — ChemLab',
+    description: 'Create a class, set practicals and marked mocks as an assignment, and see what your learners actually completed.',
+  },
+  {
+    path: '/join',
+    title: 'Join a Class — ChemLab',
+    description: 'Enter the six-character code from your teacher to load this week’s practicals. No account, no email needed.',
+  },
+  {
     path: '/mocks',
     title: 'Marked Mock Papers — ChemLab',
     description: 'Open three marked chemistry mock-paper workflows based on results you collect in ChemLab practicals.',
@@ -63,6 +73,8 @@ export function parseRoute(pathname = window.location.pathname) {
   if (normalized === '/') return { kind: 'landing' }
   if (normalized === '/guide') return { kind: 'guide' }
   if (normalized === '/mocks') return { kind: 'mocks' }
+  if (normalized === '/teach') return { kind: 'teach' }
+  if (normalized === '/join') return { kind: 'join' }
   const match = normalized.match(/^\/practical\/([a-z0-9-]+)$/)
   if (match && EXPERIMENT_IDS.includes(match[1])) {
     return { kind: 'practical', experiment: match[1] }

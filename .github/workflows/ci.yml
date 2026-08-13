@@ -31,17 +31,7 @@ jobs:
           node tests/model/progress_backup.mjs
           node tests/model/iodine_rate.mjs
           python -m py_compile tests/run_gates.py tests/gates/*.py tools/*.py
-          python - <<'PY'
-          from pathlib import Path
-
-          offenders = []
-          for path in Path("tests/gates").glob("*.py"):
-              text = path.read_text()
-              if "def snap(" not in text or "timeout=SHOT_TIMEOUT_MS" not in text:
-                  offenders.append(path.name)
-          if offenders:
-              raise SystemExit(f"unbounded evidence screenshots: {offenders}")
-          PY
+          python tools/check_gate_hygiene.py
           npm run build
           python - <<'PY'
           import gzip

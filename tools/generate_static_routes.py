@@ -39,6 +39,8 @@ PRACTICALS = [
 ROUTES = [
     ("/guide", "Learner’s Guide — ChemLab", "Follow a 19-milestone learn-by-doing route through Cambridge 9701 practical chemistry skills."),
     ("/mocks", "Marked Mock Papers — ChemLab", "Open three marked chemistry mock-paper workflows based on results you collect in ChemLab practicals."),
+    ("/teach", "Teacher Dashboard — ChemLab", "Create a class, set practicals and marked mocks as an assignment, and see what your learners actually completed."),
+    ("/join", "Join a Class — ChemLab", "Enter the six-character code from your teacher to load this week’s practicals. No account and no email needed."),
     *[
         (f"/practical/{slug}", f"{title} — ChemLab", description)
         for slug, title, description in PRACTICALS

@@ -130,6 +130,15 @@ const goodPayload = {
   mockResults: { 'titration-s22': { score: 5, total: 6 } },
 }
 const summary = summariseSubmission(goodPayload, asg.items)
+// Same assignment, but this learner has ticked a titration guide milestone, so
+// the practical must now count as done.
+const withPractical = summariseSubmission(
+  { ...goodPayload, courseDone: { 'titration-endpoint': true } },
+  asg.items
+)
+out.practicalRequired = withPractical.requiredCount
+out.practicalDone = withPractical.doneCount
+out.practicalComplete = withPractical.complete
 out.summaryMarks = summary.marks
 out.summaryAvailable = summary.available
 out.summaryRequired = summary.requiredCount
@@ -234,9 +243,16 @@ def main():
 
     check("summary totals mock marks", r["summaryMarks"] == 5, r["summaryMarks"])
     check("summary totals available marks", r["summaryAvailable"] == 6, r["summaryAvailable"])
-    check("only assignable items count as required", r["summaryRequired"] == 1, r["summaryRequired"])
+    # Rule changed deliberately in iter-55: practicals used to count for
+    # nothing, so a learner who had done the work showed as "0/1" in the
+    # teacher's table. A practical is now required, and counts as done once any
+    # of its guide milestones is ticked.
+    check("practicals and mocks both count as required", r["summaryRequired"] == 2, r["summaryRequired"])
     check("required mock counts as done", r["summaryDone"] == 1, r["summaryDone"])
-    check("submission marked complete", r["summaryComplete"] is True)
+    check("not complete while the practical has no evidence", r["summaryComplete"] is False)
+    check("practical counts as required", r["practicalRequired"] == 2, r["practicalRequired"])
+    check("practical with a ticked milestone counts as done", r["practicalDone"] == 2, r["practicalDone"])
+    check("assignment completes once every item has evidence", r["practicalComplete"] is True)
     check("foreign payload rejected", r["foreignPayload"] == "rejected", r["foreignPayload"])
 
     check("resubmit replaces instead of duplicating", r["subCount"] == 2, r["subCount"])

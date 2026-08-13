@@ -1,5 +1,5 @@
 import { COURSE_UNITS } from './course.js'
-import { EXPERIMENT_IDS, MOCK_PAPERS } from './routes.js'
+import { EXPERIMENT_IDS, MOCK_PAPERS, PRACTICAL_META } from './routes.js'
 import { parseProgressBackup } from './progressBackup.js'
 
 export const CLASSROOM_VERSION = 1
@@ -15,6 +15,17 @@ const COURSE_IDS = new Set(COURSE_UNITS.map((unit) => unit.id))
 const PRACTICAL_IDS = new Set(EXPERIMENT_IDS)
 const MOCK_IDS = new Set(MOCK_PAPERS.map((paper) => paper.id))
 const MOCK_TITLES = new Map(MOCK_PAPERS.map((paper) => [paper.id, paper.title]))
+const PRACTICAL_TITLES = new Map(PRACTICAL_META.map((practical) => [practical.id, practical.title]))
+// A practical counts as done when the learner has ticked at least one guide
+// milestone belonging to it. A practical has no single "finished" flag, so this
+// is the honest evidence we actually hold — and it is stated in the UI.
+const UNITS_BY_EXPERIMENT = COURSE_UNITS.reduce((map, unit) => {
+  if (!unit.experiment) return map
+  const list = map.get(unit.experiment) ?? []
+  list.push(unit.id)
+  map.set(unit.experiment, list)
+  return map
+}, new Map())
 
 export const ITEM_KINDS = ['practical', 'unit', 'mock']
 export const ALIAS_MAX = 24
@@ -95,17 +106,25 @@ export function aliasError(raw) {
   return null
 }
 
+export function kindLabelForItem(item) {
+  if (!isRecord(item)) return ''
+  if (item.kind === 'practical') return 'Practical'
+  if (item.kind === 'unit') return 'Guide'
+  if (item.kind === 'mock') return 'Marked mock'
+  return ''
+}
+
 export function labelForItem(item) {
   if (!isRecord(item)) return 'Unknown item'
   if (item.kind === 'practical') {
-    return PRACTICAL_IDS.has(item.id) ? `Practical: ${item.id}` : 'Unknown practical'
+    return PRACTICAL_TITLES.get(item.id) ?? 'Unknown practical'
   }
   if (item.kind === 'unit') {
     const unit = COURSE_UNITS.find((candidate) => candidate.id === item.id)
-    return unit ? `Guide: ${unit.title}` : 'Unknown guide unit'
+    return unit ? unit.title : 'Unknown guide unit'
   }
   if (item.kind === 'mock') {
-    return MOCK_TITLES.has(item.id) ? `Mock: ${MOCK_TITLES.get(item.id)}` : 'Unknown mock paper'
+    return MOCK_TITLES.get(item.id) ?? 'Unknown mock paper'
   }
   return 'Unknown item'
 }
@@ -161,10 +180,18 @@ export function summariseSubmission(payload, assignmentItems = []) {
   }
   const requiredUnits = items.filter((item) => item.kind === 'unit')
   const requiredMocks = items.filter((item) => item.kind === 'mock')
+  const requiredPracticals = items.filter((item) => item.kind === 'practical')
   const doneRequiredUnits = requiredUnits.filter((item) => unitsDone.includes(item.id))
   const doneRequiredMocks = requiredMocks.filter((item) => Object.hasOwn(mocks, item.id))
-  const requiredCount = requiredUnits.length + requiredMocks.length
-  const doneCount = doneRequiredUnits.length + doneRequiredMocks.length
+  // Counting practicals as zero made a teacher's view read "0/1" for a learner
+  // who had done the work, which destroys trust in the whole column. A
+  // practical counts once any of its guide milestones is ticked.
+  const doneRequiredPracticals = requiredPracticals.filter((item) =>
+    (UNITS_BY_EXPERIMENT.get(item.id) ?? []).some((unitId) => unitsDone.includes(unitId))
+  )
+  const requiredCount = requiredUnits.length + requiredMocks.length + requiredPracticals.length
+  const doneCount =
+    doneRequiredUnits.length + doneRequiredMocks.length + doneRequiredPracticals.length
   return {
     unitsDone: unitsDone.length,
     mockResults: mocks,
