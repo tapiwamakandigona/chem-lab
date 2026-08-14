@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "public" / "og.png"
-CAPTURE = ROOT / "public" / "media" / "lab-kinetics.png"
+CAPTURE = ROOT / "public" / "media" / "lab-kinetics.webp"
 FONT = ROOT / "public" / "fonts" / "inter-var.woff2"
 MONO = ROOT / "public" / "fonts" / "jbmono-var.woff2"
 
@@ -87,5 +87,9 @@ draw.text((609, 501), "Real run data  ·  automatic graph  ·  evidence marking"
 draw.text((879, 565), "PHONE-READY  ·  OFFLINE AFTER FIRST LOAD",
           font=font(MONO, 10), fill="#7dd3fc")
 
+# Palette-quantise: the card is flat brand colours + one small capture, so
+# 256 colours are visually lossless here and cut the file ~60% (crawlers
+# fetch og.png on every share; it is also summed into the size budget).
+im = im.quantize(colors=256, method=Image.MEDIANCUT, dither=Image.FLOYDSTEINBERG)
 im.save(OUT, "PNG", optimize=True)
 print(f"generated {OUT.name}: {W}x{H}, {OUT.stat().st_size} bytes")

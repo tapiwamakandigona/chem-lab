@@ -17,7 +17,10 @@ export default defineConfig({
       // The workbox glob already includes PNG icons; avoid adding manifest icons twice.
       includeManifestIcons: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2,txt}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff,woff2,txt}'],
+        // og.png is fetched by social crawlers only — the app never renders
+        // it, so precaching it costs every install ~63 kB for nothing.
+        globIgnores: ['og.png'],
         // vendor-three chunk is ~1 MB raw; raise the precache cap
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',

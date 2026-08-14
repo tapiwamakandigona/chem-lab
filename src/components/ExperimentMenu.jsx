@@ -316,7 +316,7 @@ export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
                   <span className="product-code">9701 · KINETICS</span>
                 </div>
                 <img
-                  src="/media/lab-kinetics.png"
+                  src="/media/lab-kinetics.webp"
                   width="1280"
                   height="720"
                   alt="ChemLab catalytic kinetics practical showing a flask, oxygen gas syringe, graph and marked learner controls"
@@ -482,7 +482,7 @@ export default function ExperimentMenu({ onSelect, onOpenGuide, onOpenMocks }) {
             <div className="phone-stage" aria-hidden="true">
               <div className="phone-shell">
                 <div className="phone-speaker" />
-                <img src="/media/lab-mobile.png" width="390" height="844" alt="" />
+                <img src="/media/lab-mobile.webp" width="390" height="844" alt="" />
               </div>
               <span className="device-chip device-chip--touch">PINCH TO ZOOM</span>
               <span className="device-chip device-chip--offline">OFFLINE READY</span>
