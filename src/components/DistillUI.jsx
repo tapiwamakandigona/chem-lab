@@ -1,6 +1,6 @@
 import { useLabStore } from '../store.js'
 import { distillStatus } from '../lib/distill.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 export default function DistillUI({ onBack }) {
   const {
@@ -178,7 +178,7 @@ export default function DistillUI({ onBack }) {
             onClick={distillSubmit}
             className="px-3 py-1.5 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 hover:bg-lab-accent/20 text-xs font-medium"
           >
-            Check technique
+            <CheckVerb practice="Check technique" />
           </button>
           <button
             data-testid="distill-reset"

@@ -9,6 +9,7 @@ export default function EnthalpyUI({ onBack }) {
     enthalpy, setEnthalpyMass, setEnthalpyVolume, setEnthalpyT1,
     enthalpyStart, enthalpyReset, enthalpyTickT2, enthalpyComplete
   } = useLabStore()
+  const testMode = useLabStore((s) => s.testMode)
 
   const [localT2, setLocalT2] = useState(enthalpy.T1)
   const [showCalc, setShowCalc] = useState(false)
@@ -174,7 +175,7 @@ export default function EnthalpyUI({ onBack }) {
           )}
 
           {/* Mock paper — unlocks after the run completes (needs cooling curve) */}
-          {enthalpy.phase === 'complete' && (
+          {enthalpy.phase === 'complete' && !testMode && (
             <button
               data-testid="mock-open-enthalpy"
               onClick={() => setShowPaper(true)}

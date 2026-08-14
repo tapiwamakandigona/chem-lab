@@ -8,6 +8,7 @@ const CONCS = [0.100, 0.080, 0.060, 0.040, 0.020]
 
 export default function ClockUI({ onBack }) {
   const { clock, clockStart, clockReset, clockRecordResult, setClockConc } = useLabStore()
+  const testMode = useLabStore((s) => s.testMode)
   const [showCalc, setShowCalc] = useState(false)
   const [showPaper, setShowPaper] = useState(false)
   const paperCtx = clockPaperCtx(clock.results)
@@ -144,7 +145,7 @@ export default function ClockUI({ onBack }) {
           )}
 
           {/* Mock paper — unlocks once all five concentrations are recorded */}
-          {paperCtx && (
+          {paperCtx && !testMode && (
             <button
               data-testid="mock-open-clock"
               onClick={() => setShowPaper(true)}

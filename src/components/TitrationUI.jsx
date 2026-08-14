@@ -251,7 +251,7 @@ export default function TitrationUI({ onBack }) {
         {concordant && (
           <div className="mt-1 flex items-center justify-end gap-2 pr-1">
             <p className="text-[11px] text-lab-accent font-mono">mean {meanTitre} cm³</p>
-            {titration.preset === 's22' && (
+            {titration.preset === 's22' && !testMode && (
               <button
                 onClick={() => setShowPaper(true)}
                 data-testid="mock-open-mobile"
@@ -301,7 +301,7 @@ export default function TitrationUI({ onBack }) {
               <div className="mt-2 pt-2 border-t border-lab-border">
                 <p className="text-[10px] text-lab-muted">Concordant mean</p>
                 <p className="font-mono text-lab-accent text-sm">{meanTitre} cm³</p>
-                {titration.preset === 's22' && (
+                {titration.preset === 's22' && !testMode && (
                 <button
                   onClick={() => setShowPaper(true)}
                   data-testid="mock-open"

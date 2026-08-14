@@ -1,6 +1,6 @@
 import { useLabStore } from '../store.js'
 import { FLAME_UNKNOWNS, FLAME_IONS } from '../lib/flame.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 const PROCEDURE = [
   {
@@ -215,7 +215,7 @@ export default function FlameUI({ onBack }) {
               disabled={!flame.answer}
               className="px-3 py-1.5 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 hover:bg-lab-accent/20 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Check identification
+              <CheckVerb practice="Check identification" />
             </button>
             <button
               data-testid="flame-reset"

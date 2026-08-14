@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useLabStore } from '../store.js'
 import { hasConcordantPair, IODINE_TARGET_SEC } from '../lib/iodineRate.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 const APPEARANCE = {
   brown: 'brown iodine',
@@ -365,7 +365,7 @@ export default function IodineRateUI({ onBack }) {
               onClick={iodineSubmit}
               className="w-full min-h-11 rounded-lg border border-lab-accent/50 bg-lab-accent/10 text-xs font-medium text-lab-accent"
             >
-              Mark practical evidence
+              <CheckVerb practice="Mark practical evidence" />
             </button>
 
             {x.result && (

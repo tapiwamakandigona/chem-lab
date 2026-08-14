@@ -7,7 +7,10 @@ record a titre) raises the score at a second hand-in. No answer oracle
 mid-test: a WRONG burette reading is accepted silently (no ✗ feedback, no
 reveal button) and surfaces only as an examiner's note in the report.
 Results persist to chemlab-test-results-v1; exiting restores the guide and
-the practice aid. Flame: chip present too (HUD is shared across practicals).
+the practice aid. Flame: chip present too (HUD is shared across practicals);
+submit verb flips Check identification -> Record answer and back. Enthalpy:
+MockPaper (worked marking = indirect oracle) unreachable in test mode,
+restored in practice.
 Mobile 390x844: chip and Hand in are tappable, report scrolls and closes.
 Exit 1 on any failure.
 """
@@ -162,10 +165,45 @@ with sync_playwright() as p:
     pg.close()
 
     # ---------- HUD is shared: flame has the chip too ----------
+    # And the submit verb must not promise instant verification in test mode:
+    # practice says "Check identification", test mode says "Record answer".
     pg = browser.new_page(viewport={"width": 1280, "height": 800})
     pg.goto(f"http://localhost:{PORT}/practical/flame", wait_until="load", timeout=TIMEOUT_MS)
     pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
     check("flame practical has test-mode chip", True)
+    label = pg.locator('[data-testid="flame-submit"]').inner_text()
+    check("practice: submit verb is Check identification", "Check identification" in label, label)
+    pg.click('[data-testid="test-mode-toggle"]')
+    pg.wait_for_selector('[data-testid="test-hand-in"]', timeout=TIMEOUT_MS)
+    label = pg.locator('[data-testid="flame-submit"]').inner_text()
+    check("test mode: submit verb is Record answer", "Record answer" in label, label)
+    body = pg.locator("body").inner_text()
+    check("test mode: no instant-verification verbs on page",
+          all(v not in body for v in ("Check identification", "Check conclusion", "Check technique")))
+    pg.click('[data-testid="test-mode-exit"]')
+    pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
+    label = pg.locator('[data-testid="flame-submit"]').inner_text()
+    check("back-to-practice restores Check verb", "Check identification" in label, label)
+    pg.close()
+
+    # ---------- MockPaper is an indirect oracle: unreachable in test mode ----------
+    # Enthalpy: complete a run (mock unlock condition), then toggle modes.
+    pg = browser.new_page(viewport={"width": 1280, "height": 800})
+    pg.goto(f"http://localhost:{PORT}/practical/enthalpy", wait_until="load", timeout=TIMEOUT_MS)
+    pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
+    time.sleep(2)
+    pg.locator("button", has_text="Add Na").click()
+    pg.wait_for_selector('[data-testid="mock-open-enthalpy"]', timeout=TIMEOUT_MS)
+    check("practice: completed run offers mock paper", True)
+    pg.click('[data-testid="test-mode-toggle"]')
+    pg.wait_for_selector('[data-testid="test-hand-in"]', timeout=TIMEOUT_MS)
+    check("test mode: mock paper unreachable",
+          pg.locator('[data-testid^="mock-open"]').count() == 0)
+    snap(pg, "testmode-enthalpy-no-mock.png")
+    pg.click('[data-testid="test-mode-exit"]')
+    pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
+    check("back-to-practice restores mock paper",
+          pg.locator('[data-testid="mock-open-enthalpy"]').count() >= 1)
     pg.close()
 
     # ---------- mobile 390x844 ----------

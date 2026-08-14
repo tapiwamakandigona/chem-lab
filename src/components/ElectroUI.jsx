@@ -1,6 +1,6 @@
 import { useLabStore } from '../store.js'
 import { ELECTRO_UNKNOWNS, ELECTRODES, REFERENCES } from '../lib/electro.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 export default function ElectroUI({ onBack }) {
   const { electro, electroSetUnknown, electroMeasure, electroSetAnswer, electroSubmit, electroReset } = useLabStore()
@@ -119,7 +119,7 @@ export default function ElectroUI({ onBack }) {
               disabled={!electro.answer}
               className="px-3 py-1.5 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 hover:bg-lab-accent/20 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Check identification
+              <CheckVerb practice="Check identification" />
             </button>
             <button
               data-testid="electro-reset"

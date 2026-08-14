@@ -38,3 +38,11 @@ export default function CheckResult({ testid, ok, score, children }) {
     </div>
   )
 }
+
+// Shared verb for every practical's answer-submit button. In test mode the
+// label must not promise instant verification ("Check", "Mark") — the same
+// press only records the answer for hand-in marking. One rule, all buttons.
+export function CheckVerb({ practice }) {
+  const testMode = useLabStore((s) => s.testMode)
+  return testMode ? 'Record answer' : practice
+}

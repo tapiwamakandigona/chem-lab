@@ -1,6 +1,6 @@
 import { useLabStore } from '../store.js'
 import { GAS, readSyringe, isConstantVolume } from '../lib/gas.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 export default function GasUI({ onBack }) {
   const { gas, gasStart, gasRecord, gasSetAnswer, gasSubmit, gasReset } = useLabStore()
@@ -117,7 +117,7 @@ export default function GasUI({ onBack }) {
                 onClick={gasSubmit}
                 className="px-3 py-1.5 rounded-lg border border-lab-accent/50 text-lab-accent text-xs hover:bg-lab-accent/10"
               >
-                Check
+                <CheckVerb practice="Check" />
               </button>
             </div>
             {gas.result && (

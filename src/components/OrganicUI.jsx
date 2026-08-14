@@ -1,6 +1,6 @@
 import { useLabStore } from '../store.js'
 import { ORGANIC_TESTS, ORGANIC_UNKNOWNS, ORGANIC_CLASSES } from '../lib/organic.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 const TEST_BY_ID = Object.fromEntries(ORGANIC_TESTS.map((t) => [t.id, t]))
 
@@ -111,7 +111,7 @@ export default function OrganicUI({ onBack }) {
               disabled={!organic.answer}
               className="px-3 py-1.5 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 hover:bg-lab-accent/20 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Check conclusion
+              <CheckVerb practice="Check conclusion" />
             </button>
             <button
               data-testid="organic-reset"

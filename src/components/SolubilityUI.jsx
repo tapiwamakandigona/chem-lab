@@ -5,7 +5,7 @@ import {
   saturationTemperature,
   solubilityStatus,
 } from '../lib/solubility.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 function SolubilityGraph({ observations }) {
   const width = 290
@@ -282,7 +282,7 @@ export default function SolubilityUI({ onBack }) {
               onClick={solubilitySubmit}
               className="px-3 py-2 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 text-xs"
             >
-              Check
+              <CheckVerb practice="Check" />
             </button>
           </div>
           <button

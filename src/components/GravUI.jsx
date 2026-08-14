@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useLabStore } from '../store.js'
 import { GRAV, HEAT_MS, COOL_MS, isConstantMass } from '../lib/grav.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 export default function GravUI({ onBack }) {
   const {
@@ -136,7 +136,7 @@ export default function GravUI({ onBack }) {
                 onClick={gravSubmit}
                 className="px-3 py-1.5 rounded-lg border border-lab-accent/50 text-lab-accent text-xs hover:bg-lab-accent/10"
               >
-                Check
+                <CheckVerb practice="Check" />
               </button>
             </div>
             {grav.result && (

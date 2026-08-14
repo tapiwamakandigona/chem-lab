@@ -1,6 +1,6 @@
 import { useLabStore } from '../store.js'
 import { CHROMA_UNKNOWNS, DYES, FRONT_CM, chromaReadings } from '../lib/chroma.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 export default function ChromaUI({ onBack }) {
   const { chroma, chromaSetUnknown, chromaStart, chromaToggleDye, chromaSetRf, chromaSubmit, chromaReset } = useLabStore()
@@ -159,7 +159,7 @@ export default function ChromaUI({ onBack }) {
               disabled={chroma.answer.length === 0}
               className="px-3 py-1.5 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 hover:bg-lab-accent/20 text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Check identification
+              <CheckVerb practice="Check identification" />
             </button>
             <button
               data-testid="chroma-reset"

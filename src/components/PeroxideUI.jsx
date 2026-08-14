@@ -7,7 +7,7 @@ import {
   peroxideRun,
   syringeReading,
 } from '../lib/peroxide.js'
-import CheckResult from './CheckResult.jsx'
+import CheckResult, { CheckVerb } from './CheckResult.jsx'
 
 const COLORS = {
   control: '#35c9ff',
@@ -225,7 +225,7 @@ export default function PeroxideUI({ onBack }) {
             disabled={completeCount < 2 || !peroxide.reason}
             className="mt-2 px-3 py-2 rounded-lg border border-lab-accent/50 text-lab-accent bg-lab-accent/10 text-xs disabled:opacity-40"
           >
-            Check conclusion
+            <CheckVerb practice="Check conclusion" />
           </button>
           {peroxide.result && (
             <CheckResult testid="peroxide-result" ok={peroxide.result.ok} score={peroxide.result.total}>
