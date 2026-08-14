@@ -5,6 +5,7 @@ import {
   saturationTemperature,
   solubilityStatus,
 } from '../lib/solubility.js'
+import CheckResult from './CheckResult.jsx'
 
 function SolubilityGraph({ observations }) {
   const width = 290
@@ -292,16 +293,7 @@ export default function SolubilityUI({ onBack }) {
             Reset selected run
           </button>
           {solubility.result && (
-            <div
-              data-testid="solubility-result"
-              data-score={solubility.result.total}
-              data-ok={solubility.result.ok ? '1' : '0'}
-              className={`mt-2 rounded-lg border px-3 py-2 text-xs ${
-                solubility.result.ok
-                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-              }`}
-            >
+            <CheckResult testid="solubility-result" ok={solubility.result.ok} score={solubility.result.total}>
               <div className="font-medium">{solubility.result.total}/3 investigation marks</div>
               {solubility.result.ok ? (
                 <p>Correct — dissolved completely, recorded the first crystals near saturation, and calculated {solubility.result.expected.toFixed(1)} g per 100 g H₂O.</p>
@@ -312,7 +304,7 @@ export default function SolubilityUI({ onBack }) {
                   {!solubility.result.calculated && <li>Use mass solute ÷ 20.0 × 100; expected {solubility.result.expected.toFixed(1)}.</li>}
                 </ul>
               )}
-            </div>
+            </CheckResult>
           )}
         </div>
 

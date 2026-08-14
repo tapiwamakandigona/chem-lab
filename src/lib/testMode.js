@@ -123,7 +123,17 @@ export function markTestAttempt(experiment, state) {
     correction: s.done ? null : (corrections[i] ?? 'Revisit this step in guided mode.'),
   }))
   const score = items.filter((i) => i.done).length
-  return { experiment, items, score, total: items.length, at: Date.now() }
+  // Margin notes beyond the step checklist — technique errors the steps
+  // cannot see. Test mode records mistakes silently; this is where they
+  // surface.
+  const notes = []
+  if (experiment === 'titration' && (state.titration?.readErrors ?? 0) > 0) {
+    const n = state.titration.readErrors
+    notes.push(
+      `${n} burette reading${n === 1 ? '' : 's'} did not match the scale — read the bottom of the meniscus, to the nearest 0.05 cm³. A misread carries straight into the titre.`,
+    )
+  }
+  return { experiment, items, score, total: items.length, notes, at: Date.now() }
 }
 
 export function loadTestResults() {

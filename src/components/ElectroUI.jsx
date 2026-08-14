@@ -1,5 +1,6 @@
 import { useLabStore } from '../store.js'
 import { ELECTRO_UNKNOWNS, ELECTRODES, REFERENCES } from '../lib/electro.js'
+import CheckResult from './CheckResult.jsx'
 
 export default function ElectroUI({ onBack }) {
   const { electro, electroSetUnknown, electroMeasure, electroSetAnswer, electroSubmit, electroReset } = useLabStore()
@@ -129,16 +130,7 @@ export default function ElectroUI({ onBack }) {
             </button>
           </div>
           {electro.result && (
-            <div
-              data-testid="electro-result"
-              data-score={electro.result.total}
-              data-ok={electro.result.ok ? '1' : '0'}
-              className={`rounded-lg border px-3 py-2 text-xs ${
-                electro.result.ok
-                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-              }`}
-            >
+            <CheckResult testid="electro-result" ok={electro.result.ok} score={electro.result.total}>
               <div className="font-medium mb-0.5">{electro.result.total}/{electro.result.max} marks</div>
               {electro.result.ok ? (
                 <div>Correct — {ELECTRO_UNKNOWNS[electro.unknown].label} is {electro.result.metalName}.</div>
@@ -147,7 +139,7 @@ export default function ElectroUI({ onBack }) {
               ) : (
                 <div>Not consistent with your readings — check magnitude AND polarity against the E° values.</div>
               )}
-            </div>
+            </CheckResult>
           )}
         </div>
       </div>

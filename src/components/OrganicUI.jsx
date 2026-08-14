@@ -1,5 +1,6 @@
 import { useLabStore } from '../store.js'
 import { ORGANIC_TESTS, ORGANIC_UNKNOWNS, ORGANIC_CLASSES } from '../lib/organic.js'
+import CheckResult from './CheckResult.jsx'
 
 const TEST_BY_ID = Object.fromEntries(ORGANIC_TESTS.map((t) => [t.id, t]))
 
@@ -121,16 +122,7 @@ export default function OrganicUI({ onBack }) {
             </button>
           </div>
           {organic.result && (
-            <div
-              data-testid="organic-result"
-              data-score={organic.result.total}
-              data-ok={organic.result.ok ? '1' : '0'}
-              className={`rounded-lg border px-3 py-2 text-xs ${
-                organic.result.ok
-                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-              }`}
-            >
+            <CheckResult testid="organic-result" ok={organic.result.ok} score={organic.result.total}>
               <div className="font-medium mb-0.5">{organic.result.total}/{organic.result.max} marks</div>
               {organic.result.ok ? (
                 <div>Correct — {ORGANIC_UNKNOWNS[organic.unknown].label} is {organic.result.compound} ({organic.result.className}).</div>
@@ -139,7 +131,7 @@ export default function OrganicUI({ onBack }) {
               ) : (
                 <div>Not consistent with your observations — compare the test results again.</div>
               )}
-            </div>
+            </CheckResult>
           )}
         </div>
       </div>

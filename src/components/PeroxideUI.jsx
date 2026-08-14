@@ -7,6 +7,7 @@ import {
   peroxideRun,
   syringeReading,
 } from '../lib/peroxide.js'
+import CheckResult from './CheckResult.jsx'
 
 const COLORS = {
   control: '#35c9ff',
@@ -227,21 +228,12 @@ export default function PeroxideUI({ onBack }) {
             Check conclusion
           </button>
           {peroxide.result && (
-            <div
-              data-testid="peroxide-result"
-              data-score={peroxide.result.total}
-              data-ok={peroxide.result.ok ? '1' : '0'}
-              className={`mt-2 rounded-lg border px-3 py-2 text-xs ${
-                peroxide.result.ok
-                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-              }`}
-            >
+            <CheckResult testid="peroxide-result" ok={peroxide.result.ok} score={peroxide.result.total}>
               <div className="font-medium">{peroxide.result.total}/3 investigation marks</div>
               {peroxide.result.ok
                 ? `${peroxide.result.chosen} has the steeper initial gradient (${peroxide.result.chosenRate.toFixed(2)} vs ${peroxide.result.controlRate.toFixed(2)} cm³ s⁻¹); your collision explanation matches the changed variable.`
                 : 'Use complete curves, compare the initial gradients, and link the reason to the one variable changed.'}
-            </div>
+            </CheckResult>
           )}
         </div>
 

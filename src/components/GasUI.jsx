@@ -1,5 +1,6 @@
 import { useLabStore } from '../store.js'
 import { GAS, readSyringe, isConstantVolume } from '../lib/gas.js'
+import CheckResult from './CheckResult.jsx'
 
 export default function GasUI({ onBack }) {
   const { gas, gasStart, gasRecord, gasSetAnswer, gasSubmit, gasReset } = useLabStore()
@@ -120,17 +121,13 @@ export default function GasUI({ onBack }) {
               </button>
             </div>
             {gas.result && (
-              <div
-                data-testid="gas-purity-result"
-                data-ok={gas.result.ok ? '1' : '0'}
-                className={`mt-1.5 text-[11px] ${gas.result.ok ? 'text-emerald-400' : 'text-rose-400'}`}
-              >
+              <CheckResult testid="gas-purity-result" ok={gas.result.ok}>
                 {gas.result.ok
                   ? `✓ Correct — ${gas.result.vFinal.toFixed(1)} cm³ ÷ 24000 = ${gas.result.mol.toExponential(2)} mol, × ${GAS.mrCarbonate} ÷ ${GAS.sampleMass.toFixed(3)} g gives ${gas.result.purity.toFixed(1)}%`
                   : gas.result.reason
                     ? `✗ ${gas.result.reason}`
                     : `✗ Not quite — mol = V/24000, mass CaCO₃ = mol × ${GAS.mrCarbonate}, purity = mass ÷ ${GAS.sampleMass.toFixed(3)} × 100.`}
-              </div>
+              </CheckResult>
             )}
           </div>
         )}

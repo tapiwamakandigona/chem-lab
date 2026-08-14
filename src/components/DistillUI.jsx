@@ -1,5 +1,6 @@
 import { useLabStore } from '../store.js'
 import { distillStatus } from '../lib/distill.js'
+import CheckResult from './CheckResult.jsx'
 
 export default function DistillUI({ onBack }) {
   const {
@@ -187,16 +188,7 @@ export default function DistillUI({ onBack }) {
             Reset apparatus
           </button>
           {distill.result && (
-            <div
-              data-testid="distill-result"
-              data-score={distill.result.total}
-              data-ok={distill.result.ok ? '1' : '0'}
-              className={`rounded-lg border px-3 py-2 text-xs ${
-                distill.result.ok
-                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-              }`}
-            >
+            <CheckResult testid="distill-result" ok={distill.result.ok} score={distill.result.total}>
               <div className="font-medium mb-0.5">{distill.result.total}/{distill.result.max} technique marks</div>
               {distill.result.ok ? (
                 <div>Correct — lower-inlet cooling, controlled boiling and colourless water collected at ≈100 °C.</div>
@@ -207,7 +199,7 @@ export default function DistillUI({ onBack }) {
                   {!distill.result.evidence && <li>Record ≥5 cm³ colourless distillate while vapour is 98–102 °C.</li>}
                 </ul>
               )}
-            </div>
+            </CheckResult>
           )}
         </div>
 

@@ -57,6 +57,20 @@ function ReportOverlay({ report, onClose, onExit }) {
             </li>
           ))}
         </ol>
+        {report.notes?.length > 0 && (
+          <div className="border-t border-lab-border px-4 py-3">
+            <p className="font-mono text-[10px] tracking-wider text-lab-warning">EXAMINER'S NOTES</p>
+            {report.notes.map((note, i) => (
+              <p
+                key={i}
+                data-testid="test-report-note"
+                className="mt-1.5 border-l-2 border-lab-warning/50 pl-2 text-xs leading-relaxed text-lab-warning"
+              >
+                {note}
+              </p>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2 border-t border-lab-border p-3">
           <button
             type="button"

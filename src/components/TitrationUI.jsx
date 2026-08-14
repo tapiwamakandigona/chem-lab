@@ -28,6 +28,7 @@ export default function TitrationUI({ onBack }) {
     titrationCoachSeen, titrationCoachStep, advanceTitrationCoach, dismissTitrationCoach,
   } = useLabStore()
   const dripping = useLabStore((s) => s.dripping)
+  const testMode = useLabStore((s) => s.testMode)
 
   // At the endpoint the numeric reading is hidden — the student must read
   // the burette scale themselves before the titre can be recorded.
@@ -261,7 +262,7 @@ export default function TitrationUI({ onBack }) {
             )}
           </div>
         )}
-        <div className="mt-1 flex justify-end">
+        {!testMode && <div className="mt-1 flex justify-end">
           <button
             onClick={() => setShowPractice((s) => !s)}
             data-testid="meniscus-toggle-mobile"
@@ -269,7 +270,7 @@ export default function TitrationUI({ onBack }) {
           >
             {showPractice ? 'Hide practice' : 'Meniscus practice'}
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* Left panel — readings + instructions (desktop) */}
@@ -346,13 +347,13 @@ export default function TitrationUI({ onBack }) {
           </div>
         </div>
 
-        <button
+        {!testMode && <button
           onClick={() => setShowPractice((s) => !s)}
           data-testid="meniscus-toggle"
           className="w-full py-1.5 rounded-xl border border-lab-border bg-lab-panel/90 backdrop-blur-sm text-[11px] text-lab-muted hover:text-lab-ink shrink-0"
         >
           {showPractice ? 'Hide meniscus practice' : 'Practise reading the meniscus'}
-        </button>
+        </button>}
       </div>
 
       {/* Endpoint — read the burette yourself (ONE shared instance).
@@ -387,12 +388,12 @@ export default function TitrationUI({ onBack }) {
               Record
             </button>
           </div>
-          {titration.readCheck.status === 'wrong' && (
+          {!testMode && titration.readCheck.status === 'wrong' && (
             <p data-testid="burette-read-feedback" className="text-[11px] leading-snug text-lab-warning">
               ✗ Not quite — read the bottom of the meniscus, to the nearest 0.05 cm³. The scale increases downwards.
             </p>
           )}
-          {titration.readCheck.attempts >= 3 && (
+          {!testMode && titration.readCheck.attempts >= 3 && (
             <button
               onClick={titrationReadReveal}
               data-testid="burette-read-reveal"
@@ -414,7 +415,7 @@ export default function TitrationUI({ onBack }) {
       )}
 
       {/* Meniscus practice — one shared instance (mobile + desktop toggles) */}
-      {showPractice && (
+      {!testMode && showPractice && (
         <div className="absolute pointer-events-auto right-2 top-[7.5rem] w-[240px] md:top-auto md:bottom-28 md:w-40 max-h-[70%] overflow-y-auto">
           <MeniscusPractice />
         </div>
@@ -426,7 +427,7 @@ export default function TitrationUI({ onBack }) {
       <div className="absolute bottom-2 md:bottom-3 left-0 right-0 flex flex-col items-center gap-1.5 pointer-events-none px-2">
         {/* First-run coach card — in flow above the hold control so it can
             never overlap it at any viewport width. */}
-{!titrationCoachSeen && setupReady && !mustRead && (
+{!testMode && !titrationCoachSeen && setupReady && !mustRead && (
         <section
           data-testid="titration-first-run"
           aria-label="First titration control"

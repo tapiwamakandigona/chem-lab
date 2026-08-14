@@ -730,3 +730,13 @@ practical URL returns a raw 404 page, not the branded soft-404 (live is fine).
 - Suite note: sandbox restarted mid-suite-3 (~06:50 UTC) and killed the runner silently; 5 PASSes before the kill remain valid for the frozen dist; remaining 4 gates relaunched as suite 4. Lesson: detect via PID-space reset + no run_gates in /proc/*/cmdline + port 8797 free.
 - OPEN (ledger): test mode v1 does not hide instant per-practical "Check" buttons mid-test — a student can self-verify before hand-in. Fix in a later iter by gating Check buttons on testMode.
 - OPEN (F5): bench texture pass still pending.
+
+## iter-58 — test mode: no answer oracle (2026-08-14)
+Rule: in testMode there are no instant correctness verdicts, no answer reveals, no coaching aids. Verdicts still computed+stored so hand-in marking is unchanged.
+- New src/components/CheckResult.jsx shared verdict display; practice = full verdict (data-ok 1/0, data-score), test = neutral "Recorded — this will be marked when you hand in." (data-ok="rec"). Swapped into 11 practical UIs.
+- store.js: titration.readErrors counter; titrationReadCheckSubmit test-mode branch accepts any quantized reading, carries the student's mistake into the titre, physical burette stays truthful.
+- TitrationUI: test mode hides read feedback/reveal, first-run coach, meniscus practice (desktop+mobile).
+- testMode.js markTestAttempt returns notes[]; TestModeHUD renders EXAMINER'S NOTES (burette misread note).
+- Gate tests/gates/testmode.py extended: +6 assertions (oracle absence, silent wrong-reading acceptance, examiner's note, practice restore). PASS 30s.
+- eslint clean; prepush OK (PRE-PUSH OK); dist frozen .harness-evidence/iter58-dist.sha256 (46 files, main-Bvl1ox1J.js); compressed ~1,051,990 B < 1,100,000 budget. Full 37-gate suite: 37/37 PASS, 0 FAIL (serial, ~52 min, log iter58-fullsuite.log).
+- Known leftovers (ledger): "Check …" button labels unchanged in test mode; MockPaper still openable in test mode (possible indirect oracle).

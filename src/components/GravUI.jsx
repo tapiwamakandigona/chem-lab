@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useLabStore } from '../store.js'
 import { GRAV, HEAT_MS, COOL_MS, isConstantMass } from '../lib/grav.js'
+import CheckResult from './CheckResult.jsx'
 
 export default function GravUI({ onBack }) {
   const {
@@ -139,17 +140,13 @@ export default function GravUI({ onBack }) {
               </button>
             </div>
             {grav.result && (
-              <div
-                data-testid="grav-x-result"
-                data-ok={grav.result.ok ? '1' : '0'}
-                className={`mt-1.5 text-[11px] ${grav.result.ok ? 'text-emerald-400' : 'text-rose-400'}`}
-              >
+              <CheckResult testid="grav-x-result" ok={grav.result.ok}>
                 {grav.result.ok
                   ? `✓ Correct — water lost ${grav.result.water.toFixed(2)} g ÷ 18.0 and residue ${grav.result.anhydrous.toFixed(2)} g ÷ 120.4 give x = ${grav.result.x.toFixed(2)} ≈ ${grav.result.expected}`
                   : grav.result.reason
                     ? `✗ ${grav.result.reason}`
                     : `✗ Not quite — mol H₂O ÷ mol MgSO₄ from your own table. Try again.`}
-              </div>
+              </CheckResult>
             )}
           </div>
         )}

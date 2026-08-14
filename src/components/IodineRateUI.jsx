@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useLabStore } from '../store.js'
 import { hasConcordantPair, IODINE_TARGET_SEC } from '../lib/iodineRate.js'
+import CheckResult from './CheckResult.jsx'
 
 const APPEARANCE = {
   brown: 'brown iodine',
@@ -368,17 +369,7 @@ export default function IodineRateUI({ onBack }) {
             </button>
 
             {x.result && (
-              <div
-                data-testid="iodine-result"
-                data-score={x.result.total}
-                data-max={x.result.max}
-                data-ok={x.result.ok ? '1' : '0'}
-                className={`rounded-xl border p-3 ${
-                  x.result.ok
-                    ? 'border-emerald-500/50 bg-emerald-500/10'
-                    : 'border-amber-500/50 bg-amber-500/10'
-                }`}
-              >
+              <CheckResult testid="iodine-result" ok={x.result.ok} score={x.result.total}>
                 <strong className={x.result.ok ? 'text-emerald-200' : 'text-amber-200'}>
                   {x.result.total}/{x.result.max} practical marks
                 </strong>
@@ -389,7 +380,7 @@ export default function IodineRateUI({ onBack }) {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </CheckResult>
             )}
           </section>
         )}

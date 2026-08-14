@@ -70,7 +70,11 @@ export const useLabStore = create((set) => ({
   // --- test mode (no hints; marked with corrections at hand-in) ---
   testMode: false,
   testReport: null, // result of markTestAttempt, shown as an overlay
-  setTestMode: (testMode) => set({ testMode, testReport: null }),
+  setTestMode: (testMode) => set((s) => ({
+    testMode,
+    testReport: null,
+    titration: { ...s.titration, readErrors: 0 },
+  })),
   setTestReport: (testReport) => set({ testReport }),
 
   // --- quality / rendering ---
@@ -134,6 +138,7 @@ export const useLabStore = create((set) => ({
     // reading is masked; the student reads the zoomed scale and types the
     // final reading (nearest 0.05) before the titre records.
     readCheck: { entered: '', status: 'idle', attempts: 0 }, // status: idle|wrong|correct
+    readErrors: 0,          // test mode: readings recorded that didn't match the scale
   },
   titrationDispense: (delta) => set((s) => {
     const t = s.titration
@@ -210,6 +215,27 @@ export const useLabStore = create((set) => ({
   titrationReadCheckSubmit: () => set((s) => {
     const t = s.titration
     const v = parseFloat(t.readCheck.entered)
+    // Test mode: accept the learner's reading as-is (quantised to the 0.05
+    // scale), mistakes included — the titre is computed from what THEY read,
+    // and reading errors are counted for the hand-in report. No instant
+    // right/wrong feedback: that would be an answer oracle mid-test.
+    if (s.testMode) {
+      if (Number.isNaN(v)) return {}
+      const reported = Math.round(v * 20) / 20
+      const titre = Math.round((reported - t.initialReading) * 20) / 20
+      return {
+        titration: {
+          ...t,
+          titreValues: [...t.titreValues, titre],
+          readErrors: t.readErrors + (Math.abs(reported - t.buretteReading) > 0.001 ? 1 : 0),
+          initialReading: t.buretteReading,
+          indicatorColor: [0.95, 0.95, 0.95, 0.85],
+          endpointReached: false,
+          phase: 'setup',
+          readCheck: { entered: '', status: 'idle', attempts: 0 },
+        }
+      }
+    }
     const quantized = !Number.isNaN(v) && Math.abs(v * 20 - Math.round(v * 20)) < 1e-6
     const correct = quantized && Math.abs(v - t.buretteReading) < 0.001
     if (!correct) {
@@ -246,6 +272,7 @@ export const useLabStore = create((set) => ({
       indicatorColor: [0.95, 0.95, 0.95, 0.85],
       endpointReached: false,
       titreValues: [],
+      readErrors: 0,
       phase: 'setup',
       readCheck: { entered: '', status: 'idle', attempts: 0 },
     }

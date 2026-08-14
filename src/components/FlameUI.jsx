@@ -1,5 +1,6 @@
 import { useLabStore } from '../store.js'
 import { FLAME_UNKNOWNS, FLAME_IONS } from '../lib/flame.js'
+import CheckResult from './CheckResult.jsx'
 
 const PROCEDURE = [
   {
@@ -225,16 +226,7 @@ export default function FlameUI({ onBack }) {
             </button>
           </div>
           {flame.result && (
-            <div
-              data-testid="flame-result"
-              data-score={flame.result.total}
-              data-ok={flame.result.ok ? '1' : '0'}
-              className={`rounded-lg border px-3 py-2 text-xs ${
-                flame.result.ok
-                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-              }`}
-            >
+            <CheckResult testid="flame-result" ok={flame.result.ok} score={flame.result.total}>
               <div className="font-medium mb-0.5">{flame.result.total}/{flame.result.max} marks</div>
               {flame.result.ok ? (
                 <div>
@@ -245,7 +237,7 @@ export default function FlameUI({ onBack }) {
               ) : (
                 <div>Not consistent with the recorded flame. Check whether contamination masked the sample colour.</div>
               )}
-            </div>
+            </CheckResult>
           )}
         </div>
 

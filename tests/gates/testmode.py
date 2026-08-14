@@ -1,10 +1,13 @@
 """Gate: test mode — work solo, mistakes allowed, marked at hand-in.
 
-Titration desktop: Test mode chip present; entering hides the guide coach;
-handing in with no work scores 0/6 and every miss carries a correction line;
-doing real work (dispense to endpoint + record a titre) raises the score at a
-second hand-in; results persist to chemlab-test-results-v1; exiting restores
-the guide. Flame: chip present too (HUD is shared across practicals).
+Titration desktop: Test mode chip present; entering hides the guide coach
+AND the meniscus-practice aid; handing in with no work scores 0/6 and every
+miss carries a correction line; doing real work (dispense to endpoint +
+record a titre) raises the score at a second hand-in. No answer oracle
+mid-test: a WRONG burette reading is accepted silently (no ✗ feedback, no
+reveal button) and surfaces only as an examiner's note in the report.
+Results persist to chemlab-test-results-v1; exiting restores the guide and
+the practice aid. Flame: chip present too (HUD is shared across practicals).
 Mobile 390x844: chip and Hand in are tappable, report scrolls and closes.
 Exit 1 on any failure.
 """
@@ -79,11 +82,17 @@ with sync_playwright() as p:
     pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
     check("practice mode shows guide coach", pg.locator('[data-testid="guide-panel"], [data-testid="guide-toggle"]').count() >= 1)
 
+    check("practice mode offers meniscus practice",
+          pg.locator('[data-testid="meniscus-toggle"]').count() >= 1)
+
     pg.click('[data-testid="test-mode-toggle"]')
     pg.wait_for_selector('[data-testid="test-hand-in"]', timeout=TIMEOUT_MS)
     check("test mode hides guide coach",
           pg.locator('[data-testid="guide-panel"]').count() == 0
           and pg.locator('[data-testid="guide-toggle"]').count() == 0)
+    check("test mode hides meniscus practice aid",
+          pg.locator('[data-testid="meniscus-toggle"]').count() == 0
+          and pg.locator('[data-testid="meniscus-toggle-mobile"]').count() == 0)
 
     # hand in with zero work — everything wrong is allowed and marked
     pg.click('[data-testid="test-hand-in"]')
@@ -122,20 +131,34 @@ with sync_playwright() as p:
         pg.wait_for_timeout(200)
     pg.locator("button", has_text="0.05").click()
     pg.wait_for_timeout(1500)
-    pg.fill('[data-testid="burette-read-input"]', "23.85")
+    # deliberately misread the burette (true reading: 23.85). Test mode must
+    # accept it silently — no wrong-answer feedback, no reveal oracle.
+    pg.wait_for_selector('[data-testid="burette-read-input"]', timeout=TIMEOUT_MS)
+    check("no reveal oracle in test mode",
+          pg.locator('[data-testid="burette-read-reveal"]').count() == 0)
+    pg.fill('[data-testid="burette-read-input"]', "20.00")
     pg.click('[data-testid="burette-read-check"]')
     pg.wait_for_timeout(1000)
+    check("wrong reading accepted silently (mistakes included)",
+          pg.locator('[data-testid="burette-read-feedback"]').count() == 0
+          and pg.locator('[data-testid="endpoint-read-card"]').count() == 0)
     pg.click('[data-testid="test-hand-in"]')
     pg.wait_for_selector('[data-testid="test-report-score"]', timeout=TIMEOUT_MS)
     score2 = pg.locator('[data-testid="test-report-score"]').inner_text().strip()
     n2 = int(score2.split("/")[0])
     check("real work raises the marked score", n2 >= 3, score2)
+    note = pg.locator('[data-testid="test-report-note"]')
+    check("misread surfaces as an examiner's note",
+          note.count() >= 1 and "meniscus" in note.first.inner_text(),
+          note.count())
     snap(pg, "testmode-report-work.png")
 
     pg.click('[data-testid="test-report-exit"]')
     pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
     check("back-to-practice restores guide",
           pg.locator('[data-testid="guide-panel"], [data-testid="guide-toggle"]').count() >= 1)
+    check("back-to-practice restores meniscus practice",
+          pg.locator('[data-testid="meniscus-toggle"]').count() >= 1)
     pg.close()
 
     # ---------- HUD is shared: flame has the chip too ----------

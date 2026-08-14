@@ -1,5 +1,6 @@
 import { useLabStore } from '../store.js'
 import { REAGENTS, QUAL_UNKNOWNS, CATIONS, ANIONS } from '../lib/qual.js'
+import CheckResult from './CheckResult.jsx'
 
 const REAGENT_BY_ID = Object.fromEntries(REAGENTS.map((r) => [r.id, r]))
 
@@ -141,14 +142,10 @@ export default function QualUI({ onBack }) {
             </button>
           </div>
           {qual.result && (
-            <div
-              data-testid="qual-result"
-              data-score={qual.result.total}
-              className={`rounded-lg border px-3 py-2 text-xs ${
-                qual.result.total === qual.result.max
-                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-              }`}
+            <CheckResult
+              testid="qual-result"
+              ok={qual.result.total === qual.result.max}
+              score={qual.result.total}
             >
               <div className="font-medium mb-0.5">{qual.result.total}/{qual.result.max} marks</div>
               <div>
@@ -161,7 +158,7 @@ export default function QualUI({ onBack }) {
               {qual.result.total === qual.result.max && (
                 <div className="mt-0.5 text-emerald-200/90">Correct — {QUAL_UNKNOWNS[qual.unknown].label} is {qual.result.formula}.</div>
               )}
-            </div>
+            </CheckResult>
           )}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useLabStore } from '../store.js'
 import { CHROMA_UNKNOWNS, DYES, FRONT_CM, chromaReadings } from '../lib/chroma.js'
+import CheckResult from './CheckResult.jsx'
 
 export default function ChromaUI({ onBack }) {
   const { chroma, chromaSetUnknown, chromaStart, chromaToggleDye, chromaSetRf, chromaSubmit, chromaReset } = useLabStore()
@@ -169,16 +170,7 @@ export default function ChromaUI({ onBack }) {
             </button>
           </div>
           {chroma.result && (
-            <div
-              data-testid="chroma-result"
-              data-score={chroma.result.total}
-              data-ok={chroma.result.ok ? '1' : '0'}
-              className={`rounded-lg border px-3 py-2 text-xs ${
-                chroma.result.ok
-                  ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-              }`}
-            >
+            <CheckResult testid="chroma-result" ok={chroma.result.ok} score={chroma.result.total}>
               <div className="font-medium mb-0.5">{chroma.result.total}/{chroma.result.max} marks</div>
               {chroma.result.ok ? (
                 <div>Correct — {CHROMA_UNKNOWNS[chroma.unknown].label} contains {chroma.result.dyeNames}.</div>
@@ -189,7 +181,7 @@ export default function ChromaUI({ onBack }) {
               ) : (
                 <div>Not consistent with the chromatogram — recompute each Rf and match against the reference table.</div>
               )}
-            </div>
+            </CheckResult>
           )}
         </div>
       </div>
