@@ -822,3 +822,16 @@ meshBasicMaterial. Probe VERIFIED: iodine-rate 188 -> 170 draw calls (-18,
 sampled pre-active; instanced mesh hidden until quench). All other scenes
 unchanged. Visual probe of quenched phase confirms bubbles render, animate,
 and fade with height. 37/37 gates PASS against frozen dist; PRE-PUSH OK.
+
+## opt-E: shared instancedOpacity lib + distill swarm instancing (2026-08-15)
+Extracted the opt-D aOpacity/onBeforeCompile meshBasicMaterial patch into NEW
+src/lib/instancedOpacity.js (patchInstanceOpacityMaterial); IodineRateScene now
+imports it (-13 lines). DistillScene.jsx: 12 boiling-bubble meshes -> 1
+instancedMesh (BOIL_COUNT=12, gated on heating) and 8 condenser-drop meshes ->
+1 instancedMesh (DROP_COUNT=8, gated on condensing), both DynamicDrawUsage +
+instancedBufferAttribute aOpacity + frustumCulled false. Probe VERIFIED:
+distill 154 -> 134 draw calls (-20), iodine-rate steady at 170 (no regression).
+Visual probe: no bubbles at 47 C, soft rising swarm at 100 C boiling; condenser
+drips intact. Full suite green: 22 gates PASS run 1 + 15 contention-killed
+gates all PASS on retry round 1 against the same frozen dist = 37/37.
+PRE-PUSH OK.

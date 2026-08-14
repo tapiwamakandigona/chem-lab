@@ -12,6 +12,7 @@ import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial, LiquidMaterial, FresnelRim } from './scene/glassware.jsx'
 import { BlobShadow, LabNotebook } from './scene/props.jsx'
 import { clampSimDelta } from '../lib/simClock.js'
+import { patchInstanceOpacityMaterial } from '../lib/instancedOpacity.js'
 
 const FLASK = [-0.22, 0.18, 0]
 const HEAD_Y = 0.37
@@ -22,33 +23,45 @@ function sphereGeometry() {
   return new THREE.SphereGeometry(0.082, 36, 24)
 }
 
+const BOIL_COUNT = 12
+
+const BOIL_SEEDS = Array.from({ length: BOIL_COUNT }, (_, i) => ({
+  x: ((i * 37) % 11 - 5) * 0.008,
+  z: ((i * 53) % 9 - 4) * 0.008,
+  phase: (i * 0.21) % 1,
+  speed: 0.7 + (i % 4) * 0.17,
+}))
+
+const BOIL_OPACITIES = new Float32Array(BOIL_COUNT)
+
+const SWARM_DUMMY = new THREE.Object3D()
+
 function RoundBottomFlask({ heating, granules, bumping, volume }) {
   const liquid = useRef()
-  const bubbleRefs = useRef([])
+  const boilMesh = useRef()
   const flaskGeo = useMemo(() => sphereGeometry(), [])
-  const seeds = useMemo(
-    () => Array.from({ length: 12 }, (_, i) => ({
-      x: ((i * 37) % 11 - 5) * 0.008,
-      z: ((i * 53) % 9 - 4) * 0.008,
-      phase: (i * 0.21) % 1,
-      speed: 0.7 + (i % 4) * 0.17,
-    })),
-    [],
-  )
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (liquid.current) {
       liquid.current.rotation.z = bumping ? Math.sin(t * 18) * 0.025 : Math.sin(t * 2) * 0.002
     }
-    bubbleRefs.current.forEach((b, i) => {
-      if (!b) return
-      const sd = seeds[i]
+    const mesh = boilMesh.current
+    if (!mesh) return
+    mesh.visible = heating
+    if (!heating) return
+    const opacityAttr = mesh.geometry.attributes.aOpacity
+    for (let i = 0; i < BOIL_COUNT; i += 1) {
+      const sd = BOIL_SEEDS[i]
       const f = (t * sd.speed + sd.phase) % 1
-      b.position.set(sd.x * (1 - f * 0.5), -0.04 + f * 0.075, sd.z * (1 - f * 0.5))
-      b.material.opacity = heating ? (bumping ? 0.85 : 0.48) * (1 - f * 0.55) : 0
-      b.scale.setScalar((bumping ? 1.55 : 0.75) + f * 0.55)
-    })
+      SWARM_DUMMY.position.set(sd.x * (1 - f * 0.5), -0.04 + f * 0.075, sd.z * (1 - f * 0.5))
+      SWARM_DUMMY.scale.setScalar((bumping ? 1.55 : 0.75) + f * 0.55)
+      SWARM_DUMMY.updateMatrix()
+      mesh.setMatrixAt(i, SWARM_DUMMY.matrix)
+      opacityAttr.array[i] = (bumping ? 0.85 : 0.48) * (1 - f * 0.55)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    opacityAttr.needsUpdate = true
   })
 
   const fillScale = Math.max(0.34, 0.72 * Math.sqrt(Math.max(volume, 1) / 20))
@@ -81,12 +94,21 @@ function RoundBottomFlask({ heating, granules, bumping, volume }) {
           <meshStandardMaterial color="#d7d1bf" roughness={0.95} />
         </mesh>
       ))}
-      {seeds.map((_, i) => (
-        <mesh key={i} ref={(el) => { bubbleRefs.current[i] = el }}>
-          <sphereGeometry args={[0.0028, 8, 6]} />
-          <meshBasicMaterial color="#d8effb" transparent opacity={0} depthWrite={false} />
-        </mesh>
-      ))}
+      <instancedMesh ref={boilMesh} args={[undefined, undefined, BOIL_COUNT]} frustumCulled={false} visible={false}>
+        <sphereGeometry args={[0.0028, 8, 6]}>
+          <instancedBufferAttribute
+            attach="attributes-aOpacity"
+            args={[BOIL_OPACITIES, 1]}
+            usage={THREE.DynamicDrawUsage}
+          />
+        </sphereGeometry>
+        <meshBasicMaterial
+          transparent
+          color="#d8effb"
+          depthWrite={false}
+          onBeforeCompile={patchInstanceOpacityMaterial}
+        />
+      </instancedMesh>
       <BlobShadow r={0.1} />
     </group>
   )
@@ -167,12 +189,17 @@ function ConnectorTube({ from, to, radius, color, opacity = 1 }) {
   )
 }
 
+const DROP_COUNT = 8
+
+const DROP_SEEDS = Array.from({ length: DROP_COUNT }, (_, i) => ({
+  phase: i / DROP_COUNT,
+  lane: (i % 3 - 1) * 0.004,
+}))
+
+const DROP_OPACITIES = new Float32Array(DROP_COUNT)
+
 function Condenser({ cooling, condensing }) {
-  const drops = useRef([])
-  const seeds = useMemo(
-    () => Array.from({ length: 8 }, (_, i) => ({ phase: i / 8, lane: (i % 3 - 1) * 0.004 })),
-    [],
-  )
+  const dropMesh = useRef()
   const start = new THREE.Vector3(COND_START_X, HEAD_Y + 0.015, 0)
   const end = new THREE.Vector3(COND_END_X, HEAD_Y - 0.03, 0)
   const mid = start.clone().add(end).multiplyScalar(0.5)
@@ -183,17 +210,25 @@ function Condenser({ cooling, condensing }) {
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
-    drops.current.forEach((d, i) => {
-      if (!d) return
-      const f = (t * 0.23 + seeds[i].phase) % 1
-      d.position.set(
+    const mesh = dropMesh.current
+    if (!mesh) return
+    mesh.visible = condensing
+    if (!condensing) return
+    const opacityAttr = mesh.geometry.attributes.aOpacity
+    for (let i = 0; i < DROP_COUNT; i += 1) {
+      const f = (t * 0.23 + DROP_SEEDS[i].phase) % 1
+      SWARM_DUMMY.position.set(
         start.x + dir.x * f,
-        start.y + dir.y * f + seeds[i].lane,
+        start.y + dir.y * f + DROP_SEEDS[i].lane,
         0,
       )
-      d.material.opacity = condensing ? 0.78 * Math.sin(Math.PI * f) : 0
-      d.scale.setScalar(0.65 + f * 0.45)
-    })
+      SWARM_DUMMY.scale.setScalar(0.65 + f * 0.45)
+      SWARM_DUMMY.updateMatrix()
+      mesh.setMatrixAt(i, SWARM_DUMMY.matrix)
+      opacityAttr.array[i] = 0.78 * Math.sin(Math.PI * f)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    opacityAttr.needsUpdate = true
   })
 
   return (
@@ -259,12 +294,21 @@ function Condenser({ cooling, condensing }) {
       >
         upper outlet
       </Text>
-      {seeds.map((_, i) => (
-        <mesh key={i} ref={(el) => { drops.current[i] = el }}>
-          <sphereGeometry args={[0.0032, 9, 7]} />
-          <meshBasicMaterial color="#d8f2fb" transparent opacity={0} depthWrite={false} />
-        </mesh>
-      ))}
+      <instancedMesh ref={dropMesh} args={[undefined, undefined, DROP_COUNT]} frustumCulled={false} visible={false}>
+        <sphereGeometry args={[0.0032, 9, 7]}>
+          <instancedBufferAttribute
+            attach="attributes-aOpacity"
+            args={[DROP_OPACITIES, 1]}
+            usage={THREE.DynamicDrawUsage}
+          />
+        </sphereGeometry>
+        <meshBasicMaterial
+          transparent
+          color="#d8f2fb"
+          depthWrite={false}
+          onBeforeCompile={patchInstanceOpacityMaterial}
+        />
+      </instancedMesh>
     </group>
   )
 }

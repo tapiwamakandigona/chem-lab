@@ -16,6 +16,7 @@ import {
 } from './scene/glassware.jsx'
 import { BlobShadow, ReagentBottle } from './scene/props.jsx'
 import { clampSimDelta } from '../lib/simClock.js'
+import { patchInstanceOpacityMaterial } from '../lib/instancedOpacity.js'
 
 const APPEARANCE_COLORS = {
   brown: '#6f3512',
@@ -68,20 +69,6 @@ function Timer({ value, active }) {
 
 const BUBBLE_COUNT = 18
 
-// Patches MeshBasicMaterial with a per-instance opacity attribute so all
-// bubbles render as a single InstancedMesh draw call (was 18 meshes).
-function patchBubbleMaterial(shader) {
-  shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nattribute float aOpacity;\nvarying float vAOpacity;')
-    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvAOpacity = aOpacity;')
-  shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nvarying float vAOpacity;')
-    .replace(
-      'vec4 diffuseColor = vec4( diffuse, opacity );',
-      'vec4 diffuseColor = vec4( diffuse, opacity * vAOpacity );',
-    )
-}
-
 const BUBBLE_SEEDS = Array.from({ length: BUBBLE_COUNT }, (_, index) => ({
   x: ((index * 17) % 11 - 5) * 0.004,
   z: ((index * 23) % 9 - 4) * 0.004,
@@ -127,7 +114,7 @@ function Effervescence({ active }) {
         transparent
         color="#f3fbff"
         depthWrite={false}
-        onBeforeCompile={patchBubbleMaterial}
+        onBeforeCompile={patchInstanceOpacityMaterial}
       />
     </instancedMesh>
   )
