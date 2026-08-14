@@ -45,3 +45,5 @@ __pycache__/
 /guide/
 /mocks/
 /practical/
+tools/.cache-jbmono-regular.ttf
+tools/.cache-subset-chars.txt

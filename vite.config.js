@@ -51,6 +51,14 @@ export default defineConfig({
   optimizeDeps: {
     include: ['three', '@react-three/fiber', '@react-three/drei'],
   },
+  resolve: {
+    alias: {
+      // drei useEnvironment statically imports gainmap loaders we never
+      // reach (our only <Environment> is procedural Lightformers) — stub
+      // saves ~15 kB raw in the LabViewport chunk. See src/lib/gainmapStub.js.
+      '@monogrid/gainmap-js': path.resolve('src/lib/gainmapStub.js'),
+    },
+  },
   build: {
     rollupOptions: {
       input: buildInputs,
