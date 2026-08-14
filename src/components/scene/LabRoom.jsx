@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { RoundedBox } from '@react-three/drei'
 import { ReagentShelf, WallCabinets, BackCounter, CeilingLights, WashBottle, LabNotebook, AccentBeaker, BlobShadow } from './props.jsx'
+import { makeEpoxyTexture, makeEpoxyRoughness, makeVinylFloorTexture, makePlasterTexture } from './surfaces.js'
 
 /**
  * Shared lab room: epoxy-top bench, steel frame, floor, back wall.
@@ -7,12 +9,23 @@ import { ReagentShelf, WallCabinets, BackCounter, CeilingLights, WashBottle, Lab
  * sit on top of a light viewport, like a 3D editor.
  */
 export default function LabRoom() {
+  // Seeded procedural surfaces (F5 rule: no large surface is one flat colour).
+  // Created once per mount; ClampToEdge single-cover means no tiling period.
+  const tex = useMemo(() => ({
+    bench: makeEpoxyTexture({ seed: 7, statKey: 'bench' }),
+    benchRough: makeEpoxyRoughness({ seed: 8 }),
+    floor: makeVinylFloorTexture({ seed: 21, statKey: 'floor' }),
+    backWall: makePlasterTexture({ seed: 40, base: '#e3e9f0', statKey: 'backWall' }),
+    sideL: makePlasterTexture({ seed: 41, base: '#dde4ec' }),
+    sideR: makePlasterTexture({ seed: 42, base: '#dde4ec' }),
+    front: makePlasterTexture({ seed: 43, base: '#e0e6ee' }),
+  }), [])
   return (
     <group>
       {/* Bench top — black epoxy resin, the classic chem bench */}
       <group position={[0, -0.05, 0]}>
         <RoundedBox args={[3.4, 0.07, 1.5]} radius={0.015} receiveShadow>
-          <meshStandardMaterial color="#31363c" roughness={0.4} metalness={0.05} />
+          <meshStandardMaterial map={tex.bench} roughnessMap={tex.benchRough} roughness={1} metalness={0.05} />
         </RoundedBox>
         {/* Light maple apron under the top */}
         <mesh position={[0, -0.09, 0]}>
@@ -31,28 +44,28 @@ export default function LabRoom() {
       {/* Floor */}
       <mesh position={[0, -0.85, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[14, 14]} />
-        <meshStandardMaterial color="#c9d2da" roughness={0.9} />
+        <meshStandardMaterial map={tex.floor} roughness={0.9} />
       </mesh>
 
       {/* Back wall */}
       <mesh position={[0, 1.6, -2.6]}>
         <planeGeometry args={[14, 6]} />
-        <meshStandardMaterial color="#e3e9f0" roughness={1} />
+        <meshStandardMaterial map={tex.backWall} roughness={1} />
       </mesh>
       {/* Room envelope — side/front walls + ceiling. The orbit envelope
           (maxDistance 3.4) stays inside these, so no reachable camera angle
           can see past the room. fog + matching scene background catch the rest. */}
       <mesh position={[-5.2, 1.55, 1.5]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[10, 5.2]} />
-        <meshStandardMaterial color="#dde4ec" roughness={1} />
+        <meshStandardMaterial map={tex.sideL} roughness={1} />
       </mesh>
       <mesh position={[5.2, 1.55, 1.5]} rotation={[0, -Math.PI / 2, 0]}>
         <planeGeometry args={[10, 5.2]} />
-        <meshStandardMaterial color="#dde4ec" roughness={1} />
+        <meshStandardMaterial map={tex.sideR} roughness={1} />
       </mesh>
       <mesh position={[0, 1.6, 5.4]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[14, 6]} />
-        <meshStandardMaterial color="#e0e6ee" roughness={1} />
+        <meshStandardMaterial map={tex.front} roughness={1} />
       </mesh>
       <mesh position={[0, 4.1, 1.2]} rotation={[Math.PI / 2, 0, 0]}>
         <planeGeometry args={[14, 12]} />

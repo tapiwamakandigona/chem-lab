@@ -3,6 +3,7 @@ import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { GlassMaterial, LiquidMaterial } from './glassware.jsx'
 import { LAB_FONT } from '../../lib/labFont.js'
+import { makeEpoxyTexture } from './surfaces.js'
 
 /**
  * Set-dressing props + grounding helpers (F5 look pass).
@@ -172,11 +173,13 @@ export function WallCabinets({ width = 3.2, y = 1.9, z = -2.56 }) {
 
 /** Back counter under the shelf — anchors the wall, adds depth layer. */
 export function BackCounter({ width = 4.2, z = -2.3 }) {
+  // Own seed + base so the counter never repeats the bench-top pattern.
+  const top = useMemo(() => makeEpoxyTexture({ seed: 91, base: '#2b2e33', w: 1024, h: 256, statKey: 'counter' }), [])
   return (
     <group position={[0, 0, z]}>
       <mesh position={[0, 0.06, 0]}>
         <boxGeometry args={[width, 0.05, 0.55]} />
-        <meshStandardMaterial color="#2b2e33" roughness={0.35} />
+        <meshStandardMaterial map={top} roughness={0.35} />
       </mesh>
       <mesh position={[0, -0.38, 0]}>
         <boxGeometry args={[width - 0.06, 0.84, 0.5]} />

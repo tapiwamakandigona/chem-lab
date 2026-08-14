@@ -7,6 +7,9 @@ Checks:
 - zoom-in/zoom-out buttons change the view and roughly invert each other
 - wheel zoom works (dolly path)
 - landscape phone (844x390): scene + key controls usable in titration and grav
+- F5 surface rule: no large lab surface ships flat — every procedural surface
+  texture (bench / floor / back wall / counter) reports real luminance
+  variation via window.__labSurfaceStats
 """
 import functools
 import http.server
@@ -141,6 +144,22 @@ def main():
         d_back = png_diff(before, back)
         check("zoom-out returns near start", d_back < d_in * 0.5,
               f"back diff {d_back:.2f} vs in diff {d_in:.2f}")
+
+        # --- F5 surface rule: no large surface ships flat ---
+        # Each procedural surface texture records its painted luminance
+        # stddev; a flat colour would report ~0. Thresholds sit well below
+        # the shipped values (bench 11.9 / floor 9.3 / wall 5.1 / counter
+        # 9.6) but far above flat (0), so they catch a regression to
+        # flatness without pinning the exact art.
+        stats = pg.evaluate("window.__labSurfaceStats || {}")
+        for key, min_std in (("bench", 5), ("floor", 4), ("backWall", 2), ("counter", 4)):
+            entry = stats.get(key) or {}
+            std = entry.get("std", 0)
+            check(f"surface '{key}' is not flat (std >= {min_std})",
+                  std >= min_std, f"std={std}")
+        bench_mean = (stats.get("bench") or {}).get("mean", 0)
+        check("bench reads as dark epoxy (mean < 110)",
+              0 < bench_mean < 110, f"mean={bench_mean}")
 
         # --- wheel zoom (pinch shares the dolly path) ---
         pg.mouse.move(450, 360)
