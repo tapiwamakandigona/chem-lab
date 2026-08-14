@@ -813,3 +813,12 @@ Track pivot: user directive 2026-08-14 17:24 — strictly optimisation research 
 - Probe (quality-high, swiftshader 1280x720): titration draw calls 225 -> 125 (-100), gas 128 -> 118 (-10); other scenes unchanged. VERIFIED via window.__labGLInfo sampling.
 - Full 37/37 gate suite PASS on this dist (incl. titrate, meniscus, meniscus_mobile, read, guided, graph, gas). Visual LOOK review of titration/gas shots: pixel-equivalent (burette 20/30/40 labels + tick hierarchy intact).
 - dist gzip 760,016 B (+~1KB vs opt-B from Instances code; well under 1,100,000 budget). PRE-PUSH OK.
+
+## opt-D: instance iodine-rate effervescence bubbles (2026-08-14)
+Rewrote Effervescence in src/components/IodineRateScene.jsx from 18 per-frame
+bubble meshes to a single instancedMesh (sphereGeometry 0.0034/8/6) with a
+per-instance aOpacity attribute injected via onBeforeCompile into
+meshBasicMaterial. Probe VERIFIED: iodine-rate 188 -> 170 draw calls (-18,
+sampled pre-active; instanced mesh hidden until quench). All other scenes
+unchanged. Visual probe of quenched phase confirms bubbles render, animate,
+and fade with height. 37/37 gates PASS against frozen dist; PRE-PUSH OK.

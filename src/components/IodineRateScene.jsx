@@ -1,4 +1,5 @@
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
+import { DynamicDrawUsage, Object3D } from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import { useLabStore } from '../store.js'
@@ -65,41 +66,71 @@ function Timer({ value, active }) {
   )
 }
 
+const BUBBLE_COUNT = 18
+
+// Patches MeshBasicMaterial with a per-instance opacity attribute so all
+// bubbles render as a single InstancedMesh draw call (was 18 meshes).
+function patchBubbleMaterial(shader) {
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', '#include <common>\nattribute float aOpacity;\nvarying float vAOpacity;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvAOpacity = aOpacity;')
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', '#include <common>\nvarying float vAOpacity;')
+    .replace(
+      'vec4 diffuseColor = vec4( diffuse, opacity );',
+      'vec4 diffuseColor = vec4( diffuse, opacity * vAOpacity );',
+    )
+}
+
+const BUBBLE_SEEDS = Array.from({ length: BUBBLE_COUNT }, (_, index) => ({
+  x: ((index * 17) % 11 - 5) * 0.004,
+  z: ((index * 23) % 9 - 4) * 0.004,
+  phase: (index * 0.173) % 1,
+  speed: 0.42 + (index % 5) * 0.09,
+}))
+
+const BUBBLE_DUMMY = new Object3D()
+
+const BUBBLE_OPACITIES = new Float32Array(BUBBLE_COUNT)
+
 function Effervescence({ active }) {
-  const refs = useRef([])
-  const seeds = useMemo(
-    () =>
-      Array.from({ length: 18 }, (_, index) => ({
-        x: ((index * 17) % 11 - 5) * 0.004,
-        z: ((index * 23) % 9 - 4) * 0.004,
-        phase: (index * 0.173) % 1,
-        speed: 0.42 + (index % 5) * 0.09,
-      })),
-    [],
-  )
+  const meshRef = useRef()
   useFrame(({ clock }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.visible = active
+    if (!active) return
     const now = clock.getElapsedTime()
-    refs.current.forEach((bubble, index) => {
-      if (!bubble) return
-      const seed = seeds[index]
+    const opacityAttr = mesh.geometry.attributes.aOpacity
+    for (let index = 0; index < BUBBLE_COUNT; index += 1) {
+      const seed = BUBBLE_SEEDS[index]
       const fraction = (now * seed.speed + seed.phase) % 1
-      bubble.position.set(seed.x, 0.026 + fraction * 0.07, seed.z)
-      bubble.material.opacity = active ? (1 - fraction) * 0.9 : 0
-      bubble.scale.setScalar(0.7 + fraction * 1.15)
-    })
+      BUBBLE_DUMMY.position.set(seed.x, 0.026 + fraction * 0.07, seed.z)
+      BUBBLE_DUMMY.scale.setScalar(0.7 + fraction * 1.15)
+      BUBBLE_DUMMY.updateMatrix()
+      mesh.setMatrixAt(index, BUBBLE_DUMMY.matrix)
+      opacityAttr.array[index] = (1 - fraction) * 0.9
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    opacityAttr.needsUpdate = true
   })
-  return seeds.map((seed, index) => (
-    <mesh
-      key={index}
-      ref={(node) => {
-        refs.current[index] = node
-      }}
-      position={[seed.x, 0.03, seed.z]}
-    >
-      <sphereGeometry args={[0.0034, 8, 6]} />
-      <meshBasicMaterial transparent opacity={0} color="#f3fbff" depthWrite={false} />
-    </mesh>
-  ))
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, BUBBLE_COUNT]} frustumCulled={false} visible={false}>
+      <sphereGeometry args={[0.0034, 8, 6]}>
+        <instancedBufferAttribute
+          attach="attributes-aOpacity"
+          args={[BUBBLE_OPACITIES, 1]}
+          usage={DynamicDrawUsage}
+        />
+      </sphereGeometry>
+      <meshBasicMaterial
+        transparent
+        color="#f3fbff"
+        depthWrite={false}
+        onBeforeCompile={patchBubbleMaterial}
+      />
+    </instancedMesh>
+  )
 }
 
 function PreparationStage({ state }) {
