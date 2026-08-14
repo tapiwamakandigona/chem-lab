@@ -119,17 +119,35 @@ with sync_playwright() as p:
     check("loaded mass 25.91", r1 is not None and "25.91" in r1, str(r1))
     snap(pg, "grav-loaded.png")
 
+    # Idle burner reference frame for the flame-visibility check (iter-62).
+    idle_png = pg.screenshot()
+
     # --- heat/cool/weigh cycles to constant mass ---
     expected = ["24.83", "24.66", "24.65"]
     for cyc, exp in enumerate(expected):
         pg.click('[data-testid="grav-heat"]')
         time.sleep(0.5)
+        # Heating lasts only 2.5 s and SwiftShader screenshots are slow (~2 s):
+        # do the fast DOM state reads first, then capture the flame frame.
         ph = pg.locator('[data-testid="grav-phase"]').get_attribute("data-phase")
         if cyc == 0:
+            weigh_hot_disabled = pg.locator('[data-testid="grav-weigh"]').is_disabled()
+            heat_png = pg.screenshot(path=SHOTS + "/grav-heating.png")
             check("heating phase runs", ph in ("heating", "cooling"), str(ph))
-            check("weigh disabled while hot",
-                  pg.locator('[data-testid="grav-weigh"]').is_disabled())
-            snap(pg, "grav-heating.png")
+            check("weigh disabled while hot", weigh_hot_disabled)
+            # Iter-62 rule: a state the copy asserts must be visible in the
+            # scene. "Heating strongly over the Bunsen" must show a flame:
+            # burner region pixels must clearly change vs the idle frame
+            # (measured ~25/255 mean diff; noise when idle is ~0).
+            import io
+            from PIL import Image, ImageChops, ImageStat
+            box = (430, 200, 720, 600)  # burner + crucible region at 1280x720
+            a = Image.open(io.BytesIO(idle_png)).convert("RGB").crop(box)
+            hb = Image.open(io.BytesIO(heat_png)).convert("RGB").crop(box)
+            diff = ImageStat.Stat(ImageChops.difference(a, hb)).mean
+            mean_diff = sum(diff) / 3
+            check("flame visible while heating (burner pixels change)",
+                  mean_diff > 6, f"mean diff {mean_diff:.2f} (need > 6)")
         check(f"cycle {cyc + 1} returns to idle", wait_idle(pg))
         pg.click('[data-testid="grav-weigh"]')
         time.sleep(0.3)

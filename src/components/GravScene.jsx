@@ -6,25 +6,38 @@ import { crucibleMass, round2 } from '../lib/grav.js'
 import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { BlobShadow, WashBottle, LabNotebook } from './scene/props.jsx'
+import {
+  flameGeometry,
+  flameAlphaMap,
+  BUNSEN_BLUE_OUTER,
+  BUNSEN_BLUE_INNER,
+} from './scene/flameShell.js'
 
 const TRIPOD_H = 0.115
 const CRUCIBLE_Y = TRIPOD_H + 0.012
 
-/** Bunsen burner: base, barrel, collar; roaring cone flame while heating. */
+/** Bunsen burner: base, barrel, collar; roaring teardrop flame while heating
+ *  (shared flameShell lathe — iter-56 rule: no bare-cone flames). */
 function Bunsen({ heating }) {
   const flameRef = useRef()
   const innerRef = useRef()
   const lightRef = useRef()
+  const outerGeo = useMemo(() => flameGeometry(0.008, 0.0165, 0.06), [])
+  const innerGeo = useMemo(() => flameGeometry(0.0065, 0.0095, 0.032), [])
+  const alphaTex = useMemo(() => flameAlphaMap(), [])
   useFrame(({ clock }) => {
     if (lightRef.current) {
       const tt = clock.getElapsedTime()
-      lightRef.current.intensity = heating ? 0.55 + Math.sin(tt * 11) * 0.12 + Math.sin(tt * 23) * 0.05 : 0
+      lightRef.current.intensity = heating ? 0.5 + Math.sin(tt * 11) * 0.11 + Math.sin(tt * 23) * 0.05 : 0
     }
     if (!flameRef.current) return
     const t = clock.getElapsedTime()
-    const flick = heating ? 1 + Math.sin(t * 22) * 0.07 + Math.sin(t * 9.3) * 0.05 : 0
-    flameRef.current.scale.set(flick, heating ? flick * (1 + Math.sin(t * 13) * 0.06) : 0, flick)
-    if (innerRef.current) innerRef.current.scale.setScalar(heating ? 0.55 + Math.sin(t * 17) * 0.04 : 0)
+    const flick = heating
+      ? 1 + Math.sin(t * 12.7) * 0.045 + Math.sin(t * 23.2) * 0.025 + Math.sin(t * 37.1) * 0.012
+      : 0
+    flameRef.current.scale.set(heating ? 1 + Math.sin(t * 17) * 0.03 : 0, flick, heating ? 1 : 0)
+    if (innerRef.current)
+      innerRef.current.scale.set(heating ? 1 : 0, heating ? 0.98 + Math.sin(t * 15) * 0.04 : 0, heating ? 1 : 0)
   })
   return (
     <group>
@@ -43,18 +56,28 @@ function Bunsen({ heating }) {
         <cylinderGeometry args={[0.0105, 0.0105, 0.02, 16]} />
         <meshStandardMaterial color="#8a6a1f" roughness={0.4} metalness={0.7} />
       </mesh>
-      {/* outer flame */}
-      <pointLight ref={lightRef} position={[0, 0.11, 0]} color="#7fb4ff" intensity={0} distance={0.45} decay={2} />
-      <mesh ref={flameRef} position={[0, 0.092, 0]}>
-        <coneGeometry args={[0.013, 0.055, 12]} />
-        <meshBasicMaterial color="#7fb4ff" transparent opacity={0.55} />
+      {/* roaring flame — shared teardrop shells, root at barrel mouth (y=0.07) */}
+      <pointLight ref={lightRef} position={[0, 0.105, 0.015]} color={BUNSEN_BLUE_OUTER} intensity={0} distance={0.38} decay={2} />
+      <mesh ref={flameRef} geometry={outerGeo} position={[0, 0.07, 0]}>
+        <meshBasicMaterial
+          color={BUNSEN_BLUE_OUTER}
+          transparent
+          opacity={0.85}
+          alphaMap={alphaTex}
+          side={2}
+          depthWrite={false}
+        />
       </mesh>
-      {/* inner cone */}
-      <mesh ref={innerRef} position={[0, 0.078, 0]}>
-        <coneGeometry args={[0.007, 0.02, 10]} />
-        <meshBasicMaterial color="#cfe4ff" transparent opacity={0.8} />
+      <mesh ref={innerRef} geometry={innerGeo} position={[0, 0.07, 0]}>
+        <meshBasicMaterial
+          color={BUNSEN_BLUE_INNER}
+          transparent
+          opacity={0.8}
+          alphaMap={alphaTex}
+          side={2}
+          depthWrite={false}
+        />
       </mesh>
-      {heating && <pointLight position={[0, 0.13, 0]} intensity={0.5} distance={0.5} color="#8ab4ff" />}
     </group>
   )
 }
@@ -95,6 +118,7 @@ function Tripod() {
 /** Crucible + lid; glows red-hot while heating, steams while water remains. */
 function Crucible({ heating, cooling, steam }) {
   const bodyRef = useRef()
+  const glowRef = useRef()
   const steamRefs = useRef([])
   const seeds = useMemo(
     () => Array.from({ length: 6 }, (_, i) => ({ phase: i * 0.7, x: (i % 3 - 1) * 0.006, speed: 0.35 + (i % 3) * 0.1 })),
@@ -104,9 +128,10 @@ function Crucible({ heating, cooling, steam }) {
     const t = clock.getElapsedTime()
     if (bodyRef.current) {
       // emissive glow ramps in while heating, fades while cooling
-      const target = heating ? 0.55 : cooling ? 0.15 : 0
+      const target = heating ? 0.9 : cooling ? 0.2 : 0
       const m = bodyRef.current.material
-      m.emissiveIntensity += (target - m.emissiveIntensity) * 0.04
+      m.emissiveIntensity += (target - m.emissiveIntensity) * 0.09
+      if (glowRef.current) glowRef.current.intensity = m.emissiveIntensity * 0.6
     }
     steamRefs.current.forEach((s, i) => {
       if (!s) return
@@ -124,6 +149,8 @@ function Crucible({ heating, cooling, steam }) {
         <cylinderGeometry args={[0.026, 0.016, 0.028, 22]} />
         <meshStandardMaterial color="#e8e2d6" roughness={0.85} emissive="#ff5a2a" emissiveIntensity={0} />
       </mesh>
+      {/* warm incandescence spilling onto tripod/bench while hot */}
+      <pointLight ref={glowRef} position={[0, 0.01, 0]} color="#ff7a3a" intensity={0} distance={0.32} decay={2} />
       {/* lid, slightly ajar so steam can escape */}
       <mesh position={[0.007, 0.031, 0]} rotation={[0, 0, -0.12]}>
         <cylinderGeometry args={[0.027, 0.027, 0.004, 22]} />
