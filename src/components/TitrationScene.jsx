@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Text } from '@react-three/drei'
+import { Text, Instances, Instance } from '@react-three/drei'
 import * as THREE from 'three'
 import { useLabStore } from '../store.js'
 import { setControls } from '../lib/controls.js'
@@ -72,26 +72,27 @@ function Burette({ reading, open, onTapDown, onTapUp }) {
           <LiquidMaterial color="#d6ecfa" opacity={0.85} />
         </mesh>
       </group>
-      {/* graduations — thin boxes, cheap and crisp */}
-      {marks.map(({ v, y, major, mid, label }) => (
-        <group key={v} position={[0, y, 0]}>
-          <mesh position={[TUBE_R + (major ? 0.004 : mid ? 0.003 : 0.002), 0, 0]}>
-            <boxGeometry args={[major ? 0.008 : mid ? 0.006 : 0.004, 0.0007, 0.0007]} />
-            <meshBasicMaterial color="#3b4855" />
-          </mesh>
-          {label && (
-            <Text
-              font={LAB_FONT}
-              position={[TUBE_R + 0.012, 0, 0]}
-              fontSize={0.011}
-              color="#26313c"
-              anchorX="left"
-              anchorY="middle"
-            >
-              {String(v)}
-            </Text>
-          )}
-        </group>
+      {/* graduations — one instanced draw for all ticks, cheap and crisp */}
+      <Instances limit={marks.length}>
+        <boxGeometry args={[1, 0.0007, 0.0007]} />
+        <meshBasicMaterial color="#3b4855" />
+        {marks.map(({ v, y, major, mid }) => {
+          const w = major ? 0.008 : mid ? 0.006 : 0.004
+          return <Instance key={v} position={[TUBE_R + w / 2, y, 0]} scale={[w, 1, 1]} />
+        })}
+      </Instances>
+      {marks.filter((m) => m.label).map(({ v, y }) => (
+        <Text
+          key={`label-${v}`}
+          font={LAB_FONT}
+          position={[TUBE_R + 0.012, y, 0]}
+          fontSize={0.011}
+          color="#26313c"
+          anchorX="left"
+          anchorY="middle"
+        >
+          {String(v)}
+        </Text>
       ))}
       {/* stopcock body */}
       <group position={[0, -TUBE_LEN - 0.018, 0]}>

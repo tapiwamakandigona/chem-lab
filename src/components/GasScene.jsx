@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Text } from '@react-three/drei'
+import { Text, Instances, Instance } from '@react-three/drei'
 import { useLabStore } from '../store.js'
 import { volumeAt, GAS_TIME_SCALE, SYRINGE_MAX } from '../lib/gas.js'
 import { LAB_FONT } from '../lib/labFont.js'
@@ -135,19 +135,29 @@ function GasSyringe({ volume }) {
         <cylinderGeometry args={[0.004, 0.004, 0.016, 10]} />
         <meshPhysicalMaterial color="#dbe7f0" transparent opacity={0.35} roughness={0.1} />
       </mesh>
-      {/* graduations every 10 cm³ */}
-      {grads.map((i) => (
-        <group key={i} position={[-SYR_LEN / 2 + 0.01 + (i / 10) * (SYR_LEN - 0.02), 0, 0]}>
-          <mesh position={[0, 0, SYR_R - 0.0005]}>
-            <boxGeometry args={[0.0008, i % 5 === 0 ? 0.012 : 0.007, 0.0006]} />
-            <meshBasicMaterial color="#5a6b7a" />
-          </mesh>
-          {i % 2 === 0 && (
-            <Text position={[0, -0.031, 0]} fontSize={0.0068} color="#8fa3b5" anchorX="center" font={LAB_FONT}>
-              {String(i * 10)}
-            </Text>
-          )}
-        </group>
+      {/* graduations every 10 cm³ — one instanced draw for all ticks */}
+      <Instances limit={grads.length}>
+        <boxGeometry args={[0.0008, 1, 0.0006]} />
+        <meshBasicMaterial color="#5a6b7a" />
+        {grads.map((i) => (
+          <Instance
+            key={i}
+            position={[-SYR_LEN / 2 + 0.01 + (i / 10) * (SYR_LEN - 0.02), 0, SYR_R - 0.0005]}
+            scale={[1, i % 5 === 0 ? 0.012 : 0.007, 1]}
+          />
+        ))}
+      </Instances>
+      {grads.filter((i) => i % 2 === 0).map((i) => (
+        <Text
+          key={`grad-label-${i}`}
+          position={[-SYR_LEN / 2 + 0.01 + (i / 10) * (SYR_LEN - 0.02), -0.031, 0]}
+          fontSize={0.0068}
+          color="#8fa3b5"
+          anchorX="center"
+          font={LAB_FONT}
+        >
+          {String(i * 10)}
+        </Text>
       ))}
       {/* plunger: seal disc inside barrel + rod + thumb plate */}
       <group ref={plungerRef}>

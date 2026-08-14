@@ -807,3 +807,9 @@ Track pivot: user directive 2026-08-14 17:24 — strictly optimisation research 
 - LOOK verified: flame FT labels, distill condenser + '5.2 cm3' superscript, gas syringe ruler,
   peroxide '22 C . powder' middle dot all crisp; no tofu, no blank scenes.
 - PRE-PUSH OK.
+
+## opt-C: instanced graduation ticks (titration burette + gas syringe)
+- TitrationScene.jsx: 101 individual tick meshes -> single drei <Instances> (unit box, per-instance pos/scale for major/mid/minor widths); labels split into separate Text map. GasScene.jsx: 11 ruler tick meshes -> one <Instances>.
+- Probe (quality-high, swiftshader 1280x720): titration draw calls 225 -> 125 (-100), gas 128 -> 118 (-10); other scenes unchanged. VERIFIED via window.__labGLInfo sampling.
+- Full 37/37 gate suite PASS on this dist (incl. titrate, meniscus, meniscus_mobile, read, guided, graph, gas). Visual LOOK review of titration/gas shots: pixel-equivalent (burette 20/30/40 labels + tick hierarchy intact).
+- dist gzip 760,016 B (+~1KB vs opt-B from Instances code; well under 1,100,000 budget). PRE-PUSH OK.
