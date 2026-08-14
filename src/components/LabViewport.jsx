@@ -1,6 +1,6 @@
-import { Suspense, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, Environment, Lightformer, ContactShadows } from '@react-three/drei'
 import { QUALITY } from '../store.js'
 import TitrationScene from './TitrationScene.jsx'
@@ -41,7 +41,34 @@ const CAMERAS = {
   'iodine-rate': { pos: [-0.08, 0.31, 1.18], target: [0, 0.29, 0] },
 }
 
-function LabCanvas({ children, quality, view, controlsRef, onContextLost }) {
+/**
+ * Mobile portrait: the canvas is full-bleed and the control sheet overlays it,
+ * so the scene must keep its original composition in the visible top region
+ * while the frustum extends downward behind the sheet. setViewOffset with a
+ * "full frame" equal to that top region and a sub-rect equal to the whole
+ * canvas does exactly that — identical framing up top, more bench and floor
+ * below, and never a strip of raw page background between scene and controls.
+ */
+function MobileViewExtend({ frac }) {
+  const size = useThree((state) => state.size)
+  const get = useThree((state) => state.get)
+  useEffect(() => {
+    const camera = get().camera
+    const mobile = size.width < 768
+    if (mobile) {
+      const visibleH = Math.max(1, Math.round(size.height * (1 - frac)))
+      camera.aspect = size.width / visibleH
+      camera.setViewOffset(size.width, visibleH, 0, 0, size.width, size.height)
+    } else if (camera.view?.enabled) {
+      camera.clearViewOffset()
+      camera.aspect = size.width / size.height
+    }
+    camera.updateProjectionMatrix()
+  }, [get, size, frac])
+  return null
+}
+
+function LabCanvas({ children, quality, view, viewFrac, controlsRef, onContextLost }) {
   const ultra = quality === QUALITY.ULTRA
   const dpr =
     quality === QUALITY.LOW ? 1 :
@@ -62,6 +89,7 @@ function LabCanvas({ children, quality, view, controlsRef, onContextLost }) {
         }, { once: true })
       }}
     >
+      <MobileViewExtend frac={viewFrac} />
       {/* Aerial depth: background matches fog, so no reachable angle shows void */}
       <color attach="background" args={['#dfe7ef']} />
       <fog attach="fog" args={['#dfe7ef', 3.2, 9]} />
@@ -132,7 +160,7 @@ const SCENES = {
 
 /** DOM zoom buttons — the touch/mouse-free way to dolly the camera.
  *  Works on every device; pinch (two fingers) and wheel also zoom. */
-function ZoomButtons({ controlsRef }) {
+function ZoomButtons({ controlsRef, compact }) {
   const zoom = (factor) => {
     const c = controlsRef.current
     if (!c) return
@@ -145,7 +173,7 @@ function ZoomButtons({ controlsRef }) {
   }
   const btn = 'w-9 h-9 rounded-lg bg-lab-panel/90 border border-lab-border text-lab-ink text-lg leading-none active:bg-lab-accent/20 backdrop-blur-sm'
   return (
-    <div className="absolute bottom-2 left-2 z-10 flex flex-col gap-1.5 pointer-events-auto">
+    <div className={`absolute left-2 z-10 flex flex-col gap-1.5 pointer-events-auto md:bottom-2 ${compact ? 'bottom-[calc(46%+0.5rem)]' : 'bottom-[calc(52%+0.5rem)]'}`}>
       <button className={btn} data-testid="zoom-in" aria-label="Zoom in" onClick={() => zoom(1 / 1.3)}>+</button>
       <button className={btn} data-testid="zoom-out" aria-label="Zoom out" onClick={() => zoom(1.3)}>−</button>
     </div>
@@ -160,7 +188,7 @@ export default function LabViewport({ experiment, quality }) {
   const compactPanel = experiment === 'clock' || experiment === 'enthalpy'
   return (
     <div
-      className={`absolute left-0 right-0 top-0 md:bottom-0 ${compactPanel ? 'bottom-[46%]' : 'bottom-[52%]'}`}
+      className="absolute inset-0"
       data-testid="gfx-root"
       data-quality={quality}
     >
@@ -190,13 +218,14 @@ export default function LabViewport({ experiment, quality }) {
         <LabCanvas
           quality={quality}
           view={experiment}
+          viewFrac={compactPanel ? 0.46 : 0.52}
           controlsRef={controlsRef}
           onContextLost={() => setContextLost(true)}
         >
           <Scene />
         </LabCanvas>
       )}
-      <ZoomButtons controlsRef={controlsRef} />
+      <ZoomButtons controlsRef={controlsRef} compact={compactPanel} />
     </div>
   )
 }

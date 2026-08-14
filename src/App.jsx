@@ -18,6 +18,7 @@ import IodineRateUI from './components/IodineRateUI.jsx'
 import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
+import TestModeHUD from './components/TestModeHUD.jsx'
 import CoursePanel, { CourseTracker } from './components/CoursePanel.jsx'
 import MockLibrary from './components/MockLibrary.jsx'
 import NotFound from './components/NotFound.jsx'
@@ -132,6 +133,7 @@ export default function App() {
           </Suspense>
           <TitrationUI onBack={goHome} />
           <GuideCoach experiment="titration" />
+          <TestModeHUD experiment="titration" />
           {showTitrationCalc && <CalcSheet experiment="titration" onClose={() => setShowTitrationCalc(false)} />}
         </>
       )}
@@ -143,6 +145,7 @@ export default function App() {
           </Suspense>
           <ClockUI onBack={goHome} />
           <GuideCoach experiment="clock" />
+          <TestModeHUD experiment="clock" />
         </>
       )}
 
@@ -153,6 +156,7 @@ export default function App() {
           </Suspense>
           <QualUI onBack={goHome} />
           <GuideCoach experiment="qual" />
+          <TestModeHUD experiment="qual" />
         </>
       )}
       {experiment === 'organic' && (
@@ -162,6 +166,7 @@ export default function App() {
           </Suspense>
           <OrganicUI onBack={goHome} />
           <GuideCoach experiment="organic" />
+          <TestModeHUD experiment="organic" />
         </>
       )}
       {experiment === 'electro' && (
@@ -171,6 +176,7 @@ export default function App() {
           </Suspense>
           <ElectroUI onBack={goHome} />
           <GuideCoach experiment="electro" />
+          <TestModeHUD experiment="electro" />
         </>
       )}
       {experiment === 'chroma' && (
@@ -180,6 +186,7 @@ export default function App() {
           </Suspense>
           <ChromaUI onBack={goHome} />
           <GuideCoach experiment="chroma" />
+          <TestModeHUD experiment="chroma" />
         </>
       )}
       {experiment === 'flame' && (
@@ -189,6 +196,7 @@ export default function App() {
           </Suspense>
           <FlameUI onBack={goHome} />
           <GuideCoach experiment="flame" />
+          <TestModeHUD experiment="flame" />
         </>
       )}
       {experiment === 'distill' && (
@@ -198,6 +206,7 @@ export default function App() {
           </Suspense>
           <DistillUI onBack={goHome} />
           <GuideCoach experiment="distill" />
+          <TestModeHUD experiment="distill" />
         </>
       )}
       {experiment === 'solubility' && (
@@ -207,6 +216,7 @@ export default function App() {
           </Suspense>
           <SolubilityUI onBack={goHome} />
           <GuideCoach experiment="solubility" />
+          <TestModeHUD experiment="solubility" />
         </>
       )}
       {experiment === 'peroxide' && (
@@ -216,6 +226,7 @@ export default function App() {
           </Suspense>
           <PeroxideUI onBack={goHome} />
           <GuideCoach experiment="peroxide" />
+          <TestModeHUD experiment="peroxide" />
         </>
       )}
 
@@ -226,6 +237,7 @@ export default function App() {
           </Suspense>
           <IodineRateUI onBack={goHome} />
           <GuideCoach experiment="iodine-rate" />
+          <TestModeHUD experiment="iodine-rate" />
         </>
       )}
 
@@ -236,6 +248,7 @@ export default function App() {
           </Suspense>
           <GravUI onBack={goHome} />
           <GuideCoach experiment="grav" />
+          <TestModeHUD experiment="grav" />
         </>
       )}
 
@@ -246,6 +259,7 @@ export default function App() {
           </Suspense>
           <GasUI onBack={goHome} />
           <GuideCoach experiment="gas" />
+          <TestModeHUD experiment="gas" />
         </>
       )}
 
@@ -256,6 +270,7 @@ export default function App() {
           </Suspense>
           <EnthalpyUI onBack={goHome} />
           <GuideCoach experiment="enthalpy" />
+          <TestModeHUD experiment="enthalpy" />
         </>
       )}
     </div>

@@ -65,7 +65,13 @@ function detectQuality() {
 export const useLabStore = create((set) => ({
   // --- experiment selection ---
   experiment: null, // null = menu, 'titration' | 'clock' | 'enthalpy'
-  setExperiment: (e) => set({ experiment: e }),
+  setExperiment: (e) => set({ experiment: e, testMode: false, testReport: null }),
+
+  // --- test mode (no hints; marked with corrections at hand-in) ---
+  testMode: false,
+  testReport: null, // result of markTestAttempt, shown as an overlay
+  setTestMode: (testMode) => set({ testMode, testReport: null }),
+  setTestReport: (testReport) => set({ testReport }),
 
   // --- quality / rendering ---
   quality: detectQuality(),

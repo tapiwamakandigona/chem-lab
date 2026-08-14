@@ -22,17 +22,24 @@ export default function GuideCoach({ experiment }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const steps = getGuideSteps(experiment, state)
-  if (steps.length === 0) return null
+  // Test mode: no live coaching — the whole point is that mistakes stand
+  // until hand-in. The TestModeHUD owns this lane while testing.
+  if (steps.length === 0 || state.testMode) return null
 
   const doneCount = steps.filter((s) => s.done).length
   const activeIdx = steps.findIndex((s) => !s.done)
 
+  // Mobile: join the left HUD lane just above the zoom buttons, which sit
+  // above the tallest bottom sheet (52%) — a lane no practical's controls
+  // ever enter. Desktop: bottom-left between the zoom column and the
+  // centered control stack. Fixed page-bottom offsets collided with
+  // whichever practical had the tallest bottom UI.
   return (
-    <div className="absolute left-2 bottom-24 md:bottom-4 md:left-48 pointer-events-auto z-20 max-w-[260px]">
+    <div className="absolute left-2 bottom-[calc(52%+6.75rem)] md:bottom-4 md:left-14 pointer-events-auto z-20 max-w-[260px]">
       {guideOpen ? (
         <div
           data-testid="guide-panel"
-          className="bg-lab-panel/95 backdrop-blur-sm border border-lab-border rounded-xl p-3 space-y-1.5"
+          className="bg-lab-panel/95 backdrop-blur-sm border border-lab-border rounded-xl p-3 space-y-1.5 max-h-[38vh] md:max-h-[60vh] overflow-y-auto"
         >
           <div className="flex items-center justify-between gap-3">
             <p className="text-[10px] text-lab-muted uppercase tracking-wider">

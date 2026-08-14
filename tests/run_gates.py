@@ -22,6 +22,7 @@ GATES = [
     "pour", "tip", "tap", "graph", "cooling", "read", "guided", "mock",
     "qual", "mock2", "course", "grav", "gfx", "gas", "organic", "electro",
     "chroma", "flame", "distill", "solubility", "peroxide", "iodine_rate",
+    "testmode",
 ]
 
 # Every gate binds the same local probe port, so the sandbox still runs the
@@ -37,7 +38,7 @@ CI_SHARDS = {
     "mock-clock": ["mock2"],
     "assessment-b": ["course", "grav", "gfx", "gas"],
     "library-a": ["organic", "electro", "chroma", "flame"],
-    "library-b": ["distill", "solubility", "peroxide", "iodine_rate"],
+    "library-b": ["distill", "solubility", "peroxide", "iodine_rate", "testmode"],
 }
 
 

@@ -420,11 +420,17 @@ export default function TitrationUI({ onBack }) {
         </div>
       )}
 
-      {!titrationCoachSeen && setupReady && !mustRead && (
+      {/* Bottom — one obvious physical control plus precise step controls. */}
+      {/* pointer-events-none on the full-width container so side panels (e.g. the
+          meniscus trainer) stay clickable; each interactive child re-enables. */}
+      <div className="absolute bottom-2 md:bottom-3 left-0 right-0 flex flex-col items-center gap-1.5 pointer-events-none px-2">
+        {/* First-run coach card — in flow above the hold control so it can
+            never overlap it at any viewport width. */}
+{!titrationCoachSeen && setupReady && !mustRead && (
         <section
           data-testid="titration-first-run"
           aria-label="First titration control"
-          className="absolute z-30 pointer-events-auto left-1/2 -translate-x-1/2 bottom-[9.3rem] md:bottom-[9.6rem] w-[min(330px,calc(100%-1rem))] rounded-xl border border-lab-accent/60 bg-lab-panel/95 p-3 text-center shadow-[0_0_44px_rgba(56,189,248,0.22)]"
+          className="pointer-events-auto w-[min(330px,calc(100%-1rem))] rounded-xl border border-lab-accent/60 bg-lab-panel/95 p-3 text-center shadow-[0_0_44px_rgba(56,189,248,0.22)]"
         >
           {titrationCoachStep === 0 ? (
             <>
@@ -474,11 +480,6 @@ export default function TitrationUI({ onBack }) {
           )}
         </section>
       )}
-
-      {/* Bottom — one obvious physical control plus precise step controls. */}
-      {/* pointer-events-none on the full-width container so side panels (e.g. the
-          meniscus trainer) stay clickable; each interactive child re-enables. */}
-      <div className="absolute bottom-2 md:bottom-3 left-0 right-0 flex flex-col items-center gap-1.5 pointer-events-none px-2">
         <button
           type="button"
           data-testid="titration-hold-control"

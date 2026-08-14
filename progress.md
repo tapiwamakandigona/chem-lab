@@ -720,3 +720,13 @@ Still OPEN (known problems): mobile portrait dead band between viewport and
 controls (R5, next); F5 stays false until a full-suite green + live check.
 Harness artifact noted: plain http.server has no SPA fallback — wrong local
 practical URL returns a raw 404 page, not the branded soft-404 (live is fine).
+
+## iter-57 — 2026-08-14 — mobile dead-band fix + overlay lanes + test mode v1
+- FIXED: mobile portrait dead band. gfx-root absolute inset-0; MobileViewExtend applies camera.setViewOffset so the 3D scene fills the space behind the bottom panel (frac 0.46 compact / 0.52 full, <768px only).
+- FIXED: overlay collisions on phones. ZoomButtons gained compact lane above the panel; GuideCoach chip repositioned + open panel scrolls (max-h 38vh mobile); titration first-run card de-absolutized into the bottom stack.
+- NEW: Test mode v1 (owner instruction 2026-08-14 08:28 — "allow students to get things wrong, mark at the end"). src/lib/testMode.js with per-step examiner corrections for all 14 practicals; TestModeHUD chip (TEST / Hand in / Exit) + marked report overlay with score, per-step corrections, localStorage chemlab-test-results-v1. GuideCoach hides in test mode.
+- NEW gate tests/gates/testmode.py (37 gates total): desktop titration no-work 0/6 -> real work >=3/6 via burette recipe + read-check 23.85; persistence; exit restores guide; mobile 390x844 tap flow. PASS 31s.
+- VERIFIED on this dist (main-BV0dstNA.js): shell webgl titrate tap guided (suite 3) + gfx gas flame meniscus_mobile (suite 4) + testmode; prepush OK (lint, models, hygiene, classroom, build). Compressed dist 1,051,841 B < 1,100,000 budget. Manifest .harness-evidence/iter57-dist.sha256.
+- Suite note: sandbox restarted mid-suite-3 (~06:50 UTC) and killed the runner silently; 5 PASSes before the kill remain valid for the frozen dist; remaining 4 gates relaunched as suite 4. Lesson: detect via PID-space reset + no run_gates in /proc/*/cmdline + port 8797 free.
+- OPEN (ledger): test mode v1 does not hide instant per-practical "Check" buttons mid-test — a student can self-verify before hand-in. Fix in a later iter by gating Check buttons on testMode.
+- OPEN (F5): bench texture pass still pending.
