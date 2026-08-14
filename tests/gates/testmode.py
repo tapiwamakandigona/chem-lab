@@ -10,7 +10,10 @@ Results persist to chemlab-test-results-v1; exiting restores the guide and
 the practice aid. Flame: chip present too (HUD is shared across practicals);
 submit verb flips Check identification -> Record answer and back. Enthalpy:
 MockPaper (worked marking = indirect oracle) unreachable in test mode,
-restored in practice.
+restored in practice; the always-on Live Calculations panel and Show
+Calculations button (derived answers) are practice-only too. Clock: the
+auto-computed 1000/t rate column blanks to em-dash in test mode and the
+worked-analysis sheet is unreachable; both restore on exit.
 Mobile 390x844: chip and Hand in are tappable, report scrolls and closes.
 Exit 1 on any failure.
 """
@@ -195,15 +198,66 @@ with sync_playwright() as p:
     pg.locator("button", has_text="Add Na").click()
     pg.wait_for_selector('[data-testid="mock-open-enthalpy"]', timeout=TIMEOUT_MS)
     check("practice: completed run offers mock paper", True)
+    body = pg.inner_text("body")
+    check("practice: live calculations panel visible", "live calculations" in body.lower())
+    check("practice: Show Calculations offered",
+          pg.locator("button", has_text="Show Calculations").count() >= 1)
     pg.click('[data-testid="test-mode-toggle"]')
     pg.wait_for_selector('[data-testid="test-hand-in"]', timeout=TIMEOUT_MS)
     check("test mode: mock paper unreachable",
           pg.locator('[data-testid^="mock-open"]').count() == 0)
+    body = pg.inner_text("body")
+    check("test mode: no live calculations panel", "live calculations" not in body.lower())
+    check("test mode: no Show Calculations button",
+          pg.locator("button", has_text="Show Calculations").count() == 0)
     snap(pg, "testmode-enthalpy-no-mock.png")
     pg.click('[data-testid="test-mode-exit"]')
     pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
     check("back-to-practice restores mock paper",
           pg.locator('[data-testid="mock-open-enthalpy"]').count() >= 1)
+    check("back-to-practice restores live calculations",
+          "live calculations" in pg.inner_text("body").lower())
+    pg.close()
+
+    # ---------- Clock: derived 1000/t is an answer — blanked in test mode ----------
+    import re as _re
+    pg = browser.new_page(viewport={"width": 1280, "height": 800})
+    pg.goto(f"http://localhost:{PORT}/practical/clock", wait_until="load", timeout=TIMEOUT_MS)
+    pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
+    time.sleep(2)
+    pg.get_by_role("button", name="0.100", exact=True).click()
+    pg.get_by_role("button", name=_re.compile("Mix & start")).click()
+    _deadline, _last_sim, _last_prog = time.time() + 600, -1.0, time.time()
+    while time.time() < _deadline:
+        _btn = pg.get_by_role("button", name=_re.compile(r"Record [\d.]+ s"))
+        if _btn.count() > 0:
+            _btn.first.click()
+            break
+        try:
+            _sim = float(pg.locator('[data-testid="clock-time"]').inner_text().split("s")[0])
+        except Exception:  # noqa: BLE001 — display mid-update
+            _sim = _last_sim
+        if _sim > _last_sim:
+            _last_sim, _last_prog = _sim, time.time()
+        elif time.time() - _last_prog > 20:
+            raise AssertionError(f"clock run stalled at {_last_sim}s sim")
+        time.sleep(0.25)
+    else:
+        raise AssertionError("clock run did not complete in 600s")
+    pg.wait_for_selector("table", timeout=TIMEOUT_MS)
+    row = pg.locator("tbody tr").first.inner_text()
+    check("practice: results row computes 1000/t", bool(_re.search(r"\d+\.\d\d\s*$", row)), row)
+    pg.click('[data-testid="test-mode-toggle"]')
+    pg.wait_for_selector('[data-testid="test-hand-in"]', timeout=TIMEOUT_MS)
+    row = pg.locator("tbody tr").first.inner_text()
+    check("test mode: 1000/t cell blanked", row.rstrip().endswith("—"), row)
+    check("test mode: clock Show Calculations hidden",
+          pg.locator("button", has_text="Show Calculations").count() == 0)
+    snap(pg, "testmode-clock-no-rate.png")
+    pg.click('[data-testid="test-mode-exit"]')
+    pg.wait_for_selector('[data-testid="test-mode-toggle"]', timeout=TIMEOUT_MS)
+    row = pg.locator("tbody tr").first.inner_text()
+    check("back-to-practice restores 1000/t", bool(_re.search(r"\d+\.\d\d\s*$", row)), row)
     pg.close()
 
     # ---------- mobile 390x844 ----------

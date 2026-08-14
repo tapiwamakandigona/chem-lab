@@ -131,7 +131,8 @@ export default function EnthalpyUI({ onBack }) {
             </button>
           </div>
 
-          {/* Live calculation panel */}
+          {/* Live calculation panel — derived values are answers, so practice only */}
+          {!testMode && (
           <div className="bg-lab-bg border border-lab-border rounded-lg p-3 space-y-2 font-mono text-xs">
             <p className="text-lab-muted text-[10px] uppercase tracking-wide mb-2">Live Calculations</p>
             <div className="space-y-1.5 text-lab-ink">
@@ -163,9 +164,10 @@ export default function EnthalpyUI({ onBack }) {
               </div>
             </div>
           </div>
+          )}
 
           {/* Show calc button */}
-          {(enthalpy.phase === 'complete' || calc.deltaT !== 0) && (
+          {!testMode && (enthalpy.phase === 'complete' || calc.deltaT !== 0) && (
             <button
               onClick={() => setShowCalc(true)}
               className="w-full py-2 rounded border border-lab-accent/40 text-lab-accent text-xs hover:bg-lab-accent/10"

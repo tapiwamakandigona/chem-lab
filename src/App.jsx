@@ -15,7 +15,6 @@ import DistillUI from './components/DistillUI.jsx'
 import SolubilityUI from './components/SolubilityUI.jsx'
 import PeroxideUI from './components/PeroxideUI.jsx'
 import IodineRateUI from './components/IodineRateUI.jsx'
-import CalcSheet from './components/CalcSheet.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import GuideCoach from './components/GuideCoach.jsx'
 import TestModeHUD from './components/TestModeHUD.jsx'
@@ -32,7 +31,6 @@ const ClassJoin = lazy(() => import('./components/ClassJoin.jsx'))
 
 export default function App() {
   const { experiment, setExperiment, quality, setCourseOpen } = useLabStore()
-  const [showTitrationCalc, setShowTitrationCalc] = useState(false)
   const [route, setRoute] = useState(() => parseRoute())
 
   useEffect(() => {
@@ -134,7 +132,6 @@ export default function App() {
           <TitrationUI onBack={goHome} />
           <GuideCoach experiment="titration" />
           <TestModeHUD experiment="titration" />
-          {showTitrationCalc && <CalcSheet experiment="titration" onClose={() => setShowTitrationCalc(false)} />}
         </>
       )}
 

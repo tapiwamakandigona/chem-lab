@@ -125,7 +125,7 @@ export default function ClockUI({ onBack }) {
                       <td className="py-1 text-lab-ink font-mono">{r.conc.toFixed(3)}</td>
                       <td className="py-1 text-right text-lab-ink font-mono">{r.time.toFixed(1)}</td>
                       <td className="py-1 text-right text-lab-success font-mono">
-                        {r.time > 0 ? (1000 / r.time).toFixed(2) : '—'}
+                        {testMode ? '—' : r.time > 0 ? (1000 / r.time).toFixed(2) : '—'}
                       </td>
                     </tr>
                   ))}
@@ -134,8 +134,8 @@ export default function ClockUI({ onBack }) {
             </div>
           )}
 
-          {/* Show calc button */}
-          {clock.results.length > 0 && (
+          {/* Show calc button — worked analysis is practice only */}
+          {!testMode && clock.results.length > 0 && (
             <button
               onClick={() => setShowCalc(true)}
               className="w-full py-2 rounded border border-lab-accent/40 text-lab-accent text-xs hover:bg-lab-accent/10"

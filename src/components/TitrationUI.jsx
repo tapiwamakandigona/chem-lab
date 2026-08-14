@@ -3,6 +3,7 @@ import { useLabStore, TITRATION_PRESETS } from '../store.js'
 import MeniscusPractice from './MeniscusPractice.jsx'
 import BuretteScale from './BuretteScale.jsx'
 import MockPaper from './MockPaper.jsx'
+import CalcSheet from './CalcSheet.jsx'
 import { TITRATION_PAPER_S22, titrationPaperCtx } from '../lib/marking.js'
 import SetupDragControl from './SetupDragControl.jsx'
 
@@ -36,6 +37,7 @@ export default function TitrationUI({ onBack }) {
 
   const [showPractice, setShowPractice] = useState(false)
   const [showPaper, setShowPaper] = useState(false)
+  const [showCalc, setShowCalc] = useState(false)
   const [resetArmed, setResetArmed] = useState(false)
   const resetTimer = useRef(null)
   const preset = TITRATION_PRESETS[titration.preset]
@@ -310,6 +312,14 @@ export default function TitrationUI({ onBack }) {
                   📝 Mock paper
                 </button>
                 )}
+                {!testMode && (
+                <button
+                  onClick={() => setShowCalc(true)}
+                  className="mt-2 w-full py-1.5 rounded-lg border border-lab-accent/40 text-lab-accent hover:bg-lab-accent/10 text-xs"
+                >
+                  Show Calculations
+                </button>
+                )}
               </div>
             )}
           </div>
@@ -404,6 +414,9 @@ export default function TitrationUI({ onBack }) {
           )}
         </div>
       )}
+
+      {/* Worked calculations — practice only */}
+      {!testMode && showCalc && <CalcSheet experiment="titration" onClose={() => setShowCalc(false)} />}
 
       {/* Mock paper overlay — uses the student's OWN concordant results */}
       {showPaper && concordant && titration.preset === 's22' && (
