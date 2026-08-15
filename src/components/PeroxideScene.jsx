@@ -1,6 +1,7 @@
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
+import { DynamicDrawUsage, Object3D } from 'three'
 import { useFrame } from '@react-three/fiber'
-import { Text } from '@react-three/drei'
+import { Text, Instances, Instance } from '@react-three/drei'
 import { useLabStore } from '../store.js'
 import {
   PEROXIDE_TIME_SCALE,
@@ -13,6 +14,7 @@ import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial, LiquidMaterial } from './scene/glassware.jsx'
 import { BlobShadow } from './scene/props.jsx'
 import { clampSimDelta } from '../lib/simClock.js'
+import { patchInstanceOpacityMaterial } from '../lib/instancedOpacity.js'
 
 const FLASK_X = -0.17
 const SYRINGE_X = 0.08
@@ -20,35 +22,96 @@ const SYRINGE_Y = 0.17
 const BARREL_LEN = 0.25
 const BARREL_R = 0.022
 
-function ReactionFlask({ running, started, run }) {
-  const bubbles = useRef([])
-  const catalyst = useRef([])
-  const seeds = useMemo(
-    () => Array.from({ length: 20 }, (_, i) => ({
-      x: ((i * 17) % 13 - 6) * 0.004,
-      z: ((i * 23) % 11 - 5) * 0.004,
-      phase: (i * 0.31) % 1,
-      speed: 0.45 + (i % 6) * 0.08,
-    })),
-    [],
-  )
-  const activity = Math.min(1.7, initialRate(run.id) / initialRate('control'))
+const BUBBLE_COUNT = 20
+
+const BUBBLE_SEEDS = Array.from({ length: BUBBLE_COUNT }, (_, i) => ({
+  x: ((i * 17) % 13 - 6) * 0.004,
+  z: ((i * 23) % 11 - 5) * 0.004,
+  phase: (i * 0.31) % 1,
+  speed: 0.45 + (i % 6) * 0.08,
+}))
+
+const BUBBLE_DUMMY = new Object3D()
+
+const BUBBLE_OPACITIES = new Float32Array(BUBBLE_COUNT)
+
+function OxygenBubbles({ running, activity }) {
+  const meshRef = useRef()
   useFrame(({ clock }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.visible = running
+    if (!running) return
     const t = clock.getElapsedTime()
-    bubbles.current.forEach((bubble, i) => {
-      if (!bubble) return
-      const seed = seeds[i]
+    const opacityAttr = mesh.geometry.attributes.aOpacity
+    for (let i = 0; i < BUBBLE_COUNT; i += 1) {
+      const seed = BUBBLE_SEEDS[i]
       const f = (t * seed.speed * (0.7 + activity) + seed.phase) % 1
-      bubble.position.set(seed.x * (1 - f * 0.35), 0.014 + f * 0.058, seed.z)
-      bubble.material.opacity = running ? 0.55 * (1 - f) * Math.max(0.12, activity) : 0
-      bubble.scale.setScalar(0.55 + f)
-    })
-    catalyst.current.forEach((grain, i) => {
-      if (!grain) return
-      grain.rotation.x = t * 0.5 + i
-      grain.rotation.z = t * 0.35 + i * 0.6
-    })
+      BUBBLE_DUMMY.position.set(seed.x * (1 - f * 0.35), 0.014 + f * 0.058, seed.z)
+      BUBBLE_DUMMY.scale.setScalar(0.55 + f)
+      BUBBLE_DUMMY.updateMatrix()
+      mesh.setMatrixAt(i, BUBBLE_DUMMY.matrix)
+      opacityAttr.array[i] = 0.55 * (1 - f) * Math.max(0.12, activity)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    opacityAttr.needsUpdate = true
   })
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, BUBBLE_COUNT]} frustumCulled={false} visible={false}>
+      <sphereGeometry args={[0.0024, 8, 6]}>
+        <instancedBufferAttribute
+          attach="attributes-aOpacity"
+          args={[BUBBLE_OPACITIES, 1]}
+          usage={DynamicDrawUsage}
+        />
+      </sphereGeometry>
+      <meshBasicMaterial
+        transparent
+        color="#eefbff"
+        depthWrite={false}
+        onBeforeCompile={patchInstanceOpacityMaterial}
+      />
+    </instancedMesh>
+  )
+}
+
+const GRAIN_LIMIT = 18
+
+const GRAIN_DUMMY = new Object3D()
+
+function CatalystGrains({ grainCount, form }) {
+  const meshRef = useRef()
+  useFrame(({ clock }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    mesh.visible = grainCount > 0
+    if (!grainCount) return
+    const t = clock.getElapsedTime()
+    for (let i = 0; i < GRAIN_LIMIT; i += 1) {
+      GRAIN_DUMMY.position.set(
+        ((i * 11) % 9 - 4) * 0.005,
+        0.008 + (i % 3) * 0.003,
+        ((i * 7) % 7 - 3) * 0.005,
+      )
+      GRAIN_DUMMY.rotation.set(t * 0.5 + i, 0, t * 0.35 + i * 0.6)
+      GRAIN_DUMMY.scale.setScalar(i < grainCount ? 1 : 0)
+      GRAIN_DUMMY.updateMatrix()
+      mesh.setMatrixAt(i, GRAIN_DUMMY.matrix)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+  })
+  return (
+    <instancedMesh key={form} ref={meshRef} args={[undefined, undefined, GRAIN_LIMIT]} frustumCulled={false} visible={false}>
+      {form === 'granules'
+        ? <dodecahedronGeometry args={[0.0055]} />
+        : <sphereGeometry args={[0.0022, 7, 5]} />}
+      <meshStandardMaterial color="#34312f" roughness={0.88} />
+    </instancedMesh>
+  )
+}
+
+function ReactionFlask({ running, started, run }) {
+  const activity = Math.min(1.7, initialRate(run.id) / initialRate('control'))
   const grainCount = !started || run.catalyst === 'none' ? 0 : run.catalystForm === 'powder' ? 18 : 6
   return (
     <group position={[FLASK_X, 0, 0]}>
@@ -68,28 +131,8 @@ function ReactionFlask({ running, started, run }) {
         <cylinderGeometry args={[0.03, 0.049, 0.054, 26]} />
         <LiquidMaterial color="#c9e6f5" opacity={0.56} />
       </mesh>
-      {Array.from({ length: grainCount }, (_, i) => (
-        <mesh
-          key={`cat-${i}`}
-          ref={(node) => (catalyst.current[i] = node)}
-          position={[
-            ((i * 11) % 9 - 4) * 0.005,
-            0.008 + (i % 3) * 0.003,
-            ((i * 7) % 7 - 3) * 0.005,
-          ]}
-        >
-          {run.catalystForm === 'granules'
-            ? <dodecahedronGeometry args={[0.0055]} />
-            : <sphereGeometry args={[0.0022, 7, 5]} />}
-          <meshStandardMaterial color="#34312f" roughness={0.88} />
-        </mesh>
-      ))}
-      {seeds.map((seed, i) => (
-        <mesh key={`bubble-${i}`} ref={(node) => (bubbles.current[i] = node)} position={[seed.x, 0.02, seed.z]}>
-          <sphereGeometry args={[0.0024, 8, 6]} />
-          <meshBasicMaterial color="#eefbff" transparent opacity={0} depthWrite={false} />
-        </mesh>
-      ))}
+      <CatalystGrains grainCount={grainCount} form={run.catalystForm} />
+      <OxygenBubbles running={running} activity={activity} />
       {!started && run.catalyst !== 'none' && (
         <group position={[-0.082, 0.012, 0.035]} rotation={[0.08, 0.2, -0.08]}>
           <mesh>
@@ -170,18 +213,28 @@ function GasSyringe({ volume }) {
         <cylinderGeometry args={[0.004, 0.004, 0.016, 10]} />
         <GlassMaterial opacity={0.36} />
       </mesh>
-      {Array.from({ length: 11 }, (_, i) => (
-        <group key={i} position={[-BARREL_LEN / 2 + 0.01 + (i / 10) * (BARREL_LEN - 0.02), 0, 0]}>
-          <mesh position={[0, 0, BARREL_R]}>
-            <boxGeometry args={[0.0008, i % 2 ? 0.007 : 0.012, 0.0007]} />
-            <meshBasicMaterial color="#536676" />
-          </mesh>
-          {i % 2 === 0 && (
-            <Text position={[0, -0.032, 0]} font={LAB_FONT} fontSize={0.0065} color="#71889b" anchorX="center">
-              {i * 10}
-            </Text>
-          )}
-        </group>
+      <Instances limit={11}>
+        <boxGeometry args={[0.0008, 1, 0.0007]} />
+        <meshBasicMaterial color="#536676" />
+        {Array.from({ length: 11 }, (_, i) => (
+          <Instance
+            key={i}
+            position={[-BARREL_LEN / 2 + 0.01 + (i / 10) * (BARREL_LEN - 0.02), 0, BARREL_R]}
+            scale={[1, i % 2 ? 0.007 : 0.012, 1]}
+          />
+        ))}
+      </Instances>
+      {Array.from({ length: 6 }, (_, j) => (
+        <Text
+          key={j}
+          position={[-BARREL_LEN / 2 + 0.01 + (j / 5) * (BARREL_LEN - 0.02), -0.032, 0]}
+          font={LAB_FONT}
+          fontSize={0.0065}
+          color="#71889b"
+          anchorX="center"
+        >
+          {j * 20}
+        </Text>
       ))}
       <group ref={plunger}>
         <mesh position={[-BARREL_LEN / 2 + 0.01, 0, 0]} rotation={[0, 0, Math.PI / 2]}>

@@ -845,3 +845,10 @@ PRE-PUSH OK.
 - All instancedMeshes frustumCulled=false to avoid culling glitches on animated instances.
 - Probe VERIFIED: solubility 144->117 draw calls at rest and during heating; distill control steady at 134.
 - Gate suite: 37/37 green in round 0 (solubility, gfx, testmode included). PRE-PUSH OK.
+
+## opt-G: peroxide + iodine-rate instancing (2026-08-15)
+- PeroxideScene: 20 O2 bubble meshes -> 1 instancedMesh (aOpacity via patchInstanceOpacityMaterial, visible only while running); catalyst grains -> 1 instancedMesh (GRAIN_LIMIT=18, key={form} remount for dodeca/sphere); 11 syringe ticks -> drei Instances; tick labels 11 -> 6 Texts.
+- IodineRateScene: 11 burette ticks -> drei Instances; labels 11 -> 6 Texts.
+- VERIFIED via GLInfoHook probe (temp hook in LabViewport, reverted): peroxide rest 120->90 draw calls, iodine-rate 170->160, distill control steady 134.
+- Peroxide running-state gl.info reads calls=2/triangles=4 on BOTH this build and stashed baseline (8 samples each, no console/page errors, screenshot shows grains+plunger correct) -> pre-existing sampling artifact of an extra internal render pass, NOT a regression.
+- Full canonical suite vs frozen dist: 37/37 gates green (peroxide 229s, iodine_rate 132s). PRE-PUSH OK.

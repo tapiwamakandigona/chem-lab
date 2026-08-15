@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { DynamicDrawUsage, Object3D } from 'three'
 import { useFrame } from '@react-three/fiber'
-import { Text } from '@react-three/drei'
+import { Text, Instances, Instance } from '@react-three/drei'
 import { useLabStore } from '../store.js'
 import { IODINE_TIME_SCALE } from '../lib/iodineRate.js'
 import { LAB_FONT } from '../lib/labFont.js'
@@ -183,25 +183,29 @@ function Burette({ reading, open, onDown, onUp }) {
           <LiquidMaterial color="#d8edf8" opacity={0.68} />
         </mesh>
       )}
-      {Array.from({ length: 11 }, (_, index) => (
-        <group key={index} position={[0, -index * 0.042, 0]}>
-          <mesh position={[0.012, 0, 0]}>
-            <boxGeometry args={[index % 2 ? 0.009 : 0.014, 0.0007, 0.0008]} />
-            <meshBasicMaterial color="#425969" />
-          </mesh>
-          {index % 2 === 0 && (
-            <Text
-              position={[0.023, 0, 0]}
-              font={LAB_FONT}
-              fontSize={0.006}
-              color="#506776"
-              anchorX="left"
-              anchorY="middle"
-            >
-              {index * 5}
-            </Text>
-          )}
-        </group>
+      <Instances limit={11}>
+        <boxGeometry args={[1, 0.0007, 0.0008]} />
+        <meshBasicMaterial color="#425969" />
+        {Array.from({ length: 11 }, (_, index) => (
+          <Instance
+            key={index}
+            position={[0.012, -index * 0.042, 0]}
+            scale={[index % 2 ? 0.009 : 0.014, 1, 1]}
+          />
+        ))}
+      </Instances>
+      {Array.from({ length: 6 }, (_, j) => (
+        <Text
+          key={j}
+          position={[0.023, -j * 2 * 0.042, 0]}
+          font={LAB_FONT}
+          fontSize={0.006}
+          color="#506776"
+          anchorX="left"
+          anchorY="middle"
+        >
+          {j * 10}
+        </Text>
       ))}
       <mesh position={[0, -0.445, 0]}>
         <cylinderGeometry args={[0.013, 0.013, 0.026, 16]} />
