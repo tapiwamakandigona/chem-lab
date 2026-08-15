@@ -1,7 +1,8 @@
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Text } from '@react-three/drei'
+import { Text, Instances, Instance } from '@react-three/drei'
 import * as THREE from 'three'
+import { patchInstanceOpacityMaterial } from '../lib/instancedOpacity.js'
 import { useLabStore } from '../store.js'
 import {
   SOLUBILITY_HEAT_RATE,
@@ -45,25 +46,36 @@ function HotPlate({ active }) {
   )
 }
 
+const BATH_COUNT = 12
+const BATH_SEEDS = Array.from({ length: BATH_COUNT }, (_, i) => ({
+  x: ((i % 4) - 1.5) * 0.025,
+  z: (Math.floor(i / 4) - 1) * 0.025,
+  phase: (i * 0.19) % 1,
+}))
+const BATH_OPACITIES = new Float32Array(BATH_COUNT)
+const SWARM_DUMMY = new THREE.Object3D()
+
 function WaterBath({ active, rushing }) {
-  const bubbles = useRef([])
-  const seeds = useMemo(
-    () => Array.from({ length: 12 }, (_, i) => ({
-      x: ((i % 4) - 1.5) * 0.025,
-      z: (Math.floor(i / 4) - 1) * 0.025,
-      phase: (i * 0.19) % 1,
-    })),
-    [],
-  )
+  const bathMesh = useRef()
   useFrame(({ clock }) => {
+    const mesh = bathMesh.current
+    if (!mesh) return
+    mesh.visible = active
+    if (!active) return
     const t = clock.getElapsedTime()
-    bubbles.current.forEach((b, i) => {
-      if (!b) return
-      const s = seeds[i]
+    const opacityAttr = mesh.geometry.attributes.aOpacity
+    for (let i = 0; i < BATH_COUNT; i += 1) {
+      const s = BATH_SEEDS[i]
       const f = (t * 0.45 + s.phase) % 1
-      b.position.set(s.x, 0.055 + f * 0.095, s.z)
-      b.material.opacity = active ? 0.3 * (1 - f) : 0
-    })
+      SWARM_DUMMY.position.set(s.x, 0.055 + f * 0.095, s.z)
+      SWARM_DUMMY.rotation.set(0, 0, 0)
+      SWARM_DUMMY.scale.setScalar(1)
+      SWARM_DUMMY.updateMatrix()
+      mesh.setMatrixAt(i, SWARM_DUMMY.matrix)
+      opacityAttr.array[i] = 0.3 * (1 - f)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    opacityAttr.needsUpdate = true
   })
   return (
     <group>
@@ -79,26 +91,40 @@ function WaterBath({ active, rushing }) {
         <cylinderGeometry args={[0.098, 0.09, 0.13, 32]} />
         <LiquidMaterial color={rushing ? '#9ccdf0' : '#78b8dd'} opacity={0.43} />
       </mesh>
-      {rushing && Array.from({ length: 8 }, (_, i) => (
-        <mesh
-          key={`ice-${i}`}
-          position={[
-            ((i % 4) - 1.5) * 0.038,
-            0.115 + (i % 2) * 0.018,
-            (Math.floor(i / 4) - 0.5) * 0.06,
-          ]}
-          rotation={[i * 0.17, i * 0.3, 0]}
-        >
+      {/* crash-cooling ice — one instanced draw for all 8 cubes */}
+      {rushing && (
+        <Instances limit={8}>
           <boxGeometry args={[0.025, 0.021, 0.024]} />
           <meshStandardMaterial color="#dff5ff" transparent opacity={0.78} roughness={0.18} />
-        </mesh>
-      ))}
-      {seeds.map((s, i) => (
-        <mesh key={i} ref={(node) => (bubbles.current[i] = node)} position={[s.x, 0.06, s.z]}>
-          <sphereGeometry args={[0.0032, 8, 6]} />
-          <meshBasicMaterial color="#eefaff" transparent opacity={0} depthWrite={false} />
-        </mesh>
-      ))}
+          {Array.from({ length: 8 }, (_, i) => (
+            <Instance
+              key={`ice-${i}`}
+              position={[
+                ((i % 4) - 1.5) * 0.038,
+                0.115 + (i % 2) * 0.018,
+                (Math.floor(i / 4) - 0.5) * 0.06,
+              ]}
+              rotation={[i * 0.17, i * 0.3, 0]}
+            />
+          ))}
+        </Instances>
+      )}
+      {/* bath bubbles — single instanced draw, per-instance fade via aOpacity */}
+      <instancedMesh ref={bathMesh} args={[undefined, undefined, BATH_COUNT]} frustumCulled={false} visible={false}>
+        <sphereGeometry args={[0.0032, 8, 6]}>
+          <instancedBufferAttribute
+            attach="attributes-aOpacity"
+            args={[BATH_OPACITIES, 1]}
+            usage={THREE.DynamicDrawUsage}
+          />
+        </sphereGeometry>
+        <meshBasicMaterial
+          transparent
+          color="#eefaff"
+          depthWrite={false}
+          onBeforeCompile={patchInstanceOpacityMaterial}
+        />
+      </instancedMesh>
     </group>
   )
 }
@@ -127,45 +153,73 @@ function Thermometer({ temperature }) {
         <cylinderGeometry args={[0.0017, 0.0017, stem, 8]} />
         <meshStandardMaterial color="#cf3e39" roughness={0.25} />
       </mesh>
-      {Array.from({ length: 13 }, (_, i) => (
-        <mesh key={i} position={[0.006, -stem / 2 + 0.015 + i * 0.02, 0]}>
-          <boxGeometry args={[i % 2 ? 0.004 : 0.006, 0.0007, 0.0007]} />
-          <meshBasicMaterial color="#354655" />
-        </mesh>
-      ))}
+      {/* graduations — one instanced draw for all ticks */}
+      <Instances limit={13}>
+        <boxGeometry args={[1, 0.0007, 0.0007]} />
+        <meshBasicMaterial color="#354655" />
+        {Array.from({ length: 13 }, (_, i) => (
+          <Instance
+            key={i}
+            position={[0.006, -stem / 2 + 0.015 + i * 0.02, 0]}
+            scale={[i % 2 ? 0.004 : 0.006, 1, 1]}
+          />
+        ))}
+      </Instances>
     </group>
   )
 }
 
+const POWDER_COUNT = 14
+const CRYSTAL_COUNT = 24
+const CRYSTAL_SEEDS = Array.from({ length: CRYSTAL_COUNT }, (_, i) => ({
+  x: ((i * 17) % 11 - 5) * 0.0043,
+  z: ((i * 29) % 9 - 4) * 0.004,
+  y: (i % 4) * 0.003,
+  rot: (i * 0.7) % Math.PI,
+}))
+
 function BoilingTube({ temperature, status, phase }) {
-  const crystalRefs = useRef([])
-  const powderRefs = useRef([])
+  const powderMesh = useRef()
+  const crystalMesh = useRef()
   const stirrer = useRef()
-  const crystalCount = Math.min(24, Math.round(status.crystalMass * 3.5))
-  const crystalSeeds = useMemo(
-    () => Array.from({ length: 24 }, (_, i) => ({
-      x: ((i * 17) % 11 - 5) * 0.0043,
-      z: ((i * 29) % 9 - 4) * 0.004,
-      y: (i % 4) * 0.003,
-      rot: (i * 0.7) % Math.PI,
-    })),
-    [],
-  )
+  const crystalCount = Math.min(CRYSTAL_COUNT, Math.round(status.crystalMass * 3.5))
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (stirrer.current) stirrer.current.rotation.y = phase === 'heating' ? t * 5 : 0
-    powderRefs.current.forEach((p, i) => {
-      if (!p) return
-      const dissolved = status.clear || phase === 'clear' || phase === 'cooling' || phase === 'complete'
-      p.visible = !dissolved
-      p.position.y = 0.018 + Math.sin(t * 2.4 + i) * 0.003
-    })
-    crystalRefs.current.forEach((c, i) => {
-      if (!c) return
-      c.visible = i < crystalCount
+    const dissolved = status.clear || phase === 'clear' || phase === 'cooling' || phase === 'complete'
+    const pm = powderMesh.current
+    if (pm) {
+      pm.visible = !dissolved
+      if (!dissolved) {
+        for (let i = 0; i < POWDER_COUNT; i += 1) {
+          SWARM_DUMMY.position.set(
+            ((i * 7) % 9 - 4) * 0.005,
+            0.018 + Math.sin(t * 2.4 + i) * 0.003,
+            ((i * 5) % 7 - 3) * 0.005,
+          )
+          SWARM_DUMMY.rotation.set(0, 0, 0)
+          SWARM_DUMMY.scale.setScalar(1)
+          SWARM_DUMMY.updateMatrix()
+          pm.setMatrixAt(i, SWARM_DUMMY.matrix)
+        }
+        pm.instanceMatrix.needsUpdate = true
+      }
+    }
+    const cm = crystalMesh.current
+    if (cm) {
+      cm.visible = crystalCount > 0
       const grow = Math.min(1, status.crystalMass / 2)
-      c.scale.setScalar(0.35 + grow * (status.quality.startsWith('large') ? 0.9 : 0.55))
-    })
+      const scale = 0.35 + grow * (status.quality.startsWith('large') ? 0.9 : 0.55)
+      for (let i = 0; i < CRYSTAL_COUNT; i += 1) {
+        const seed = CRYSTAL_SEEDS[i]
+        SWARM_DUMMY.position.set(seed.x, -0.024 + seed.y, seed.z)
+        SWARM_DUMMY.rotation.set(seed.rot, seed.rot * 0.5, seed.rot * 0.3)
+        SWARM_DUMMY.scale.setScalar(i < crystalCount ? scale : 0)
+        SWARM_DUMMY.updateMatrix()
+        cm.setMatrixAt(i, SWARM_DUMMY.matrix)
+      }
+      cm.instanceMatrix.needsUpdate = true
+    }
   })
   return (
     <group position={[0, 0.135, 0]}>
@@ -186,35 +240,22 @@ function BoilingTube({ temperature, status, phase }) {
         <cylinderGeometry args={[0.031, 0.031, 0.09, 28]} />
         <LiquidMaterial color="#d8e9f3" opacity={0.56} />
       </mesh>
-      {/* undissolved KNO3 powder */}
-      {Array.from({ length: 14 }, (_, i) => (
-        <mesh
-          key={`powder-${i}`}
-          ref={(node) => (powderRefs.current[i] = node)}
-          position={[((i * 7) % 9 - 4) * 0.005, 0.02, ((i * 5) % 7 - 3) * 0.005]}
-        >
-          <sphereGeometry args={[0.0038, 8, 6]} />
-          <meshStandardMaterial color="#f5f5ee" roughness={0.95} />
-        </mesh>
-      ))}
-      {/* crystals settle at the rounded bottom */}
-      {crystalSeeds.map((seed, i) => (
-        <mesh
-          key={`crystal-${i}`}
-          ref={(node) => (crystalRefs.current[i] = node)}
-          position={[seed.x, -0.024 + seed.y, seed.z]}
-          rotation={[seed.rot, seed.rot * 0.5, seed.rot * 0.3]}
-        >
-          <octahedronGeometry args={[0.006, 0]} />
-          <meshStandardMaterial
-            color="#edf4fb"
-            transparent
-            opacity={0.88}
-            roughness={0.18}
-            metalness={0.02}
-          />
-        </mesh>
-      ))}
+      {/* undissolved KNO3 powder — one instanced draw */}
+      <instancedMesh ref={powderMesh} args={[undefined, undefined, POWDER_COUNT]} frustumCulled={false} visible={false}>
+        <sphereGeometry args={[0.0038, 8, 6]} />
+        <meshStandardMaterial color="#f5f5ee" roughness={0.95} />
+      </instancedMesh>
+      {/* crystals settle at the rounded bottom — one instanced draw */}
+      <instancedMesh ref={crystalMesh} args={[undefined, undefined, CRYSTAL_COUNT]} frustumCulled={false} visible={false}>
+        <octahedronGeometry args={[0.006, 0]} />
+        <meshStandardMaterial
+          color="#edf4fb"
+          transparent
+          opacity={0.88}
+          roughness={0.18}
+          metalness={0.02}
+        />
+      </instancedMesh>
       {/* glass stirring rod */}
       <mesh ref={stirrer} position={[-0.014, 0.105, 0.002]} rotation={[0, 0, -0.08]}>
         <cylinderGeometry args={[0.0025, 0.0025, 0.22, 10]} />

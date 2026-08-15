@@ -835,3 +835,13 @@ Visual probe: no bubbles at 47 C, soft rising swarm at 100 C boiling; condenser
 drips intact. Full suite green: 22 gates PASS run 1 + 15 contention-killed
 gates all PASS on retry round 1 against the same frozen dist = 37/37.
 PRE-PUSH OK.
+
+## opt-F: SolubilityScene instancing (144->117 draw calls)
+- Instanced four mesh swarms in src/components/SolubilityScene.jsx using drei Instances / raw instancedMesh + shared patchInstanceOpacityMaterial (src/lib/instancedOpacity.js):
+  - water-bath bubbles: 12 meshes -> 1 instancedMesh (per-instance aOpacity, module-level seeds, visible gated on heating)
+  - rushing ice cubes: 8 meshes -> drei Instances (rendered only while rushing)
+  - thermometer ticks: 13 meshes -> drei Instances
+  - boiling-tube powder (14) and crystals (24): each -> 1 instancedMesh (per-frame bob / per-instance grow scale, scale 0 beyond crystalCount)
+- All instancedMeshes frustumCulled=false to avoid culling glitches on animated instances.
+- Probe VERIFIED: solubility 144->117 draw calls at rest and during heating; distill control steady at 134.
+- Gate suite: 37/37 green in round 0 (solubility, gfx, testmode included). PRE-PUSH OK.
