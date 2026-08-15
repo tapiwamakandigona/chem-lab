@@ -864,3 +864,17 @@ PRE-PUSH OK.
   App-code fix, not a test edit; DistillUI/GasUI keep Math.round (gates pass).
 - Full 37-gate suite green against this dist (36 passed pre-fix; peroxide, gas,
   distill re-verified 3/3 after the fix). PRE-PUSH OK.
+
+## opt-I: grav/organic steam-wisp instancing + enthalpy thermometer ticks (2026-08-15)
+- GravScene: Crucible 6 steam-wisp meshes -> 1 instancedMesh (STEAM_COUNT=6, same
+  seed math, per-instance aOpacity 0.28*(1-f) via patchInstanceOpacityMaterial,
+  mesh.visible only while steaming).
+- OrganicScene: WaterBath 5 wisps -> 1 instancedMesh (WISP_COUNT=5, opacity
+  0.16*(1-f), visible only while active; material meshStandardMaterial white ->
+  meshBasicMaterial #eef3f8, matching every prior wisp/bubble swarm).
+- EnthalpyScene: Thermometer 13 scale-mark boxes -> 1 static instancedMesh
+  (matrices set once in ref callback).
+- Probe VERIFIED (GLInfoHook, stash/pop baseline): enthalpy 61->49, grav 60->54,
+  organic 76->71 draw calls; distill control steady at 134. All as predicted.
+- Qual/Organic tube bubbles left alone: conditional render, zero rest-state cost.
+- Full 37-gate suite green vs this dist (EXIT=0, no rerun needed). PRE-PUSH OK.

@@ -1,8 +1,10 @@
 import { useMemo, useRef } from 'react'
+import { Object3D, DynamicDrawUsage } from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import { useLabStore } from '../store.js'
 import { crucibleMass, round2 } from '../lib/grav.js'
+import { patchInstanceOpacityMaterial } from '../lib/instancedOpacity.js'
 import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { BlobShadow, WashBottle, LabNotebook } from './scene/props.jsx'
@@ -15,6 +17,16 @@ import {
 
 const TRIPOD_H = 0.115
 const CRUCIBLE_Y = TRIPOD_H + 0.012
+
+// Steam wisps above the crucible — one InstancedMesh instead of 6 meshes.
+const STEAM_COUNT = 6
+const STEAM_SEEDS = Array.from({ length: STEAM_COUNT }, (_, i) => ({
+  phase: i * 0.7,
+  x: (i % 3 - 1) * 0.006,
+  speed: 0.35 + (i % 3) * 0.1,
+}))
+const STEAM_DUMMY = new Object3D()
+const STEAM_OPACITIES = new Float32Array(STEAM_COUNT)
 
 /** Bunsen burner: base, barrel, collar; roaring teardrop flame while heating
  *  (shared flameShell lathe — iter-56 rule: no bare-cone flames). */
@@ -119,11 +131,7 @@ function Tripod() {
 function Crucible({ heating, cooling, steam }) {
   const bodyRef = useRef()
   const glowRef = useRef()
-  const steamRefs = useRef([])
-  const seeds = useMemo(
-    () => Array.from({ length: 6 }, (_, i) => ({ phase: i * 0.7, x: (i % 3 - 1) * 0.006, speed: 0.35 + (i % 3) * 0.1 })),
-    [],
-  )
+  const steamRef = useRef()
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (bodyRef.current) {
@@ -133,14 +141,22 @@ function Crucible({ heating, cooling, steam }) {
       m.emissiveIntensity += (target - m.emissiveIntensity) * 0.09
       if (glowRef.current) glowRef.current.intensity = m.emissiveIntensity * 0.6
     }
-    steamRefs.current.forEach((s, i) => {
-      if (!s) return
-      const sd = seeds[i]
+    const mesh = steamRef.current
+    if (!mesh) return
+    mesh.visible = steam
+    if (!steam) return
+    const opacityAttr = mesh.geometry.attributes.aOpacity
+    for (let i = 0; i < STEAM_COUNT; i += 1) {
+      const sd = STEAM_SEEDS[i]
       const f = (t * sd.speed + sd.phase) % 1
-      s.position.set(sd.x + Math.sin(t * 2 + i) * 0.004, 0.035 + f * 0.075, 0)
-      s.scale.setScalar(0.5 + f * 1.3)
-      s.material.opacity = steam ? 0.28 * (1 - f) : 0
-    })
+      STEAM_DUMMY.position.set(sd.x + Math.sin(t * 2 + i) * 0.004, 0.035 + f * 0.075, 0)
+      STEAM_DUMMY.scale.setScalar(0.5 + f * 1.3)
+      STEAM_DUMMY.updateMatrix()
+      mesh.setMatrixAt(i, STEAM_DUMMY.matrix)
+      opacityAttr.array[i] = 0.28 * (1 - f)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    opacityAttr.needsUpdate = true
   })
   return (
     <group position={[0, CRUCIBLE_Y, 0]}>
@@ -160,13 +176,22 @@ function Crucible({ heating, cooling, steam }) {
         <sphereGeometry args={[0.005, 12, 8]} />
         <meshStandardMaterial color="#ddd6c8" roughness={0.85} />
       </mesh>
-      {/* steam wisps */}
-      {seeds.map((_, i) => (
-        <mesh key={i} ref={(el) => (steamRefs.current[i] = el)}>
-          <sphereGeometry args={[0.006, 8, 6]} />
-          <meshBasicMaterial color="#dfe9f2" transparent opacity={0} depthWrite={false} />
-        </mesh>
-      ))}
+      {/* steam wisps — single instanced draw call */}
+      <instancedMesh ref={steamRef} args={[undefined, undefined, STEAM_COUNT]} frustumCulled={false} visible={false}>
+        <sphereGeometry args={[0.006, 8, 6]}>
+          <instancedBufferAttribute
+            attach="attributes-aOpacity"
+            args={[STEAM_OPACITIES, 1]}
+            usage={DynamicDrawUsage}
+          />
+        </sphereGeometry>
+        <meshBasicMaterial
+          transparent
+          color="#dfe9f2"
+          depthWrite={false}
+          onBeforeCompile={patchInstanceOpacityMaterial}
+        />
+      </instancedMesh>
     </group>
   )
 }

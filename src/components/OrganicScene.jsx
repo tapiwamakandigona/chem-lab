@@ -1,8 +1,10 @@
 import { useMemo, useRef } from 'react'
+import { Object3D, DynamicDrawUsage } from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import { useLabStore } from '../store.js'
 import { ORGANIC_UNKNOWNS } from '../lib/organic.js'
+import { patchInstanceOpacityMaterial } from '../lib/instancedOpacity.js'
 import { LAB_FONT } from '../lib/labFont.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { GlassMaterial, LiquidMaterial } from './scene/glassware.jsx'
@@ -10,6 +12,16 @@ import { BlobShadow, WashBottle, LabNotebook } from './scene/props.jsx'
 
 const TUBE_R = 0.011
 const TUBE_H = 0.115
+
+// Water-bath steam wisps — one InstancedMesh instead of 5 meshes.
+const WISP_COUNT = 5
+const WISP_SEEDS = Array.from({ length: WISP_COUNT }, (_, i) => ({
+  phase: i * 1.3,
+  x: (i % 3 - 1) * 0.012,
+  speed: 0.25 + (i % 3) * 0.08,
+}))
+const WISP_DUMMY = new Object3D()
+const WISP_OPACITIES = new Float32Array(WISP_COUNT)
 
 /** Glass test tube; mirror coats the wall silver, ppt/bubbles as in qual. */
 function OrganicTube({ position, liquidColor = '#dcecf7', fill = 0.5, ppt = null, bubbles = false, mirror = false, label }) {
@@ -87,21 +99,25 @@ function OrganicTube({ position, liquidColor = '#dcecf7', fill = 0.5, ppt = null
 
 /** 250 cm³ beaker of warm water on a stand — the P3 water bath. */
 function WaterBath({ position, active }) {
-  const steamRefs = useRef([])
-  const seeds = useMemo(
-    () => Array.from({ length: 5 }, (_, i) => ({ phase: i * 1.3, x: (i % 3 - 1) * 0.012, speed: 0.25 + (i % 3) * 0.08 })),
-    [],
-  )
+  const steamRef = useRef()
   useFrame(({ clock }) => {
+    const mesh = steamRef.current
+    if (!mesh) return
+    mesh.visible = active
+    if (!active) return
     const t = clock.getElapsedTime()
-    steamRefs.current.forEach((m, i) => {
-      if (!m) return
-      const s = seeds[i]
+    const opacityAttr = mesh.geometry.attributes.aOpacity
+    for (let i = 0; i < WISP_COUNT; i += 1) {
+      const s = WISP_SEEDS[i]
       const f = ((t * s.speed + s.phase) % 1)
-      m.position.y = 0.075 + f * 0.05
-      m.material.opacity = active ? 0.16 * (1 - f) : 0
-      m.scale.setScalar(0.6 + f * 1.2)
-    })
+      WISP_DUMMY.position.set(s.x, 0.075 + f * 0.05, 0)
+      WISP_DUMMY.scale.setScalar(0.6 + f * 1.2)
+      WISP_DUMMY.updateMatrix()
+      mesh.setMatrixAt(i, WISP_DUMMY.matrix)
+      opacityAttr.array[i] = 0.16 * (1 - f)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    opacityAttr.needsUpdate = true
   })
   return (
     <group position={position}>
@@ -117,13 +133,22 @@ function WaterBath({ position, active }) {
         <cylinderGeometry args={[0.038, 0.037, 0.058, 20]} />
         <LiquidMaterial color="#cfe4f2" opacity={0.5} />
       </mesh>
-      {/* wisps of steam while a warm test is running */}
-      {seeds.map((_, i) => (
-        <mesh key={i} ref={(el) => { steamRefs.current[i] = el }} position={[seeds[i].x, 0.075, 0]}>
-          <sphereGeometry args={[0.006, 8, 6]} />
-          <meshStandardMaterial color="#ffffff" transparent opacity={0} roughness={1} depthWrite={false} />
-        </mesh>
-      ))}
+      {/* wisps of steam while a warm test is running — single instanced draw call */}
+      <instancedMesh ref={steamRef} args={[undefined, undefined, WISP_COUNT]} frustumCulled={false} visible={false}>
+        <sphereGeometry args={[0.006, 8, 6]}>
+          <instancedBufferAttribute
+            attach="attributes-aOpacity"
+            args={[WISP_OPACITIES, 1]}
+            usage={DynamicDrawUsage}
+          />
+        </sphereGeometry>
+        <meshBasicMaterial
+          transparent
+          color="#eef3f8"
+          depthWrite={false}
+          onBeforeCompile={patchInstanceOpacityMaterial}
+        />
+      </instancedMesh>
       <BlobShadow r={0.05} />
     </group>
   )

@@ -130,6 +130,9 @@ function CalorimeterCup({ running, T1, T2, phase }) {
   )
 }
 
+// Thermometer scale marks — one static InstancedMesh instead of 13 meshes.
+const MARK_COUNT = 13
+
 /** -10..110 °C thermometer through the lid; red column tracks T2. */
 function Thermometer({ T1, T2, running }) {
   const colRef = useRef()
@@ -156,13 +159,23 @@ function Thermometer({ T1, T2, running }) {
         <cylinderGeometry args={[0.0018, 0.0018, STEM, 8]} />
         <meshStandardMaterial color="#d94141" roughness={0.3} />
       </mesh>
-      {/* scale marks */}
-      {Array.from({ length: 13 }, (_, i) => (
-        <mesh key={i} position={[0.0052, -STEM / 2 + 0.02 + i * ((STEM - 0.04) / 12), 0]}>
-          <boxGeometry args={[0.004, 0.0006, 0.0006]} />
-          <meshBasicMaterial color="#3b4855" />
-        </mesh>
-      ))}
+      {/* scale marks — single static instanced draw call */}
+      <instancedMesh
+        ref={(mesh) => {
+          if (!mesh) return
+          const d = new THREE.Object3D()
+          for (let i = 0; i < MARK_COUNT; i += 1) {
+            d.position.set(0.0052, -STEM / 2 + 0.02 + i * ((STEM - 0.04) / 12), 0)
+            d.updateMatrix()
+            mesh.setMatrixAt(i, d.matrix)
+          }
+          mesh.instanceMatrix.needsUpdate = true
+        }}
+        args={[undefined, undefined, MARK_COUNT]}
+      >
+        <boxGeometry args={[0.004, 0.0006, 0.0006]} />
+        <meshBasicMaterial color="#3b4855" />
+      </instancedMesh>
     </group>
   )
 }
