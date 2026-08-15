@@ -878,3 +878,19 @@ PRE-PUSH OK.
   organic 76->71 draw calls; distill control steady at 134. All as predicted.
 - Qual/Organic tube bubbles left alone: conditional render, zero rest-state cost.
 - Full 37-gate suite green vs this dist (EXIT=0, no rerun needed). PRE-PUSH OK.
+
+## opt-J (2026-08-15) — merged reagent-shelf decor into 3 static meshes
+- ReagentShelf drew 10 bottles x 4 meshes (~40 draw calls) in every scene; only
+  tight-camera scenes (enthalpy) escaped via per-mesh frustum culling.
+- Merged into 3 static meshes via three's mergeGeometries (three 0.184 exports
+  mergeGeometries, NOT mergeBufferGeometries; three-stdlib only has the old
+  name, avoided as transitive dep): opaque parts (vertex colors), translucent
+  bottle bodies (opacity 0.55), label papers. Layout math preserved exactly in
+  shelfBottlePlacements(); 10 troika label Texts kept as-is (future phase:
+  bake into canvas atlas). Board + brackets unchanged.
+- Draw calls (swiftshader probe, low): iodine-rate 158->121, distill 129->92,
+  titration 121->87, flame 114->96, solubility 116->79, gas 104->82.
+  enthalpy 49->52 (+3): merged meshes no longer individually frustum-culled —
+  accepted tradeoff. Triangles identical per scene (geometry parity).
+- Visual parity: probe screenshot vs live indistinguishable on iodine-rate.
+- Gates 37/37 PASS (full canonical suite vs release dist), PRE-PUSH OK.

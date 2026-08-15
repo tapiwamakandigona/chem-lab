@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { GlassMaterial, LiquidMaterial } from './glassware.jsx'
 import { LAB_FONT } from '../../lib/labFont.js'
 import { makeEpoxyTexture } from './surfaces.js'
@@ -108,8 +109,68 @@ const SHELF_JITTER = [
 ]
 
 /** Wall shelf with a row of reagent bottles. width along x. */
-export function ReagentShelf({ width = 2.6, y = 0, z = -2.45 }) {
+/** Per-bottle placement math shared by the merged meshes and the labels.
+ *  Deterministic — must stay byte-identical to the old per-bottle layout. */
+function shelfBottlePlacements(width) {
   const slot = (width - 0.36) / (SHELF_BOTTLES.length - 1)
+  return SHELF_BOTTLES.map((b, i) => {
+    const j = SHELF_JITTER[i % SHELF_JITTER.length]
+    return {
+      ...b,
+      r: 0.032 + ((i * 13) % 3) * 0.004,
+      x: -width / 2 + 0.18 + (i + j.dx * 0.45) * slot,
+      z: 0.02 + j.dz,
+      rot: ((i * 37) % 7) * 0.22 - 0.55,
+    }
+  })
+}
+
+export function ReagentShelf({ width = 2.6, y = 0, z = -2.45 }) {
+  const bottles = useMemo(() => shelfBottlePlacements(width), [width])
+  // The shelf is pure static decor drawn in every scene (except when a tight
+  // camera frustum-culls it). Merging 10 bottles x 4 meshes into 3 static
+  // meshes (opaque parts / translucent bottles / label papers) drops ~37 draw
+  // calls per wide-camera scene. Troika label Texts stay as-is.
+  const merged = useMemo(() => {
+    const opaque = []
+    const clear = []
+    const labels = []
+    const mat = new THREE.Matrix4()
+    const quat = new THREE.Quaternion()
+    const pos = new THREE.Vector3()
+    const one = new THREE.Vector3(1, 1, 1)
+    const addPart = (geo, color, b, px, py, pz, list) => {
+      quat.setFromEuler(new THREE.Euler(0, b.rot, 0))
+      mat.compose(pos.set(b.x, 0.018, b.z), quat, one)
+      geo.translate(px, py, pz)
+      geo.applyMatrix4(mat)
+      geo.deleteAttribute('uv')
+      if (color) {
+        const n = geo.attributes.position.count
+        const c = new THREE.Color(color)
+        const arr = new Float32Array(n * 3)
+        for (let k = 0; k < n; k += 1) {
+          arr[k * 3] = c.r
+          arr[k * 3 + 1] = c.g
+          arr[k * 3 + 2] = c.b
+        }
+        geo.setAttribute('color', new THREE.BufferAttribute(arr, 3))
+      }
+      list.push(geo)
+    }
+    bottles.forEach((b) => {
+      const bodyList = b.opacity !== undefined && b.opacity < 1 ? clear : opaque
+      addPart(new THREE.CylinderGeometry(b.r, b.r, b.h * 0.84, 18), b.body, b, 0, b.h * 0.42, 0, bodyList)
+      addPart(new THREE.CylinderGeometry(b.r * 0.45, b.r * 0.95, b.h * 0.12, 18), b.body, b, 0, b.h * 0.87, 0, bodyList)
+      addPart(new THREE.CylinderGeometry(b.r * 0.46, b.r * 0.46, b.h * 0.1, 14), '#111418', b, 0, b.h * 0.97, 0, opaque)
+      addPart(new THREE.PlaneGeometry(b.r * 1.55, b.h * 0.44), null, b, 0, b.h * 0.42, b.r * 0.99, labels)
+    })
+    return {
+      opaque: mergeGeometries(opaque),
+      clear: mergeGeometries(clear),
+      labels: mergeGeometries(labels),
+    }
+  }, [bottles])
   return (
     <group position={[0, y, z]}>
       <mesh>
@@ -125,19 +186,31 @@ export function ReagentShelf({ width = 2.6, y = 0, z = -2.45 }) {
           <meshStandardMaterial color="#8b949e" roughness={0.4} metalness={0.5} />
         </mesh>
       ))}
-      {SHELF_BOTTLES.map((b, i) => {
-        const j = SHELF_JITTER[i % SHELF_JITTER.length]
-        const x = -width / 2 + 0.18 + (i + j.dx * 0.45) * slot
-        return (
-          <group
-            key={i}
-            position={[x, 0.018, 0.02 + j.dz]}
-            rotation={[0, ((i * 37) % 7) * 0.22 - 0.55, 0]}
-          >
-            <ReagentBottle {...b} r={0.032 + ((i * 13) % 3) * 0.004} />
+      <mesh geometry={merged.opaque} castShadow>
+        <meshStandardMaterial vertexColors roughness={0.3} />
+      </mesh>
+      <mesh geometry={merged.clear} castShadow>
+        <meshStandardMaterial vertexColors transparent opacity={0.55} roughness={0.25} />
+      </mesh>
+      <mesh geometry={merged.labels}>
+        <meshStandardMaterial color="#f2f0e8" roughness={0.9} />
+      </mesh>
+      {bottles.map((b, i) =>
+        b.labelText ? (
+          <group key={i} position={[b.x, 0.018, b.z]} rotation={[0, b.rot, 0]}>
+            <Text
+              font={LAB_FONT}
+              position={[0, b.h * 0.42, b.r * 0.99 + 0.001]}
+              fontSize={Math.min(b.r * 0.34, b.h * 0.07)}
+              color="#27313a"
+              anchorX="center"
+              anchorY="middle"
+            >
+              {b.labelText}
+            </Text>
           </group>
-        )
-      })}
+        ) : null
+      )}
     </group>
   )
 }
