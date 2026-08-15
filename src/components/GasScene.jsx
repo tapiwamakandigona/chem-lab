@@ -1,9 +1,11 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text, Instances, Instance } from '@react-three/drei'
+import { Object3D, DynamicDrawUsage } from 'three'
 import { useLabStore } from '../store.js'
 import { volumeAt, GAS_TIME_SCALE, SYRINGE_MAX } from '../lib/gas.js'
 import { LAB_FONT } from '../lib/labFont.js'
+import { patchInstanceOpacityMaterial } from '../lib/instancedOpacity.js'
 import LabRoom from './scene/LabRoom.jsx'
 import { BlobShadow, WashBottle, LabNotebook } from './scene/props.jsx'
 import { clampSimDelta } from '../lib/simClock.js'
@@ -14,30 +16,46 @@ const SYR_Y = 0.15
 const SYR_LEN = 0.24        // barrel length for 100 cm³
 const SYR_R = 0.021
 
+const FIZZ_COUNT = 14
+
+const FIZZ_SEEDS = Array.from({ length: FIZZ_COUNT }, (_, i) => ({
+  phase: (i * 0.37) % 1,
+  x: ((i * 7919) % 100) / 100 * 0.05 - 0.025,
+  z: ((i * 104729) % 100) / 100 * 0.05 - 0.025,
+  speed: 0.6 + ((i * 31) % 10) / 10 * 0.7,
+  r: 0.0015 + ((i * 13) % 10) / 10 * 0.0022,
+}))
+
+const FIZZ_DUMMY = new Object3D()
+
+const FIZZ_OPACITIES = new Float32Array(FIZZ_COUNT)
+
+// Unit radius chosen so per-instance scale = seeds[i].r * animation scalar.
+const FIZZ_UNIT_R = 0.001
+
 /** Conical flask with acid + carbonate; fizzes while reaction runs. */
 function ReactionFlask({ running, rate }) {
-  const bubbleRefs = useRef([])
-  const seeds = useMemo(
-    () => Array.from({ length: 14 }, (_, i) => ({
-      phase: (i * 0.37) % 1,
-      x: ((i * 7919) % 100) / 100 * 0.05 - 0.025,
-      z: ((i * 104729) % 100) / 100 * 0.05 - 0.025,
-      speed: 0.6 + ((i * 31) % 10) / 10 * 0.7,
-      r: 0.0015 + ((i * 13) % 10) / 10 * 0.0022,
-    })),
-    [],
-  )
+  const fizzRef = useRef()
   useFrame(({ clock }) => {
+    const mesh = fizzRef.current
+    if (!mesh) return
+    const active = running && rate > 0.02
+    mesh.visible = active
+    if (!active) return
     const t = clock.getElapsedTime()
-    bubbleRefs.current.forEach((b, i) => {
-      if (!b) return
-      const sd = seeds[i]
+    const opacityAttr = mesh.geometry.attributes.aOpacity
+    for (let i = 0; i < FIZZ_COUNT; i += 1) {
+      const sd = FIZZ_SEEDS[i]
       const f = (t * sd.speed + sd.phase) % 1
       // bubbles rise inside the liquid then pop at the surface
-      b.position.set(sd.x * (1 - f * 0.5), 0.015 + f * 0.05, sd.z * (1 - f * 0.5))
-      b.scale.setScalar(rate > 0.02 ? 0.6 + f * 0.9 : 0)
-      b.material.opacity = running && rate > 0.02 ? 0.5 * (1 - f * 0.6) * Math.min(rate * 4, 1) : 0
-    })
+      FIZZ_DUMMY.position.set(sd.x * (1 - f * 0.5), 0.015 + f * 0.05, sd.z * (1 - f * 0.5))
+      FIZZ_DUMMY.scale.setScalar((sd.r / FIZZ_UNIT_R) * (0.6 + f * 0.9))
+      FIZZ_DUMMY.updateMatrix()
+      mesh.setMatrixAt(i, FIZZ_DUMMY.matrix)
+      opacityAttr.array[i] = 0.5 * (1 - f * 0.6) * Math.min(rate * 4, 1)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+    opacityAttr.needsUpdate = true
   })
   return (
     <group position={[FLASK_X, 0, 0]}>
@@ -69,12 +87,21 @@ function ReactionFlask({ running, rate }) {
         </mesh>
       ))}
       {/* CO₂ bubbles */}
-      {seeds.map((_, i) => (
-        <mesh key={i} ref={(el) => (bubbleRefs.current[i] = el)}>
-          <sphereGeometry args={[seeds[i].r, 8, 6]} />
-          <meshBasicMaterial color="#eef6fb" transparent opacity={0} depthWrite={false} />
-        </mesh>
-      ))}
+      <instancedMesh ref={fizzRef} args={[undefined, undefined, FIZZ_COUNT]} frustumCulled={false} visible={false}>
+        <sphereGeometry args={[FIZZ_UNIT_R, 8, 6]}>
+          <instancedBufferAttribute
+            attach="attributes-aOpacity"
+            args={[FIZZ_OPACITIES, 1]}
+            usage={DynamicDrawUsage}
+          />
+        </sphereGeometry>
+        <meshBasicMaterial
+          transparent
+          color="#eef6fb"
+          depthWrite={false}
+          onBeforeCompile={patchInstanceOpacityMaterial}
+        />
+      </instancedMesh>
     </group>
   )
 }

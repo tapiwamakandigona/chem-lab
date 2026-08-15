@@ -852,3 +852,15 @@ PRE-PUSH OK.
 - VERIFIED via GLInfoHook probe (temp hook in LabViewport, reverted): peroxide rest 120->90 draw calls, iodine-rate 170->160, distill control steady 134.
 - Peroxide running-state gl.info reads calls=2/triangles=4 on BOTH this build and stashed baseline (8 samples each, no console/page errors, screenshot shows grains+plunger correct) -> pre-existing sampling artifact of an extra internal render pass, NOT a regression.
 - Full canonical suite vs frozen dist: 37/37 gates green (peroxide 229s, iodine_rate 132s). PRE-PUSH OK.
+
+## opt-H: gas fizz-bubble instancing + peroxide timer display fix (2026-08-15)
+- GasScene: 14 per-mesh CO2 fizz bubbles -> 1 instancedMesh (FIZZ_COUNT=14, same
+  seed math, per-instance opacity via patchInstanceOpacityMaterial). Draw calls
+  gas rest 118 -> 104 (probe VERIFIED, distill control 134 unchanged).
+- PeroxideUI: timer display Math.round -> Math.floor. Root cause of idle-box
+  peroxide gate flake: UI showed "20 s" from t=19.5 while the 2nd automatic
+  reading only lands at timeSec >= 20 (store peroxideTick), so a fast poll on an
+  unloaded box hit the 0.5 s window where time read 20 but readings were 1/10.
+  App-code fix, not a test edit; DistillUI/GasUI keep Math.round (gates pass).
+- Full 37-gate suite green against this dist (36 passed pre-fix; peroxide, gas,
+  distill re-verified 3/3 after the fix). PRE-PUSH OK.

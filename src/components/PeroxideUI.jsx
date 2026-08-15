@@ -124,7 +124,7 @@ export default function PeroxideUI({ onBack }) {
           <div className="grid grid-cols-3 gap-2 mb-2">
             <div className="rounded-lg border border-lab-border px-2 py-1.5">
               <span className="block text-[9px] text-lab-muted uppercase">time</span>
-              <span data-testid="peroxide-time" className="font-mono text-xs text-lab-ink">{Math.round(peroxide.timeSec)} s</span>
+              <span data-testid="peroxide-time" className="font-mono text-xs text-lab-ink">{Math.floor(peroxide.timeSec)} s</span>
             </div>
             <div className="rounded-lg border border-lab-border px-2 py-1.5">
               <span className="block text-[9px] text-lab-muted uppercase">oxygen</span>
